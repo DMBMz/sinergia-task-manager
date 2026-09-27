@@ -1,0 +1,33 @@
+# Node dependencies
+node_modules/
+backend/node_modules/
+mobile/node_modules/
+
+# Environment files
+.env
+backend/.env
+*.env.local
+
+# Local Database & data
+backend/postgres_data/
+postgres_data/
+postgres.log
+*.log
+backend/uploads_fallback/
+
+# Build artifacts
+dist/
+backend/dist/
+build/
+mobile/build/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/
+.gradle/
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

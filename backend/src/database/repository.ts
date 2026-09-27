@@ -1,0 +1,495 @@
+import {
+  User, Project, ProjectMember, Task, Tag, Comment, Attachment, InviteToken,
+  Role, Priority, TaskStatus
+} from './types';
+import { v4 as uuidv4 } from 'uuid';
+
+export class AppRepository {
+  users: Map<string, User> = new Map();
+  projects: Map<string, Project> = new Map();
+  projectMembers: Map<string, ProjectMember> = new Map();
+  tasks: Map<string, Task> = new Map();
+  tags: Map<string, Tag> = new Map();
+  taskTags: Array<{ taskId: string; tagId: string }> = [];
+  comments: Map<string, Comment> = new Map();
+  attachments: Map<string, Attachment> = new Map();
+  inviteTokens: Map<string, InviteToken> = new Map();
+
+  // Change log for delta sync
+  changeLogs: Array<{
+    table: string;
+    recordId: string;
+    action: 'created' | 'updated' | 'deleted';
+    timestamp: Date;
+  }> = [];
+
+  constructor() {
+    this.seedInitialData();
+  }
+
+  seedInitialData() {
+    const user1: User = {
+      id: 'user-davi-001',
+      name: 'Davi Marinho',
+      email: 'davi@sinergia.com',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Davi',
+      fcmToken: 'fcm-token-davi',
+      quietUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    const user2: User = {
+      id: 'user-ana-002',
+      name: 'Ana Silva',
+      email: 'ana@sinergia.com',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana',
+      fcmToken: 'fcm-token-ana',
+      quietUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.users.set(user1.id, user1);
+    this.users.set(user2.id, user2);
+
+    const project1: Project = {
+      id: 'proj-sinergia-001',
+      name: 'Sinergia Mobile App',
+      description: 'Gestão Inteligente de Tarefas e Equipes',
+      color: '#3B82F6',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null
+    };
+    this.projects.set(project1.id, project1);
+
+    this.projectMembers.set('pm-1', {
+      id: 'pm-1',
+      projectId: project1.id,
+      userId: user1.id,
+      role: 'ADMIN',
+      createdAt: new Date()
+    });
+    this.projectMembers.set('pm-2', {
+      id: 'pm-2',
+      projectId: project1.id,
+      userId: user2.id,
+      role: 'EDIT',
+      createdAt: new Date()
+    });
+
+    const tag1: Tag = { id: 'tag-1', name: 'Sprint 1', color: '#10B981', projectId: project1.id };
+    const tag2: Tag = { id: 'tag-2', name: 'Mobile', color: '#6366F1', projectId: project1.id };
+    this.tags.set(tag1.id, tag1);
+    this.tags.set(tag2.id, tag2);
+
+    const task1: Task = {
+      id: 'task-root-001',
+      title: 'Estruturação da Arquitetura Mobile e Backend',
+      description: 'Definição dos schemas Prisma, WatermelonDB e rotas da Sprint 1.',
+      priority: 'HIGH',
+      status: 'IN_PROGRESS',
+      effortHours: 12,
+      startDate: new Date(),
+      dueDate: new Date(Date.now() + 86400000 * 2), // 2 dias
+      projectId: project1.id,
+      assigneeId: user1.id,
+      parentTaskId: null,
+      version: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null
+    };
+    this.tasks.set(task1.id, task1);
+    this.taskTags.push({ taskId: task1.id, tagId: tag1.id });
+    this.taskTags.push({ taskId: task1.id, tagId: tag2.id });
+
+    // Subtarefa aninhada
+    const subtask1: Task = {
+      id: 'subtask-001',
+      title: 'Configurar Sync Bidirecional e Modo Offline',
+      description: 'Testar protocolo WatermelonDB com pull/push.',
+      priority: 'HIGH',
+      status: 'PENDING',
+      effortHours: 6,
+      startDate: new Date(),
+      dueDate: new Date(Date.now() + 86400000 * 1), // 1 dia
+      projectId: project1.id,
+      assigneeId: user2.id,
+      parentTaskId: task1.id,
+      version: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null
+    };
+    this.tasks.set(subtask1.id, subtask1);
+  }
+
+  logChange(table: string, recordId: string, action: 'created' | 'updated' | 'deleted') {
+    this.changeLogs.push({
+      table,
+      recordId,
+      action,
+      timestamp: new Date()
+    });
+  }
+
+  // --- Task Operations ---
+  createTask(data: Partial<Task>): Task {
+    const id = data.id || uuidv4();
+    const task: Task = {
+      id,
+      title: data.title || 'Nova Tarefa',
+      description: data.description || '',
+      priority: data.priority || 'MEDIUM',
+      status: data.status || 'PENDING',
+      effortHours: data.effortHours || 0,
+      startDate: data.startDate ? new Date(data.startDate) : null,
+      dueDate: data.dueDate ? new Date(data.dueDate) : null,
+      projectId: data.projectId || 'proj-sinergia-001',
+      assigneeId: data.assigneeId || null,
+      parentTaskId: data.parentTaskId || null,
+      version: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null
+    };
+    this.tasks.set(task.id, task);
+    this.logChange('tasks', task.id, 'created');
+    return task;
+  }
+
+  getTask(id: string): Task | undefined {
+    const task = this.tasks.get(id);
+    return task && !task.deletedAt ? task : undefined;
+  }
+
+  getTaskWithDetails(id: string) {
+    const task = this.getTask(id);
+    if (!task) return null;
+
+    const subTasks = Array.from(this.tasks.values()).filter(t => t.parentTaskId === id && !t.deletedAt);
+    const tagIds = this.taskTags.filter(tt => tt.taskId === id).map(tt => tt.tagId);
+    const tags = tagIds.map(tid => this.tags.get(tid)).filter(Boolean) as Tag[];
+    const comments = Array.from(this.comments.values()).filter(c => c.taskId === id);
+    const attachments = Array.from(this.attachments.values()).filter(a => a.taskId === id);
+    const assignee = task.assigneeId ? this.users.get(task.assigneeId) : null;
+
+    return {
+      ...task,
+      assignee,
+      subTasks,
+      tags,
+      comments,
+      attachments
+    };
+  }
+
+  getAllTasks(filter?: { projectId?: string; tag?: string; status?: TaskStatus; priority?: Priority; query?: string }): any[] {
+    let result = Array.from(this.tasks.values()).filter(t => !t.deletedAt);
+
+    if (filter?.projectId) {
+      result = result.filter(t => t.projectId === filter.projectId);
+    }
+    if (filter?.status) {
+      result = result.filter(t => t.status === filter.status);
+    }
+    if (filter?.priority) {
+      result = result.filter(t => t.priority === filter.priority);
+    }
+    if (filter?.tag) {
+      const tagMatchIds = this.taskTags.filter(tt => {
+        const tagObj = this.tags.get(tt.tagId);
+        return tagObj && tagObj.name.toLowerCase() === filter.tag?.toLowerCase();
+      }).map(tt => tt.taskId);
+      result = result.filter(t => tagMatchIds.includes(t.id));
+    }
+    if (filter?.query) {
+      const q = filter.query.toLowerCase();
+      result = result.filter(t => 
+        t.title.toLowerCase().includes(q) || 
+        (t.description && t.description.toLowerCase().includes(q))
+      );
+    }
+
+    return result.map(t => this.getTaskWithDetails(t.id));
+  }
+
+  // US06: Bloqueio de Edição Simultânea
+  lockTask(id: string, user: { id: string; name: string; avatarUrl?: string }): { success: boolean; task?: any; lockedBy?: any; isSelf?: boolean } {
+    const task = this.tasks.get(id);
+    if (!task || task.deletedAt) return { success: false };
+
+    const now = new Date();
+    if (task.lockedBy && task.lockedBy.id !== user.id && task.lockedAt) {
+      const diffMs = now.getTime() - new Date(task.lockedAt).getTime();
+      if (diffMs < 5 * 60 * 1000) {
+        return { success: false, lockedBy: task.lockedBy, task: this.getTaskWithDetails(id) };
+      }
+    }
+
+    task.lockedBy = user;
+    task.lockedAt = now;
+    this.tasks.set(id, task);
+    return { success: true, task: this.getTaskWithDetails(id), isSelf: true };
+  }
+
+  unlockTask(id: string, userId?: string): { success: boolean; task?: any } {
+    const task = this.tasks.get(id);
+    if (!task) return { success: false };
+
+    if (userId && task.lockedBy && task.lockedBy.id !== userId) {
+      const diffMs = new Date().getTime() - new Date(task.lockedAt || 0).getTime();
+      if (diffMs < 5 * 60 * 1000) {
+        return { success: false, task: this.getTaskWithDetails(id) };
+      }
+    }
+
+    task.lockedBy = null;
+    task.lockedAt = null;
+    this.tasks.set(id, task);
+    return { success: true, task: this.getTaskWithDetails(id) };
+  }
+
+  updateTask(id: string, expectedVersion: number, data: Partial<Task> & { userId?: string }): { task?: Task; conflict?: boolean; locked?: boolean; lockedBy?: any; currentVersion?: number } {
+    const existing = this.tasks.get(id);
+    if (!existing || existing.deletedAt) {
+      return { conflict: false };
+    }
+
+    // US06: Bloqueio de Edição Simultânea por outro usuário
+    if (data.userId && existing.lockedBy && existing.lockedBy.id !== data.userId) {
+      const diffMs = new Date().getTime() - new Date(existing.lockedAt || 0).getTime();
+      if (diffMs < 5 * 60 * 1000) {
+        return {
+          conflict: true,
+          locked: true,
+          lockedBy: existing.lockedBy,
+          currentVersion: existing.version,
+          task: existing
+        };
+      }
+    }
+
+    // US06: Lock Otimista - verifica se versão informada pelo cliente bate com a versão no banco
+    if (expectedVersion !== undefined && existing.version !== expectedVersion) {
+      return {
+        conflict: true,
+        currentVersion: existing.version,
+        task: existing
+      };
+    }
+
+    const { userId, tags, ...cleanData } = data as any;
+
+    if (Array.isArray(tags)) {
+      this.taskTags = this.taskTags.filter(tt => tt.taskId !== id);
+      for (const tNameOrId of tags) {
+        if (!tNameOrId) continue;
+        let foundTag = this.tags.get(tNameOrId);
+        if (!foundTag) {
+          foundTag = Array.from(this.tags.values()).find(t => t.name.toLowerCase() === String(tNameOrId).toLowerCase());
+        }
+        if (!foundTag) {
+          const newTagId = 'tag-' + uuidv4().slice(0, 8);
+          foundTag = {
+            id: newTagId,
+            name: String(tNameOrId),
+            color: '#3B82F6',
+            projectId: existing.projectId
+          };
+          this.tags.set(newTagId, foundTag);
+        }
+        this.taskTags.push({ taskId: id, tagId: foundTag.id });
+      }
+    }
+
+    const updated: Task = {
+      ...existing,
+      ...cleanData,
+      lockedBy: null, // Libera o lock após conclusão da edição
+      lockedAt: null,
+      version: existing.version + 1, // Incrementa versão a cada alteração
+      updatedAt: new Date()
+    };
+    if (Array.isArray(tags)) {
+      (updated as any).tags = tags;
+    }
+    this.tasks.set(id, updated);
+    this.logChange('tasks', id, 'updated');
+    return { task: updated, conflict: false };
+  }
+
+  deleteTask(id: string): boolean {
+    const task = this.tasks.get(id);
+    if (!task) return false;
+    task.deletedAt = new Date();
+    task.updatedAt = new Date();
+    this.tasks.set(id, task);
+    this.logChange('tasks', id, 'deleted');
+    return true;
+  }
+
+  // --- Subtask Hierarchy ---
+  getSubtasks(parentTaskId: string): Task[] {
+    return Array.from(this.tasks.values()).filter(t => t.parentTaskId === parentTaskId && !t.deletedAt);
+  }
+
+  // --- Invites & ACL (US03) ---
+  createInvite(data: { projectId?: string; taskId?: string; role: Role; expiresInHours?: number; createdById: string }): InviteToken {
+    const token = 'sinergia-inv-' + uuidv4().substring(0, 8);
+    const expiresAt = new Date(Date.now() + (data.expiresInHours || 48) * 3600000);
+    const invite: InviteToken = {
+      id: uuidv4(),
+      token,
+      projectId: data.projectId || null,
+      taskId: data.taskId || null,
+      role: data.role,
+      expiresAt,
+      maxUses: 10,
+      usesCount: 0,
+      createdById: data.createdById,
+      createdAt: new Date()
+    };
+    this.inviteTokens.set(token, invite);
+    return invite;
+  }
+
+  acceptInvite(token: string, userId: string): { success: boolean; message: string; role?: Role; projectId?: string } {
+    const invite = this.inviteTokens.get(token);
+    if (!invite) {
+      return { success: false, message: 'Convite inválido ou não encontrado.' };
+    }
+    if (new Date() > invite.expiresAt) {
+      return { success: false, message: 'Este convite expirou.' };
+    }
+    if (invite.usesCount >= invite.maxUses) {
+      return { success: false, message: 'Limite de utilizações deste convite atingido.' };
+    }
+
+    invite.usesCount += 1;
+    this.inviteTokens.set(token, invite);
+
+    if (invite.projectId) {
+      const pmId = `pm-${uuidv4().substring(0, 6)}`;
+      this.projectMembers.set(pmId, {
+        id: pmId,
+        projectId: invite.projectId,
+        userId,
+        role: invite.role,
+        createdAt: new Date()
+      });
+      return {
+        success: true,
+        message: `Acesso concedido ao projeto com papel ${invite.role}.`,
+        role: invite.role,
+        projectId: invite.projectId
+      };
+    }
+
+    return { success: true, message: 'Convite aceito com sucesso.', role: invite.role };
+  }
+
+  // --- Comments & Mentions (US04) ---
+  createComment(data: { taskId: string; authorId: string; content: string }): Comment {
+    // Extrai menções com @
+    const mentionRegex = /@([a-zA-Z0-9_.-]+)/g;
+    const matches = data.content.match(mentionRegex) || [];
+    const mentions = matches.map(m => m.substring(1));
+
+    const comment: Comment = {
+      id: uuidv4(),
+      taskId: data.taskId,
+      authorId: data.authorId,
+      content: data.content,
+      mentions,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.comments.set(comment.id, comment);
+    this.logChange('comments', comment.id, 'created');
+    return comment;
+  }
+
+  // --- Attachments (US04) ---
+  createAttachment(data: { taskId: string; commentId?: string; fileName: string; fileType: string; fileSize: number; storageKey: string; url: string }): Attachment {
+    const attachment: Attachment = {
+      id: uuidv4(),
+      taskId: data.taskId,
+      commentId: data.commentId || null,
+      fileName: data.fileName,
+      fileType: data.fileType,
+      fileSize: data.fileSize,
+      storageKey: data.storageKey,
+      url: data.url,
+      createdAt: new Date()
+    };
+    this.attachments.set(attachment.id, attachment);
+    this.logChange('attachments', attachment.id, 'created');
+    return attachment;
+  }
+
+  // --- Delta Sync Protocol (US02) ---
+  getChangesSince(lastPulledAt: Date) {
+    const changes: Record<string, { created: any[]; updated: any[]; deleted: string[] }> = {
+      tasks: { created: [], updated: [], deleted: [] },
+      comments: { created: [], updated: [], deleted: [] },
+      attachments: { created: [], updated: [], deleted: [] }
+    };
+
+    for (const task of this.tasks.values()) {
+      if (task.deletedAt && task.updatedAt > lastPulledAt) {
+        changes.tasks.deleted.push(task.id);
+      } else if (task.createdAt > lastPulledAt) {
+        changes.tasks.created.push(task);
+      } else if (task.updatedAt > lastPulledAt) {
+        changes.tasks.updated.push(task);
+      }
+    }
+
+    for (const comment of this.comments.values()) {
+      if (comment.createdAt > lastPulledAt) {
+        changes.comments.created.push(comment);
+      } else if (comment.updatedAt > lastPulledAt) {
+        changes.comments.updated.push(comment);
+      }
+    }
+
+    for (const attachment of this.attachments.values()) {
+      if (attachment.createdAt > lastPulledAt) {
+        changes.attachments.created.push(attachment);
+      }
+    }
+
+    return changes;
+  }
+
+  applyClientPush(changes: Record<string, { created: any[]; updated: any[]; deleted: string[] }>) {
+    let appliedCount = 0;
+
+    if (changes.tasks) {
+      for (const t of changes.tasks.created || []) {
+        this.createTask(t);
+        appliedCount++;
+      }
+      for (const t of changes.tasks.updated || []) {
+        this.updateTask(t.id, t.version - 1, t);
+        appliedCount++;
+      }
+      for (const id of changes.tasks.deleted || []) {
+        this.deleteTask(id);
+        appliedCount++;
+      }
+    }
+
+    if (changes.comments) {
+      for (const c of changes.comments.created || []) {
+        this.createComment(c);
+        appliedCount++;
+      }
+    }
+
+    return { success: true, appliedCount };
+  }
+}
+
+export const repository = new AppRepository();

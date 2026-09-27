@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: sinergia-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: node dist/server.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sinergia-postgres
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+
+databases:
+  - name: sinergia-postgres
+    databaseName: sinergia_db
+    user: sinergia
+    plan: free
