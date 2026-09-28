@@ -4103,15 +4103,23 @@
         const mm = String(now.getMinutes()).padStart(2, '0');
         return `Hoje às ${timeVal || hh + ':' + mm}`;
       }
+
+      // Se já for uma string brasileira formatada (ex: "4 de Out às 18:00", "Hoje às 18:00", "Amanhã")
+      if (typeof dateVal === 'string' && (dateVal.includes(' de ') || dateVal.startsWith('Hoje') || dateVal.startsWith('Amanhã') || dateVal.startsWith('Ontem'))) {
+        return dateVal;
+      }
+
       let dStr = dateVal;
       let tStr = timeVal || '18:00';
-      if (dateVal.includes('T')) {
+      if (typeof dateVal === 'string' && dateVal.includes('T')) {
         const parts = dateVal.split('T');
         dStr = parts[0];
         if (parts[1]) tStr = parts[1].substring(0, 5);
       }
       const iso = `${dStr}T${tStr.length === 5 ? tStr + ':00' : tStr}`;
-      return getTaskDueDateDisplay({ dueDateIso: iso }, false);
+      const res = getTaskDueDateDisplay({ dueDateIso: iso }, false);
+      if (res && res !== 'Sem prazo') return res;
+      return dateVal;
     }
 
     
@@ -5097,14 +5105,20 @@
 
         // 1. PUSH: Se houver alterações locais pendentes, envia push para o backend
         if (pendingPush.length > 0 || pendingDeleted.length > 0) {
+          const sanitizeTaskForPush = (t) => ({
+            ...t,
+            dueDate: t.dueDateIso || t.dueDate,
+            dueDateIso: t.dueDateIso || t.dueDate
+          });
+
           const pushRes = await apiFetch(`/sync/push`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               changes: {
                 tasks: {
-                  created: pendingPush.filter(t => t._status === 'created'),
-                  updated: pendingPush.filter(t => t._status === 'updated'),
+                  created: pendingPush.filter(t => t._status === 'created').map(sanitizeTaskForPush),
+                  updated: pendingPush.filter(t => t._status === 'updated').map(sanitizeTaskForPush),
                   deleted: pendingDeleted
                 }
               }
@@ -5156,6 +5170,9 @@
 
               if (localIndex === -1) {
                 // Nova tarefa criada por outro usuário no time!
+                const effectiveDue = st.dueDateIso || st.dueDate;
+                const formattedDue = effectiveDue ? (effectiveDue.includes('T') ? formatDueDateDisplay(effectiveDue.split('T')[0], effectiveDue.split('T')[1]?.slice(0,5) || '18:00') : formatDueDateDisplay(effectiveDue)) : 'Hoje';
+
                 db.tasks.unshift({
                   id: st.id,
                   team: st.team || db.currentTeam,
@@ -5167,8 +5184,8 @@
                   priorityColor: pCol,
                   status: st.status || 'PENDING',
                   time: 'Hoje',
-                  dueDate: st.dueDate ? (st.dueDate.includes('T') ? formatDueDateDisplay(st.dueDate.split('T')[0], st.dueDate.split('T')[1]?.slice(0,5) || '18:00') : st.dueDate) : 'Hoje',
-                  dueDateIso: st.dueDate,
+                  dueDate: formattedDue,
+                  dueDateIso: effectiveDue,
                   effortHours: st.effortHours || 1,
                   assignee: assignee,
                   avatar: avatar,
@@ -5204,9 +5221,10 @@
                   lt.status = st.status || lt.status;
                   lt.assignee = assignee;
                   lt.avatar = avatar;
-                  if (st.dueDate) {
-                    lt.dueDateIso = st.dueDate;
-                    lt.dueDate = st.dueDate.includes('T') ? formatDueDateDisplay(st.dueDate.split('T')[0], st.dueDate.split('T')[1]?.slice(0,5) || '18:00') : st.dueDate;
+                  if (st.dueDate || st.dueDateIso) {
+                    const effectiveDue = st.dueDateIso || st.dueDate;
+                    lt.dueDateIso = effectiveDue;
+                    lt.dueDate = effectiveDue.includes('T') ? formatDueDateDisplay(effectiveDue.split('T')[0], effectiveDue.split('T')[1]?.slice(0,5) || '18:00') : formatDueDateDisplay(effectiveDue);
                   }
                   if (st.effortHours) lt.effortHours = st.effortHours;
                   if (Array.isArray(st.subtasks)) lt.subtasks = st.subtasks;

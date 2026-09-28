@@ -192,6 +192,35 @@ export class AppRepository {
       projectId = 'proj-sinergia-001';
     }
 
+    let parsedDue: Date | null = null;
+    const rawDue = (data as any).dueDateIso || data.dueDate;
+    if (rawDue) {
+      if (rawDue instanceof Date) {
+        parsedDue = isNaN(rawDue.getTime()) ? null : rawDue;
+      } else if (typeof rawDue === 'string') {
+        const d = new Date(rawDue);
+        if (!isNaN(d.getTime())) {
+          parsedDue = d;
+        } else {
+          const monthsMap: Record<string, number> = {
+            jan: 0, fev: 1, mar: 2, abr: 3, mai: 4, jun: 5,
+            jul: 6, ago: 7, set: 8, out: 9, nov: 10, dez: 11
+          };
+          const match = rawDue.match(/(\d{1,2})\s+de\s+([a-zA-Z]{3})(?:\s+às\s+(\d{1,2}):(\d{2}))?/i);
+          if (match) {
+            const day = parseInt(match[1], 10);
+            const mStr = match[2].toLowerCase();
+            const month = monthsMap[mStr] !== undefined ? monthsMap[mStr] : new Date().getMonth();
+            const hour = match[3] ? parseInt(match[3], 10) : 18;
+            const min = match[4] ? parseInt(match[4], 10) : 0;
+            const year = new Date().getFullYear();
+            const parsed = new Date(year, month, day, hour, min, 0);
+            if (!isNaN(parsed.getTime())) parsedDue = parsed;
+          }
+        }
+      }
+    }
+
     const task: Task = {
       id,
       title: data.title || 'Nova Tarefa',
@@ -200,7 +229,7 @@ export class AppRepository {
       status: data.status || 'PENDING',
       effortHours: data.effortHours || 0,
       startDate: data.startDate ? new Date(data.startDate) : null,
-      dueDate: data.dueDate ? new Date(data.dueDate) : null,
+      dueDate: parsedDue,
       projectId,
       team: data.team || this.projects.get(projectId)?.name || 'Meu Time',
       assigneeId: data.assigneeId || null,
@@ -306,8 +335,12 @@ export class AppRepository {
     const project = this.projects.get(task.projectId);
     const team = task.team || project?.name || 'Meu Time';
 
+    const isoDue = task.dueDate ? (task.dueDate instanceof Date ? (isNaN(task.dueDate.getTime()) ? null : task.dueDate.toISOString()) : String(task.dueDate)) : null;
+
     return {
       ...task,
+      dueDate: isoDue || (task as any).dueDate || null,
+      dueDateIso: isoDue || (task as any).dueDateIso || null,
       team,
       assignee: assignee || (task.assigneeName ? { id: task.assigneeId || 'assigned', name: task.assigneeName } : null),
       subTasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
@@ -444,9 +477,41 @@ export class AppRepository {
       }
     }
 
+    let parsedDue: Date | null | undefined = undefined;
+    if ((data as any).dueDateIso !== undefined || (data as any).dueDate !== undefined) {
+      const rawDue = (data as any).dueDateIso !== undefined ? (data as any).dueDateIso : (data as any).dueDate;
+      if (!rawDue) {
+        parsedDue = null;
+      } else if (rawDue instanceof Date) {
+        parsedDue = isNaN(rawDue.getTime()) ? null : rawDue;
+      } else if (typeof rawDue === 'string') {
+        const d = new Date(rawDue);
+        if (!isNaN(d.getTime())) {
+          parsedDue = d;
+        } else {
+          const monthsMap: Record<string, number> = {
+            jan: 0, fev: 1, mar: 2, abr: 3, mai: 4, jun: 5,
+            jul: 6, ago: 7, set: 8, out: 9, nov: 10, dez: 11
+          };
+          const match = rawDue.match(/(\d{1,2})\s+de\s+([a-zA-Z]{3})(?:\s+às\s+(\d{1,2}):(\d{2}))?/i);
+          if (match) {
+            const day = parseInt(match[1], 10);
+            const mStr = match[2].toLowerCase();
+            const month = monthsMap[mStr] !== undefined ? monthsMap[mStr] : new Date().getMonth();
+            const hour = match[3] ? parseInt(match[3], 10) : 18;
+            const min = match[4] ? parseInt(match[4], 10) : 0;
+            const year = new Date().getFullYear();
+            const parsed = new Date(year, month, day, hour, min, 0);
+            if (!isNaN(parsed.getTime())) parsedDue = parsed;
+          }
+        }
+      }
+    }
+
     const updated: Task = {
       ...existing,
       ...cleanData,
+      dueDate: parsedDue !== undefined ? parsedDue : existing.dueDate,
       team: (data as any).team || existing.team,
       subtasks: (data as any).subtasks !== undefined ? (data as any).subtasks : existing.subtasks,
       lockedBy: (data as any).lockedBy !== undefined ? (data as any).lockedBy : null, // Libera o lock após conclusão da edição se não informado
