@@ -7,7 +7,7 @@
 
 ## 🎯 Escopo Entregue na Sprint 1 (44 Story Points)
 
-Todas as **7 User Stories** da Sprint 1 foram implementadas, estruturadas e validadas:
+Todas as **6 User Stories** da Sprint 1 foram implementadas, estruturadas e validadas:
 
 | US | Prioridade | SP | Descrição | Implementação |
 | :--- | :---: | :---: | :--- | :--- |
@@ -15,7 +15,6 @@ Todas as **7 User Stories** da Sprint 1 foram implementadas, estruturadas e vali
 | **US02** | Alta | 13.0 | Funcionamento offline com banco local e sincronização automática | `mobile/src/services/syncService.ts`, `backend/src/modules/sync/` |
 | **US03** | Alta | 5.0 | Convidar membros via QR/Link com diferentes permissões (ACL) | `backend/src/modules/invites/`, `mobile/src/components/ShareModal.tsx`, `QRScannerModal.tsx` |
 | **US04** | Alta | 8.0 | Comentários com `@` e anexos via MinIO | `backend/src/modules/storage/`, `backend/src/modules/comments/`, `mobile/src/components/CommentSection.tsx` |
-| **US05** | Alta | 5.0 | Filtro por tags e busca semântica/fuzzy tolerante a erros | `mobile/src/services/searchIndex.ts`, `mobile/src/components/FilterBar.tsx` |
 | **US06** | Alta | 5.0 | Bloqueio de edições simultâneas via Lock Otimista | `backend/src/modules/tasks/tasks.controller.ts`, `mobile/src/components/ConflictModal.tsx` |
 | **US07** | Alta | 3.0 | Alertas contextuais e progressivos de prazo via Firebase | `backend/src/modules/notifications/`, `mobile/src/services/notificationHandler.ts` |
 
