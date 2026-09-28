@@ -11,7 +11,7 @@ export class SyncService {
   private comments: Map<string, LocalComment> = new Map();
   private tags: Map<string, LocalTag> = new Map();
 
-  constructor(apiUrl: string = 'http://localhost:3000/api/v1') {
+  constructor(apiUrl: string = 'https://sinergia-task-manager.onrender.com/api/v1') {
     this.apiUrl = apiUrl;
     this.initializeDefaultData();
   }
