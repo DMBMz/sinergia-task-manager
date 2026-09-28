@@ -844,11 +844,49 @@
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
-      transition: transform 0.1s ease;
+      transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
     }
 
     .dash-task-item:hover {
       transform: translateY(-1px);
+    }
+
+    .dash-task-item.completed {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      opacity: 0.9;
+    }
+
+    .dash-task-item.completed:hover {
+      opacity: 1;
+      border-color: #CBD5E1;
+    }
+
+    .task-check-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #CBD5E1;
+      background: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0;
+      transition: all 0.2s ease;
+      margin-top: 1px;
+    }
+
+    .task-check-circle:hover {
+      border-color: #10B981;
+      background: #F0FDF4;
+    }
+
+    .task-check-circle.checked {
+      border-color: #10B981;
+      background: #10B981;
+      color: #FFFFFF;
     }
 
     .priority-pill {
@@ -1182,19 +1220,34 @@
 
         <!-- Section Próximas Tarefas -->
         <div style="padding: 0 16px 8px 16px; display: flex; justify-content: space-between; align-items: center;">
-          <strong style="font-size: 13px; color: #0F172A;">Próximas Tarefas</strong>
-          <span style="font-size: 11px; color: #2563EB; font-weight: 700; cursor: pointer;" onclick="renderTaskList(true)">Ver todas</span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <strong style="font-size: 13px; color: #0F172A;">Próximas Tarefas</strong>
+            <span id="pendingTasksCountBadge" style="background: #EFF6FF; color: #2563EB; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 9999px;">0</span>
+          </div>
+          <span id="btnToggleAllPending" style="font-size: 11px; color: #2563EB; font-weight: 700; cursor: pointer;" onclick="togglePendingShowAll()">Ver todas</span>
         </div>
 
         <!-- Container Dinâmico de Tarefas -->
         <div id="dynamicTasksContainer"></div>
 
         <!-- Botão Adicionar Tarefa Rápida -->
-        <div style="padding: 0 16px; margin: 8px 0 12px 0;">
+        <div style="padding: 0 16px; margin: 4px 0 12px 0;">
           <button onclick="switchScreen('create-task', null)" style="width: 100%; padding: 8px; background: #FFFFFF; border: 1px dashed #CBD5E1; border-radius: 10px; color: #2563EB; font-weight: 700; font-size: 12px; cursor: pointer;">
             + Adicionar tarefa
           </button>
         </div>
+
+        <!-- Section Tarefas Concluídas -->
+        <div id="completedTasksSectionHeader" style="padding: 6px 16px 8px 16px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <strong style="font-size: 13px; color: #0F172A;">Concluídas</strong>
+            <span id="completedTasksCountBadge" style="background: #DCFCE7; color: #16A34A; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 9999px;">0</span>
+          </div>
+          <span id="btnToggleAllCompleted" style="font-size: 11px; color: #64748B; font-weight: 600; cursor: pointer;" onclick="toggleCompletedShowAll()">Ver todas</span>
+        </div>
+
+        <!-- Container Dinâmico de Tarefas Concluídas -->
+        <div id="completedTasksContainer"></div>
 
         <!-- Insights do Projeto -->
         <div style="margin: 0 16px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="switchScreen('project-planning', null)">
@@ -2798,53 +2851,76 @@
       renderTaskList(false);
     }
 
-    // Renderizar Lista de Tarefas do Time Ativo
-    function renderTaskList(showAll) {
+    let showAllPendingTasks = false;
+    let showAllCompletedTasks = false;
+
+    function togglePendingShowAll() {
+      showAllPendingTasks = !showAllPendingTasks;
+      renderTaskList();
+    }
+
+    function toggleCompletedShowAll() {
+      showAllCompletedTasks = !showAllCompletedTasks;
+      renderTaskList();
+    }
+
+    // Marcação / Desmarcação Rápida de Conclusão de Tarefa com 1 toque
+    function quickToggleTaskComplete(taskId) {
       const db = getDB();
-      const container = document.getElementById('dynamicTasksContainer');
-      container.innerHTML = '';
+      const task = (db.tasks || []).find(t => t.id === taskId);
+      if (!task) return;
 
-      const team = db.currentTeam;
-      const tasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
-      const list = showAll ? tasks : tasks.slice(0, 5);
+      const wasCompleted = task.status === 'COMPLETED';
+      task.status = wasCompleted ? 'PENDING' : 'COMPLETED';
+      task._status = (task._status === 'created') ? 'created' : 'updated';
 
-      if (list.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 28px 16px; background: #FFFFFF; border: 1px dashed #CBD5E1; border-radius: 14px; margin-bottom: 8px;">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: #EFF6FF; color: #2563EB; margin-bottom: 10px;"><svg class="svg-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
-            <strong style="font-size: 13px; color: #1E293B; display: block;">Nenhuma tarefa no time "${team || 'atual'}"</strong>
-            <p style="font-size: 11px; color: #64748B; margin-top: 4px;">Toque no botão abaixo ou no "+" para cadastrar a primeira tarefa!</p>
-            <button onclick="switchScreen('create-task', null)" style="margin-top: 12px; padding: 8px 16px; background: #2563EB; color: #FFFFFF; font-weight: 700; font-size: 11px; border: none; border-radius: 8px; cursor: pointer;">+ Criar Primeira Tarefa</button>
-          </div>
-        `;
-        return;
+      if (!wasCompleted && Array.isArray(task.subtasks) && task.subtasks.length > 0) {
+        task.subtasks.forEach(s => s.completed = true);
       }
 
-      list.forEach(task => {
-        const item = document.createElement('div');
-        item.className = 'dash-task-item';
-        item.onclick = () => openTaskDetail(task.id);
+      saveDB(db, true);
+      renderDashboard();
 
-        const isSynced = task._status === 'synced';
-        const syncBadge = isSynced ? ICONS.cloud(13, '#2563EB') : ICONS.hardDrive(13, '#64748B') + ' <span style="font-size: 10px;">Offline</span>';
+      if (task.status === 'COMPLETED') {
+        showToast('🎉 Tarefa marcada como concluída!');
+        createNotification({
+          title: 'Tarefa Concluída!',
+          message: `"${task.title}" foi concluída e movida para a seção Concluídas.`,
+          type: 'completion',
+          color: '#10B981',
+          taskId: task.id
+        });
+      } else {
+        showToast('Tarefa reaberta como pendente.');
+      }
+    }
 
-        const completedSubs = (task.subtasks || []).filter(s => s.completed).length;
-        const totalSubs = (task.subtasks || []).length;
-        const subBadge = totalSubs > 0 ? `<span style="font-size: 10px; color: #64748B; margin-left: 6px;">[${completedSubs}/${totalSubs} subs]</span>` : '';
+    // Constrói elemento HTML do Card de Tarefa (Pendente ou Concluída)
+    function createTaskCardElement(task, isCompleted, db) {
+      const item = document.createElement('div');
+      item.className = 'dash-task-item' + (isCompleted ? ' completed' : '');
+      item.onclick = () => openTaskDetail(task.id);
 
-        const isCompleted = task.status === 'COMPLETED';
-        let dueTimestamp = null;
-        if (task.dueDateIso) {
-          dueTimestamp = new Date(task.dueDateIso).getTime();
-        }
+      const isSynced = task._status === 'synced';
+      const syncBadge = isSynced ? ICONS.cloud(13, '#2563EB') : ICONS.hardDrive(13, '#64748B') + ' <span style="font-size: 10px;">Offline</span>';
 
-        const isOverdue = dueTimestamp && dueTimestamp < Date.now() && !isCompleted;
-        const diffHours = dueTimestamp ? (dueTimestamp - Date.now()) / (1000 * 3600) : null;
+      const completedSubs = (task.subtasks || []).filter(s => s.completed).length;
+      const totalSubs = (task.subtasks || []).length;
+      const subBadge = totalSubs > 0 ? `<span style="font-size: 10px; color: #64748B; margin-left: 6px;">[${completedSubs}/${totalSubs} subs]</span>` : '';
 
-        let deadlineLabel = getTaskDueDateDisplay(task, false);
-        let deadlineColor = '#64748B';
-        let deadlineIcon = ICONS.clock(12, '#64748B');
+      let dueTimestamp = null;
+      if (task.dueDateIso) {
+        dueTimestamp = new Date(task.dueDateIso).getTime();
+      }
 
+      const isOverdue = dueTimestamp && dueTimestamp < Date.now() && !isCompleted;
+      const diffHours = dueTimestamp ? (dueTimestamp - Date.now()) / (1000 * 3600) : null;
+
+      let deadlineLabel = getTaskDueDateDisplay(task, false);
+      let deadlineColor = '#64748B';
+      let deadlineIcon = ICONS.clock(12, '#64748B');
+
+      if (!isCompleted) {
         if (isOverdue) {
           deadlineColor = '#DC2626';
           deadlineIcon = ICONS.alertCircle(12, '#DC2626');
@@ -2863,43 +2939,162 @@
           deadlineColor = '#16A34A';
           deadlineIcon = ICONS.checkCircle(12, '#16A34A');
         }
+      }
 
-        let lockCardTag = '';
-        if (task.lockedBy) {
-          const isMe = task.lockedBy.id === (db.currentUser?.id || 'me');
-          if (isMe) {
-            lockCardTag = `<span class="task-lock-tag self">✏️ Você editando</span>`;
-          } else {
-            lockCardTag = `<span class="task-lock-tag other">🔒 ${task.lockedBy.name} editando</span>`;
-          }
+      let lockCardTag = '';
+      if (task.lockedBy) {
+        const isMe = task.lockedBy.id === (db.currentUser?.id || 'me');
+        if (isMe) {
+          lockCardTag = `<span class="task-lock-tag self">✏️ Você editando</span>`;
+        } else {
+          lockCardTag = `<span class="task-lock-tag other">🔒 ${task.lockedBy.name} editando</span>`;
         }
+      }
 
-        const tagsHtml = (Array.isArray(task.tags) && task.tags.length > 0)
-          ? task.tags.map(t => {
-              const name = (typeof t === 'object' && t !== null) ? (t.name || t.id || '') : String(t || '');
-              if (!name) return '';
-              return `<span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🏷️ ${escapeHtml(name)}</span>`;
-            }).join('')
-          : '';
+      const tagsHtml = (Array.isArray(task.tags) && task.tags.length > 0)
+        ? task.tags.map(t => {
+            let name = '';
+            if (typeof t === 'string' && t !== '[object Object]') {
+              name = t;
+            } else if (typeof t === 'object' && t !== null) {
+              name = t.name || t.title || (t.tag && t.tag.name) || (t.tag && t.tag.title) || '';
+            }
+            if (!name || name === '[object Object]') return '';
+            return `<span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🏷️ ${escapeHtml(name)}</span>`;
+          }).join('')
+        : '';
 
-        item.innerHTML = `
-          <div>
+      const checkCircleBtn = isCompleted
+        ? `<button class="task-check-circle checked" onclick="event.stopPropagation(); quickToggleTaskComplete('${task.id}')" title="Reabrir tarefa">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+           </button>`
+        : `<button class="task-check-circle" onclick="event.stopPropagation(); quickToggleTaskComplete('${task.id}')" title="Marcar como concluída">
+           </button>`;
+
+      const titleStyle = isCompleted
+        ? 'font-size: 13px; color: #64748B; text-decoration: line-through;'
+        : 'font-size: 13px; color: #1E293B;';
+
+      const statusBadge = isCompleted
+        ? `<span class="badge" style="background: #DCFCE7; color: #16A34A; font-size: 9px; padding: 1px 6px;">Concluída ✅</span>`
+        : `<span class="badge" style="background: ${task.priorityBg || '#EFF6FF'}; color: ${task.priorityColor || '#2563EB'}; font-size: 9px; padding: 1px 6px;">${task.priority}</span>`;
+
+      const deadlineHtml = isCompleted
+        ? `<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: #16A34A;">${ICONS.checkCircle(12, '#16A34A')} Finalizada</span>`
+        : `<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: ${deadlineColor};">${deadlineIcon} Prazo: ${deadlineLabel}</span>`;
+
+      item.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0;">
+          ${checkCircleBtn}
+          <div style="flex: 1; min-width: 0;">
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-              <strong style="font-size: 13px; color: #1E293B;">${task.title}</strong>
-              <span class="badge" style="background: ${task.priorityBg || '#EFF6FF'}; color: ${task.priorityColor || '#2563EB'}; font-size: 9px; padding: 1px 6px;">${task.priority}</span>
+              <strong style="${titleStyle}">${escapeHtml(task.title)}</strong>
+              ${statusBadge}
               <span style="font-size: 10px;">${syncBadge}</span>
               ${lockCardTag}
               ${tagsHtml}
             </div>
             <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
-              <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: ${deadlineColor};">${deadlineIcon} Prazo: ${deadlineLabel}</span>
-              <span style="font-size: 10px; color: #94A3B8;">• ${task.effortHours}h ${subBadge}</span>
+              ${deadlineHtml}
+              <span style="font-size: 10px; color: #94A3B8;">• ${task.effortHours || 0}h ${subBadge}</span>
             </div>
           </div>
-          <img src="${task.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + task.assignee}" style="width: 24px; height: 24px; border-radius: 50%;">
-        `;
-        container.appendChild(item);
-      });
+        </div>
+        <img src="${task.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(task.assignee || 'Membro')}" style="width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; margin-left: 8px;">
+      `;
+      return item;
+    }
+
+    // Renderizar Lista de Tarefas do Time Ativo (Próximas e Concluídas separadas)
+    function renderTaskList(forceShowAll) {
+      if (typeof forceShowAll === 'boolean') {
+        showAllPendingTasks = forceShowAll;
+      }
+      const db = getDB();
+      const container = document.getElementById('dynamicTasksContainer');
+      const completedContainer = document.getElementById('completedTasksContainer');
+      if (!container) return;
+
+      container.innerHTML = '';
+      if (completedContainer) completedContainer.innerHTML = '';
+
+      const team = db.currentTeam;
+      const allTeamTasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
+      const pendingTasks = allTeamTasks.filter(t => t.status !== 'COMPLETED');
+      const completedTasks = allTeamTasks.filter(t => t.status === 'COMPLETED');
+
+      // Atualiza badges de contagem nos títulos das seções
+      const pendingBadge = document.getElementById('pendingTasksCountBadge');
+      if (pendingBadge) pendingBadge.innerText = pendingTasks.length;
+
+      const completedBadge = document.getElementById('completedTasksCountBadge');
+      if (completedBadge) completedBadge.innerText = completedTasks.length;
+
+      const btnPending = document.getElementById('btnToggleAllPending');
+      if (btnPending) {
+        if (pendingTasks.length > 5) {
+          btnPending.style.display = 'inline';
+          btnPending.innerText = showAllPendingTasks ? 'Recolher' : `Ver todas (${pendingTasks.length})`;
+        } else {
+          btnPending.style.display = 'none';
+        }
+      }
+
+      const btnCompleted = document.getElementById('btnToggleAllCompleted');
+      if (btnCompleted) {
+        if (completedTasks.length > 5) {
+          btnCompleted.style.display = 'inline';
+          btnCompleted.innerText = showAllCompletedTasks ? 'Recolher' : `Ver todas (${completedTasks.length})`;
+        } else {
+          btnCompleted.style.display = 'none';
+        }
+      }
+
+      // --- 1. RENDER PRÓXIMAS TAREFAS (Apenas Pendentes / Em Andamento) ---
+      const pendingList = showAllPendingTasks ? pendingTasks : pendingTasks.slice(0, 5);
+
+      if (pendingTasks.length === 0) {
+        if (allTeamTasks.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 24px 16px; background: #FFFFFF; border: 1px dashed #CBD5E1; border-radius: 14px; margin: 0 16px 8px 16px;">
+              <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: #EFF6FF; color: #2563EB; margin-bottom: 8px;">
+                <svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+              </div>
+              <strong style="font-size: 13px; color: #1E293B; display: block;">Nenhuma tarefa no time "${team || 'atual'}"</strong>
+              <p style="font-size: 11px; color: #64748B; margin-top: 4px;">Toque no botão abaixo ou no "+" para cadastrar a primeira tarefa!</p>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 18px 16px; background: #F0FDF4; border: 1px dashed #86EFAC; border-radius: 14px; margin: 0 16px 8px 16px;">
+              <span style="font-size: 20px;">🎉</span>
+              <strong style="font-size: 12.5px; color: #166534; display: block; margin-top: 3px;">Tudo em dia!</strong>
+              <p style="font-size: 11px; color: #15803D; margin-top: 2px;">Todas as tarefas deste time foram concluídas com sucesso.</p>
+            </div>
+          `;
+        }
+      } else {
+        pendingList.forEach(task => {
+          container.appendChild(createTaskCardElement(task, false, db));
+        });
+      }
+
+      // --- 2. RENDER TAREFAS CONCLUÍDAS (Apenas Concluídas) ---
+      if (completedContainer) {
+        const completedList = showAllCompletedTasks ? completedTasks : completedTasks.slice(0, 5);
+
+        if (completedTasks.length === 0) {
+          completedContainer.innerHTML = `
+            <div style="text-align: center; padding: 12px 16px; background: #F8FAFC; border: 1px dashed #E2E8F0; border-radius: 12px; margin: 0 16px 12px 16px; font-size: 11px; color: #94A3B8;">
+              Nenhuma tarefa concluída ainda
+            </div>
+          `;
+        } else {
+          completedList.forEach(task => {
+            completedContainer.appendChild(createTaskCardElement(task, true, db));
+          });
+        }
+      }
     }
 
     // Renderizar / Atualizar Conteúdo da Tela de Detalhes da Tarefa Ativa (US01, US04, US06)
@@ -2927,8 +3122,13 @@
       if (tagsContainer) {
         const rawTags = Array.isArray(task.tags) && task.tags.length > 0 ? task.tags : (task.tag ? [task.tag] : ['Sprint 1']);
         tagsContainer.innerHTML = rawTags.map(tg => {
-          const name = (typeof tg === 'object' && tg !== null) ? (tg.name || tg.id || '') : String(tg || '');
-          if (!name) return '';
+          let name = '';
+          if (typeof tg === 'string' && tg !== '[object Object]') {
+            name = tg;
+          } else if (typeof tg === 'object' && tg !== null) {
+            name = tg.name || tg.title || (tg.tag && tg.tag.name) || (tg.tag && tg.tag.title) || '';
+          }
+          if (!name || name === '[object Object]') return '';
           return `
           <span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">
             🏷️ ${escapeHtml(name)}
@@ -3528,6 +3728,8 @@
         saveDB(db, true);
         renderSubtasks(task);
         updateTaskCompleteButton(task);
+        refreshOpenTaskDetail(task);
+        renderDashboard();
       }
     }
 
@@ -3573,10 +3775,16 @@
       const db = getDB();
       const task = db.tasks.find(t => t.id === activeTaskId);
       if (!task) return;
-      task.status = (task.status === 'COMPLETED') ? 'PENDING' : 'COMPLETED';
+      const wasCompleted = task.status === 'COMPLETED';
+      task.status = wasCompleted ? 'PENDING' : 'COMPLETED';
       task._status = (task._status === 'created') ? 'created' : 'updated';
+      if (!wasCompleted && Array.isArray(task.subtasks) && task.subtasks.length > 0) {
+        task.subtasks.forEach(s => s.completed = true);
+      }
       saveDB(db, true);
       updateTaskCompleteButton(task);
+      refreshOpenTaskDetail(task);
+      renderDashboard();
 
       if (task.status === 'COMPLETED') {
         showToast('Parabéns! Tarefa concluída com sucesso!');
