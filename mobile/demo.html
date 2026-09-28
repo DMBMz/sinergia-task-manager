@@ -2090,8 +2090,17 @@
     // Configuração de host dinâmico para conectar na API do backend
     // Suporta Nuvem pública HTTPS, depuração via USB (adb reverse) e Wi-Fi local
     const CLOUD_API_URL = 'https://sinergia-task-manager.onrender.com/api/v1';
+    const CLOUD_WEB_URL = 'https://dmbmz.github.io/sinergia-task-manager';
     const PC_LAN_IP = '192.168.0.28';
     const isCapacitorNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
+    function getInviteBaseUrl() {
+      if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        return window.location.origin + window.location.pathname.replace(/\/+$/, '');
+      }
+      return CLOUD_WEB_URL;
+    }
+
     // No celular, prioriza a Nuvem HTTPS (funciona em 4G, 5G e qualquer Wi-Fi)
     let apiBaseUrl = isCapacitorNative ? CLOUD_API_URL : `http://localhost:3000/api/v1`;
 
@@ -4643,7 +4652,7 @@
         const data = await res.json();
         if (data.success && data.data) {
           activeInviteToken = data.data.token;
-          activeInviteLink = `http://${PC_LAN_IP}:8080/?invite=${data.data.token}`;
+          activeInviteLink = data.data.link || `${getInviteBaseUrl()}/?invite=${data.data.token}`;
           if (codeEl) codeEl.innerText = activeInviteToken;
           if (linkEl) linkEl.innerText = activeInviteLink;
           renderInviteQRCode(activeInviteLink);
@@ -4660,7 +4669,7 @@
       const codeEl = document.getElementById('inviteTokenDisplay');
       const linkEl = document.getElementById('inviteLinkText');
       activeInviteToken = `sinergia-inv-${currentInviteRole.toLowerCase()}-2026`;
-      activeInviteLink = `http://${PC_LAN_IP}:8080/?invite=${activeInviteToken}`;
+      activeInviteLink = `${getInviteBaseUrl()}/?invite=${activeInviteToken}`;
       if (codeEl) codeEl.innerText = activeInviteToken;
       if (linkEl) linkEl.innerText = activeInviteLink;
       renderInviteQRCode(activeInviteLink);
@@ -4699,7 +4708,7 @@
     }
 
     function copyInviteLink() {
-      const linkToCopy = activeInviteLink || `http://${PC_LAN_IP}:8080/?invite=${activeInviteToken || 'sinergia-inv-edit-2026'}`;
+      const linkToCopy = activeInviteLink || `${getInviteBaseUrl()}/?invite=${activeInviteToken || 'sinergia-inv-edit-2026'}`;
       if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(linkToCopy);
       }
@@ -4709,7 +4718,7 @@
     async function shareInviteNative() {
       const title = `Convite para ${getDB().currentTeam || 'Time Sinergia'}`;
       const text = `Participe da equipe no Sinergia Task Manager com nível de acesso ${currentInviteRole}!`;
-      const url = activeInviteLink || `http://${PC_LAN_IP}:8080/?invite=${activeInviteToken}`;
+      const url = activeInviteLink || `${getInviteBaseUrl()}/?invite=${activeInviteToken}`;
 
       if (navigator.share) {
         try {

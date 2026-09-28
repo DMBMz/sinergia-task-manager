@@ -393,10 +393,11 @@ export class AuthController {
 
       // Higieniza token caso o usuário tenha colado o link completo
       let cleanToken = token.trim();
-      if (cleanToken.includes('/invite/')) {
-        cleanToken = cleanToken.split('/invite/')[1].trim();
-      }
-      if (cleanToken.includes('?')) {
+      if (cleanToken.includes('invite=')) {
+        cleanToken = cleanToken.split('invite=')[1].split('&')[0].trim();
+      } else if (cleanToken.includes('/invite/')) {
+        cleanToken = cleanToken.split('/invite/')[1].split('?')[0].trim();
+      } else if (cleanToken.includes('?')) {
         cleanToken = cleanToken.split('?')[0].trim();
       }
 

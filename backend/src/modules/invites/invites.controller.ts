@@ -76,7 +76,7 @@ export class InvitesController {
       repository.inviteTokens.set(token, memInvite);
 
       const teamName = invite?.project?.name || targetProject?.name || repository.projects.get(actualProjectId)?.name || 'Sinergia Mobile App';
-      const link = `https://sinergia.app/invite/${token}`;
+      const link = `https://dmbmz.github.io/sinergia-task-manager/?invite=${token}`;
       const qrPayload = JSON.stringify({
         app: 'sinergia',
         action: 'invite',
@@ -117,10 +117,11 @@ export class InvitesController {
 
       // Higieniza token caso o usuário tenha colado o link completo
       let cleanToken = token.trim();
-      if (cleanToken.includes('/invite/')) {
-        cleanToken = cleanToken.split('/invite/')[1].trim();
-      }
-      if (cleanToken.includes('?')) {
+      if (cleanToken.includes('invite=')) {
+        cleanToken = cleanToken.split('invite=')[1].split('&')[0].trim();
+      } else if (cleanToken.includes('/invite/')) {
+        cleanToken = cleanToken.split('/invite/')[1].split('?')[0].trim();
+      } else if (cleanToken.includes('?')) {
         cleanToken = cleanToken.split('?')[0].trim();
       }
 
