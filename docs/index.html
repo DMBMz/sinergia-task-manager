@@ -2895,7 +2895,11 @@
         }
 
         const tagsHtml = (Array.isArray(task.tags) && task.tags.length > 0)
-          ? task.tags.map(t => `<span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🏷️ ${escapeHtml(t)}</span>`).join('')
+          ? task.tags.map(t => {
+              const name = (typeof t === 'object' && t !== null) ? (t.name || t.id || '') : String(t || '');
+              if (!name) return '';
+              return `<span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🏷️ ${escapeHtml(name)}</span>`;
+            }).join('')
           : '';
 
         item.innerHTML = `
@@ -2936,12 +2940,16 @@
       // 1. Tags da Tarefa
       const tagsContainer = document.getElementById('detailTaskTagsContainer');
       if (tagsContainer) {
-        const taskTags = Array.isArray(task.tags) && task.tags.length > 0 ? task.tags : (task.tag ? [task.tag] : ['Sprint 1']);
-        tagsContainer.innerHTML = taskTags.map(tg => `
+        const rawTags = Array.isArray(task.tags) && task.tags.length > 0 ? task.tags : (task.tag ? [task.tag] : ['Sprint 1']);
+        tagsContainer.innerHTML = rawTags.map(tg => {
+          const name = (typeof tg === 'object' && tg !== null) ? (tg.name || tg.id || '') : String(tg || '');
+          if (!name) return '';
+          return `
           <span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">
-            🏷️ ${escapeHtml(tg)}
+            🏷️ ${escapeHtml(name)}
           </span>
-        `).join('');
+        `;
+        }).join('');
       }
 
       // 2. Status da Tarefa
@@ -3243,7 +3251,9 @@
       }
 
       // Carrega e renderiza Tags
-      editingTaskTags = Array.isArray(task.tags) && task.tags.length > 0 ? [...task.tags] : (task.tag ? [task.tag] : ['Sprint 1']);
+      editingTaskTags = Array.isArray(task.tags) && task.tags.length > 0 
+        ? task.tags.map(t => (typeof t === 'object' && t !== null ? (t.name || t.id || '') : String(t || ''))).filter(Boolean)
+        : (task.tag ? [task.tag] : ['Sprint 1']);
       renderEditingTags();
 
       // Carrega e renderiza Subtarefas
