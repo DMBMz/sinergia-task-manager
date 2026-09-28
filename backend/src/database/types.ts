@@ -41,8 +41,11 @@ export interface Task {
   startDate?: Date | null;
   dueDate?: Date | null;
   projectId: string;
+  team?: string | null;
   assigneeId?: string | null;
+  assigneeName?: string | null;
   parentTaskId?: string | null;
+  subtasks?: any[] | null;
   version: number; // US06 Lock Otimista
   lockedBy?: { id: string; name: string; avatarUrl?: string } | null;
   lockedAt?: Date | null;

@@ -4,9 +4,10 @@ import { repository } from '../../database/repository';
 export class SyncController {
   async pull(req: Request, res: Response) {
     const lastPulledAtQuery = req.query.last_pulled_at as string;
+    const filter = (req.query.projectId as string) || (req.query.team as string);
     const lastPulledAt = lastPulledAtQuery ? new Date(parseInt(lastPulledAtQuery, 10)) : new Date(0);
 
-    const changes = repository.getChangesSince(lastPulledAt);
+    const changes = repository.getChangesSince(lastPulledAt, filter);
     const timestamp = Date.now();
 
     return res.json({

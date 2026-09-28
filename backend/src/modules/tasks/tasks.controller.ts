@@ -4,9 +4,10 @@ import { Priority, TaskStatus } from '../../database/types';
 
 export class TasksController {
   async list(req: Request, res: Response) {
-    const { projectId, tag, status, priority, query } = req.query;
+    const { projectId, team, tag, status, priority, query } = req.query;
     const tasks = repository.getAllTasks({
       projectId: projectId as string,
+      team: team as string,
       tag: tag as string,
       status: status as TaskStatus,
       priority: priority as Priority,
@@ -25,13 +26,14 @@ export class TasksController {
   }
 
   async create(req: Request, res: Response) {
-    const { title, description, priority, status, effortHours, startDate, dueDate, projectId, assigneeId, parentTaskId, tags } = req.body;
+    const { id, title, description, priority, status, effortHours, startDate, dueDate, projectId, team, assigneeId, assignee, parentTaskId, subtasks, tags } = req.body;
 
     if (!title) {
       return res.status(400).json({ success: false, error: 'Título da tarefa é obrigatório.' });
     }
 
     const task = repository.createTask({
+      id,
       title,
       description,
       priority,
@@ -40,7 +42,10 @@ export class TasksController {
       startDate,
       dueDate,
       projectId,
+      team,
       assigneeId,
+      assignee,
+      subtasks,
       parentTaskId
     });
 

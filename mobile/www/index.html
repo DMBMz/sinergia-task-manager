@@ -1337,9 +1337,16 @@
           </div>
 
           <!-- Botão de Conclusão / Reabertura da Tarefa -->
-          <div style="margin-top: 14px; margin-bottom: 24px;">
+          <div style="margin-top: 14px; margin-bottom: 8px;">
             <button id="btnToggleTaskComplete" onclick="toggleActiveTaskComplete()" style="width: 100%; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 12px; border: none; cursor: pointer; background: #10B981; color: #FFFFFF;">
               <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 5px;"><polyline points="20 6 9 17 4 12"/></svg>Concluir Tarefa
+            </button>
+          </div>
+          <!-- Botão de Exclusão da Tarefa (US01 / US02 Sincronizado) -->
+          <div style="margin-bottom: 24px;">
+            <button id="btnDeleteTaskDetail" onclick="handleDeleteTaskPrompt()" style="width: 100%; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 12px; border: 1px solid #FECACA; cursor: pointer; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+              Excluir Tarefa
             </button>
           </div>
         </div>
@@ -2004,6 +2011,7 @@
 
           <div style="display: flex; gap: 8px; padding-top: 4px;">
             <button type="button" class="btn-primary" style="flex: 1.2;" onclick="saveFullTaskEdit()">Salvar & Liberar</button>
+            <button type="button" style="flex: 0.8; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer;" onclick="handleDeleteTaskPrompt()">Excluir</button>
             <button type="button" class="btn-secondary" style="flex: 0.8;" onclick="cancelTaskEditing()">Cancelar</button>
           </div>
         </div>
@@ -3340,12 +3348,21 @@
           priority: task.priority === 'Alta' ? 'HIGH' : (task.priority === 'Baixa' ? 'LOW' : (task.priority === 'Urgente' ? 'URGENT' : 'MEDIUM')),
           status: task.status,
           assignee: task.assignee,
+          assigneeName: task.assignee,
+          team: task.team || db.currentTeam,
+          subtasks: task.subtasks,
           tags: task.tags,
           effortHours: task.effortHours,
           dueDate: task.dueDateIso,
           version: task.version - 1,
           userId: db.currentUser?.id || 'me'
         })
+      }).then(res => {
+        if (res.ok) {
+          task._status = 'synced';
+          saveDB(db, false);
+        }
+        syncWithBackend(true);
       }).catch(() => {});
 
       apiFetch(`/tasks/${task.id}/unlock`, {
@@ -3384,6 +3401,41 @@
 
       closeModal('modalEditFullTask');
       showToast('Edição cancelada e tarefa desbloqueada.');
+    }
+
+    // Exclusão de Tarefa com Propagação em Tempo Real (US01 / US02)
+    async function handleDeleteTaskPrompt(taskId = activeTaskId) {
+      if (!taskId) return;
+      const db = getDB();
+      const task = db.tasks.find(t => t.id === taskId);
+      const title = task ? task.title : 'esta tarefa';
+
+      if (!confirm(`Deseja realmente excluir a tarefa "${title}"? Ela será removida de todos os membros do time.`)) {
+        return;
+      }
+
+      // Remove do banco local
+      db.tasks = (db.tasks || []).filter(t => t.id !== taskId);
+      if (!db.deletedTasks) db.deletedTasks = [];
+      if (!db.deletedTasks.includes(taskId)) {
+        db.deletedTasks.push(taskId);
+      }
+      saveDB(db, false);
+
+      // Fecha modais e volta ao dashboard
+      closeModal('modalEditFullTask');
+      activeTaskId = null;
+      switchScreen('dashboard', null);
+      renderDashboard();
+      showToast('Tarefa excluída com sucesso.');
+
+      // Envia exclusão para o backend
+      try {
+        await apiFetch(`/tasks/${taskId}`, { method: 'DELETE' });
+      } catch (err) {
+        console.warn('[Delete API Warning]', err);
+      }
+      syncWithBackend(true);
     }
 
     // Simulação: Outro Membro (Ana Silva) Começa a Editar
@@ -4278,14 +4330,25 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            id: newTask.id,
+            team: currentTeam,
             title: newTask.title,
             description: newTask.description,
-            priority: newTask.priority === 'Alta' ? 'HIGH' : (newTask.priority === 'Baixa' ? 'LOW' : 'MEDIUM'),
+            priority: newTask.priority === 'Alta' ? 'HIGH' : (newTask.priority === 'Baixa' ? 'LOW' : (newTask.priority === 'Urgente' ? 'URGENT' : 'MEDIUM')),
             effortHours: newTask.effortHours,
             dueDate: newTask.dueDateIso,
             projectId: db.currentTeamId || 'proj-sinergia-001',
-            assigneeId: user.id || 'user-davi-001'
+            assigneeId: user.id || 'user-davi-001',
+            assignee: selectedAssignee,
+            assigneeName: selectedAssignee,
+            subtasks: newTask.subtasks
           })
+        }).then(res => {
+          if (res.ok) {
+            newTask._status = 'synced';
+            saveDB(db, false);
+          }
+          syncWithBackend(true);
         }).catch(err => console.log('[API] Sync task creation offline/background:', err));
 
         // Reseta form e rascunhos
@@ -4474,6 +4537,7 @@
       closeTeamDropdown();
       showToast(`Time alterado para "${team.name}".`);
       renderDashboard();
+      setTimeout(() => syncWithBackend(true), 150);
     }
 
     function handleDropdownNewTeam() {
@@ -4544,6 +4608,7 @@
         closeModal('modalCreateTeam');
         showToast(`Time "${data.team.name}" criado com sucesso no PostgreSQL!`);
         switchScreen('dashboard', null);
+        setTimeout(() => syncWithBackend(true), 200);
       } catch (e) {
         console.error('[Teams Error]', e);
         showToast('Erro de conexão ao criar time no banco.');
@@ -4597,6 +4662,7 @@
         closeModal('modalJoinTeam');
         showToast(data.message || `Você entrou em "${teamName}".`);
         switchScreen('dashboard', null);
+        setTimeout(() => syncWithBackend(true), 200);
       } catch (e) {
         console.error('[Join Team Error]', e);
         showToast('Erro ao validar convite no banco de dados.');
@@ -5038,21 +5104,26 @@
       switchScreen('login-page', null);
     }
 
-    // Sincronização Delta com Backend (US02)
+    // Sincronização Delta com Backend (US02, US06 - Tempo Real & Colaboração Simultânea)
+    let isSyncInProgress = false;
+
     async function syncWithBackend(silent = false) {
       if (!isOnline) {
         if (!silent) showToast('Você está offline. Alterações salvas no banco local.');
         return;
       }
+      if (isSyncInProgress) return;
+      isSyncInProgress = true;
 
       if (!silent) showToast('Sincronizando com o servidor...');
 
       try {
         const db = getDB();
         const pendingPush = (db.tasks || []).filter(t => t._status === 'created' || t._status === 'updated');
+        const pendingDeleted = Array.isArray(db.deletedTasks) ? [...db.deletedTasks] : [];
 
-        // Se houver alterações locais pendentes, envia push para o backend
-        if (pendingPush.length > 0) {
+        // 1. PUSH: Se houver alterações locais pendentes, envia push para o backend
+        if (pendingPush.length > 0 || pendingDeleted.length > 0) {
           const pushRes = await apiFetch(`/sync/push`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -5061,7 +5132,7 @@
                 tasks: {
                   created: pendingPush.filter(t => t._status === 'created'),
                   updated: pendingPush.filter(t => t._status === 'updated'),
-                  deleted: []
+                  deleted: pendingDeleted
                 }
               }
             })
@@ -5070,51 +5141,146 @@
           if (pushRes.ok) {
             // Marca tarefas como sincronizadas após confirmação do servidor
             pendingPush.forEach(t => { t._status = 'synced'; });
+            db.deletedTasks = [];
             saveDB(db, false);
           }
         }
 
-        // Pull de atualizações do servidor
-        const pullRes = await apiFetch(`/sync/pull?last_pulled_at=0`);
+        // 2. PULL: Baixa todas as tarefas e mudanças do time ativo
+        const teamParam = encodeURIComponent(db.currentTeam || '');
+        const projParam = encodeURIComponent(db.currentTeamId || '');
+        const pullRes = await apiFetch(`/sync/pull?last_pulled_at=0&team=${teamParam}&projectId=${projParam}`);
+
         if (pullRes.ok) {
           const data = await pullRes.json();
           if (data && data.changes && data.changes.tasks) {
+            let hasChanges = false;
+
+            // Remove tarefas deletadas no servidor
+            const deletedIds = data.changes.tasks.deleted || [];
+            if (deletedIds.length > 0) {
+              const delSet = new Set(deletedIds);
+              const beforeLen = db.tasks.length;
+              db.tasks = db.tasks.filter(t => !delSet.has(t.id));
+              if (db.tasks.length !== beforeLen) hasChanges = true;
+            }
+
+            // Processa tarefas criadas e atualizadas no servidor
             const serverTasks = [...(data.changes.tasks.created || []), ...(data.changes.tasks.updated || [])];
-            serverTasks.forEach(st => {
+            for (const st of serverTasks) {
               const localIndex = db.tasks.findIndex(lt => lt.id === st.id);
-              if (localIndex === -1 && st.team === db.currentTeam) {
-                db.tasks.push({
+              const belongsToTeam = !db.currentTeam || !st.team || 
+                                    st.team.trim().toLowerCase() === db.currentTeam.trim().toLowerCase() ||
+                                    (db.currentTeamId && st.projectId === db.currentTeamId);
+
+              if (!belongsToTeam) continue;
+
+              const priorityText = st.priority === 'HIGH' ? 'Alta' : (st.priority === 'LOW' ? 'Baixa' : (st.priority === 'URGENT' ? 'Urgente' : 'Média'));
+              const pBg = (priorityText === 'Alta' || priorityText === 'Urgente') ? '#FEE2E2' : (priorityText === 'Baixa' ? '#ECFDF5' : '#FEF3C7');
+              const pCol = (priorityText === 'Alta' || priorityText === 'Urgente') ? '#EF4444' : (priorityText === 'Baixa' ? '#10B981' : '#D97706');
+              const assignee = st.assigneeName || st.assignee || 'Equipe';
+              const avatar = st.avatar || ('https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(assignee));
+
+              if (localIndex === -1) {
+                // Nova tarefa criada por outro usuário no time!
+                db.tasks.unshift({
                   id: st.id,
                   team: st.team || db.currentTeam,
+                  projectId: st.projectId || db.currentTeamId || 'proj-sinergia-001',
                   title: st.title,
                   description: st.description || '',
-                  priority: st.priority === 'HIGH' ? 'Alta' : (st.priority === 'LOW' ? 'Baixa' : 'Média'),
-                  priorityBg: '#FEF3C7',
-                  priorityColor: '#D97706',
+                  priority: priorityText,
+                  priorityBg: pBg,
+                  priorityColor: pCol,
                   status: st.status || 'PENDING',
                   time: 'Hoje',
-                  dueDate: 'Hoje',
+                  dueDate: st.dueDate ? (st.dueDate.includes('T') ? formatDueDateDisplay(st.dueDate.split('T')[0], st.dueDate.split('T')[1]?.slice(0,5) || '18:00') : st.dueDate) : 'Hoje',
+                  dueDateIso: st.dueDate,
                   effortHours: st.effortHours || 1,
-                  assignee: 'Equipe',
-                  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Equipe',
-                  subtasks: [],
-                  comments: [],
-                  attachments: [],
+                  assignee: assignee,
+                  avatar: avatar,
+                  subtasks: Array.isArray(st.subtasks) ? st.subtasks : [],
+                  comments: Array.isArray(st.comments) ? st.comments : [],
+                  attachments: Array.isArray(st.attachments) ? st.attachments : [],
+                  tags: Array.isArray(st.tags) ? st.tags : [],
                   version: st.version || 1,
-                  _status: 'synced'
+                  lockedBy: st.lockedBy || null,
+                  lockedAt: st.lockedAt || null,
+                  _status: 'synced',
+                  _alertsSent: []
                 });
+                hasChanges = true;
+              } else {
+                // Tarefa existente: mescla atualizações do servidor
+                const lt = db.tasks[localIndex];
+                const isUpdated = lt.title !== st.title ||
+                                  lt.description !== (st.description || '') ||
+                                  lt.status !== st.status ||
+                                  lt.priority !== priorityText ||
+                                  lt.assignee !== assignee ||
+                                  lt.effortHours !== (st.effortHours || lt.effortHours) ||
+                                  JSON.stringify(lt.lockedBy) !== JSON.stringify(st.lockedBy) ||
+                                  JSON.stringify(lt.subtasks) !== JSON.stringify(st.subtasks);
+
+                if (isUpdated && lt._status !== 'created') {
+                  lt.title = st.title;
+                  lt.description = st.description || '';
+                  lt.priority = priorityText;
+                  lt.priorityBg = pBg;
+                  lt.priorityColor = pCol;
+                  lt.status = st.status || lt.status;
+                  lt.assignee = assignee;
+                  lt.avatar = avatar;
+                  if (st.dueDate) {
+                    lt.dueDateIso = st.dueDate;
+                    lt.dueDate = st.dueDate.includes('T') ? formatDueDateDisplay(st.dueDate.split('T')[0], st.dueDate.split('T')[1]?.slice(0,5) || '18:00') : st.dueDate;
+                  }
+                  if (st.effortHours) lt.effortHours = st.effortHours;
+                  if (Array.isArray(st.subtasks)) lt.subtasks = st.subtasks;
+                  if (Array.isArray(st.tags)) lt.tags = st.tags;
+                  lt.lockedBy = st.lockedBy || null;
+                  lt.lockedAt = st.lockedAt || null;
+                  lt.version = st.version || lt.version;
+                  lt._status = 'synced';
+                  hasChanges = true;
+                }
               }
-            });
-            saveDB(db, false);
+            }
+
+            if (hasChanges) {
+              saveDB(db, false);
+              renderDashboard();
+              renderTimeline();
+
+              // Se a tela de detalhe da tarefa estiver aberta, atualiza em tempo real!
+              if (activeTaskId) {
+                const updatedTask = db.tasks.find(t => t.id === activeTaskId);
+                if (updatedTask) {
+                  renderTaskLockUI(updatedTask);
+                  renderSubtasks(updatedTask);
+                  updateTaskCompleteButton(updatedTask);
+                }
+              }
+            }
           }
-          if (!silent) showToast(`Sincronização concluída! Banco central e celular alinhados.`);
+          if (!silent) showToast('Sincronização concluída! Dados atualizados.');
         }
       } catch (err) {
-        if (!silent) showToast('Banco local persistido com sucesso.');
+        if (!silent) showToast('Banco local mantido com sucesso.');
+      } finally {
+        isSyncInProgress = false;
       }
 
       renderDashboard();
     }
+
+    // Polling em background a cada 2.5s para sincronização em tempo real entre todos os celulares do time
+    setInterval(() => {
+      const db = getDB();
+      if (isOnline && db.currentUser && db.currentTeam) {
+        syncWithBackend(true);
+      }
+    }, 2500);
 
     // Renderizar Linha do Tempo de Planejamento do Time Ativo
     function renderTimeline() {
@@ -5189,6 +5355,7 @@
           saveDB(db, false);
           showToast(`Bem-vindo de volta, ${data.user.name}!`);
           switchScreen('dashboard', null);
+          setTimeout(() => syncWithBackend(true), 250);
         } else {
           db.currentTeam = null;
           db.currentTeamId = null;

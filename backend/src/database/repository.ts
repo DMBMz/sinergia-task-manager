@@ -3,6 +3,7 @@ import {
   Role, Priority, TaskStatus
 } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { prisma } from './prisma';
 
 export class AppRepository {
   users: Map<string, User> = new Map();
@@ -25,6 +26,52 @@ export class AppRepository {
 
   constructor() {
     this.seedInitialData();
+    this.syncFromPrisma();
+  }
+
+  async syncFromPrisma() {
+    try {
+      const dbProjects = await prisma.project.findMany();
+      for (const p of dbProjects) {
+        if (!this.projects.has(p.id)) {
+          this.projects.set(p.id, {
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            color: p.color,
+            createdAt: p.createdAt,
+            updatedAt: p.updatedAt,
+            deletedAt: p.deletedAt
+          });
+        }
+      }
+      const dbTasks = await prisma.task.findMany({ where: { deletedAt: null } });
+      for (const t of dbTasks) {
+        if (!this.tasks.has(t.id)) {
+          const proj = this.projects.get(t.projectId);
+          this.tasks.set(t.id, {
+            id: t.id,
+            title: t.title,
+            description: t.description,
+            priority: t.priority as any,
+            status: t.status as any,
+            effortHours: t.effortHours,
+            startDate: t.startDate,
+            dueDate: t.dueDate,
+            projectId: t.projectId,
+            team: proj?.name || 'Meu Time',
+            assigneeId: t.assigneeId,
+            parentTaskId: t.parentTaskId,
+            version: t.version,
+            createdAt: t.createdAt,
+            updatedAt: t.updatedAt,
+            deletedAt: t.deletedAt
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('[Repository syncFromPrisma warning]', err);
+    }
   }
 
   seedInitialData() {
@@ -134,8 +181,17 @@ export class AppRepository {
   }
 
   // --- Task Operations ---
-  createTask(data: Partial<Task>): Task {
+  createTask(data: Partial<Task> & { team?: string; subtasks?: any[]; assignee?: any }): Task {
     const id = data.id || uuidv4();
+    let projectId = data.projectId;
+    if (!projectId && data.team) {
+      const proj = Array.from(this.projects.values()).find(p => p.name.toLowerCase() === data.team!.toLowerCase());
+      if (proj) projectId = proj.id;
+    }
+    if (!projectId) {
+      projectId = 'proj-sinergia-001';
+    }
+
     const task: Task = {
       id,
       title: data.title || 'Nova Tarefa',
@@ -145,16 +201,65 @@ export class AppRepository {
       effortHours: data.effortHours || 0,
       startDate: data.startDate ? new Date(data.startDate) : null,
       dueDate: data.dueDate ? new Date(data.dueDate) : null,
-      projectId: data.projectId || 'proj-sinergia-001',
+      projectId,
+      team: data.team || this.projects.get(projectId)?.name || 'Meu Time',
       assigneeId: data.assigneeId || null,
+      assigneeName: data.assigneeName || (typeof (data as any).assignee === 'string' ? (data as any).assignee : null),
       parentTaskId: data.parentTaskId || null,
-      version: 1,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      subtasks: Array.isArray(data.subtasks) ? data.subtasks : [],
+      version: data.version || 1,
+      lockedBy: data.lockedBy || null,
+      lockedAt: data.lockedAt ? new Date(data.lockedAt) : null,
+      createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+      updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
       deletedAt: null
     };
     this.tasks.set(task.id, task);
     this.logChange('tasks', task.id, 'created');
+
+    // Sincroniza em segundo plano no PostgreSQL via Prisma
+    prisma.project.findFirst({ where: { OR: [{ id: task.projectId }, { name: task.team || '' }] } })
+      .then(async (proj) => {
+        let actualProjectId = proj ? proj.id : null;
+        if (!actualProjectId) {
+          const newProj = await prisma.project.create({
+            data: {
+              name: task.team || 'Equipe Sinergia',
+              description: 'Time sincronizado via mobile',
+              color: '#2563EB'
+            }
+          });
+          actualProjectId = newProj.id;
+          this.projects.set(newProj.id, newProj);
+        }
+        await prisma.task.upsert({
+          where: { id: task.id },
+          update: {
+            title: task.title,
+            description: task.description,
+            priority: task.priority as any,
+            status: task.status as any,
+            effortHours: task.effortHours,
+            dueDate: task.dueDate,
+            version: task.version,
+            updatedAt: task.updatedAt
+          },
+          create: {
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            priority: task.priority as any,
+            status: task.status as any,
+            effortHours: task.effortHours,
+            dueDate: task.dueDate,
+            projectId: actualProjectId,
+            version: task.version,
+            createdAt: task.createdAt,
+            updatedAt: task.updatedAt
+          }
+        });
+      }).catch(err => console.warn('[Prisma Task Sync Warning]', err.message));
+
     return task;
   }
 
@@ -173,22 +278,29 @@ export class AppRepository {
     const comments = Array.from(this.comments.values()).filter(c => c.taskId === id);
     const attachments = Array.from(this.attachments.values()).filter(a => a.taskId === id);
     const assignee = task.assigneeId ? this.users.get(task.assigneeId) : null;
+    const project = this.projects.get(task.projectId);
+    const team = task.team || project?.name || 'Meu Time';
 
     return {
       ...task,
-      assignee,
-      subTasks,
+      team,
+      assignee: assignee || (task.assigneeName ? { id: task.assigneeId || 'assigned', name: task.assigneeName } : null),
+      subTasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
+      subtasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
       tags,
       comments,
       attachments
     };
   }
 
-  getAllTasks(filter?: { projectId?: string; tag?: string; status?: TaskStatus; priority?: Priority; query?: string }): any[] {
+  getAllTasks(filter?: { projectId?: string; team?: string; tag?: string; status?: TaskStatus; priority?: Priority; query?: string }): any[] {
     let result = Array.from(this.tasks.values()).filter(t => !t.deletedAt);
 
     if (filter?.projectId) {
-      result = result.filter(t => t.projectId === filter.projectId);
+      result = result.filter(t => t.projectId === filter.projectId || t.team === filter.projectId);
+    }
+    if (filter?.team) {
+      result = result.filter(t => t.team?.toLowerCase() === filter.team?.toLowerCase());
     }
     if (filter?.status) {
       result = result.filter(t => t.status === filter.status);
@@ -229,7 +341,9 @@ export class AppRepository {
 
     task.lockedBy = user;
     task.lockedAt = now;
+    task.updatedAt = now;
     this.tasks.set(id, task);
+    this.logChange('tasks', id, 'updated');
     return { success: true, task: this.getTaskWithDetails(id), isSelf: true };
   }
 
@@ -246,7 +360,9 @@ export class AppRepository {
 
     task.lockedBy = null;
     task.lockedAt = null;
+    task.updatedAt = new Date();
     this.tasks.set(id, task);
+    this.logChange('tasks', id, 'updated');
     return { success: true, task: this.getTaskWithDetails(id) };
   }
 
@@ -306,9 +422,11 @@ export class AppRepository {
     const updated: Task = {
       ...existing,
       ...cleanData,
-      lockedBy: null, // Libera o lock após conclusão da edição
-      lockedAt: null,
-      version: existing.version + 1, // Incrementa versão a cada alteração
+      team: (data as any).team || existing.team,
+      subtasks: (data as any).subtasks !== undefined ? (data as any).subtasks : existing.subtasks,
+      lockedBy: (data as any).lockedBy !== undefined ? (data as any).lockedBy : null, // Libera o lock após conclusão da edição se não informado
+      lockedAt: (data as any).lockedAt !== undefined ? (data as any).lockedAt : null,
+      version: (data as any).version !== undefined ? Number((data as any).version) : existing.version + 1,
       updatedAt: new Date()
     };
     if (Array.isArray(tags)) {
@@ -316,6 +434,21 @@ export class AppRepository {
     }
     this.tasks.set(id, updated);
     this.logChange('tasks', id, 'updated');
+
+    prisma.task.update({
+      where: { id },
+      data: {
+        title: updated.title,
+        description: updated.description,
+        priority: updated.priority as any,
+        status: updated.status as any,
+        effortHours: updated.effortHours,
+        dueDate: updated.dueDate,
+        version: updated.version,
+        updatedAt: updated.updatedAt
+      }
+    }).catch(e => console.warn('[Prisma updateTask warning]', e.message));
+
     return { task: updated, conflict: false };
   }
 
@@ -326,6 +459,12 @@ export class AppRepository {
     task.updatedAt = new Date();
     this.tasks.set(id, task);
     this.logChange('tasks', id, 'deleted');
+
+    prisma.task.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    }).catch(e => console.warn('[Prisma deleteTask warning]', e.message));
+
     return true;
   }
 
@@ -429,20 +568,36 @@ export class AppRepository {
   }
 
   // --- Delta Sync Protocol (US02) ---
-  getChangesSince(lastPulledAt: Date) {
+  getChangesSince(lastPulledAt: Date, filterProjectId?: string) {
     const changes: Record<string, { created: any[]; updated: any[]; deleted: string[] }> = {
       tasks: { created: [], updated: [], deleted: [] },
       comments: { created: [], updated: [], deleted: [] },
       attachments: { created: [], updated: [], deleted: [] }
     };
 
+    const isInitialPull = lastPulledAt.getTime() === 0;
+
     for (const task of this.tasks.values()) {
-      if (task.deletedAt && task.updatedAt > lastPulledAt) {
+      if (filterProjectId) {
+        const f = filterProjectId.trim().toLowerCase();
+        const matchesProject = task.projectId && task.projectId.toLowerCase() === f;
+        const matchesTeam = task.team && task.team.trim().toLowerCase() === f;
+        if (!matchesProject && !matchesTeam) {
+          continue;
+        }
+      }
+
+      if (task.deletedAt) {
         changes.tasks.deleted.push(task.id);
-      } else if (task.createdAt > lastPulledAt) {
-        changes.tasks.created.push(task);
-      } else if (task.updatedAt > lastPulledAt) {
-        changes.tasks.updated.push(task);
+      } else {
+        const details = this.getTaskWithDetails(task.id);
+        if (isInitialPull) {
+          changes.tasks.created.push(details);
+        } else if (task.createdAt > lastPulledAt) {
+          changes.tasks.created.push(details);
+        } else if (task.updatedAt > lastPulledAt || (task.lockedAt && task.lockedAt > lastPulledAt)) {
+          changes.tasks.updated.push(details);
+        }
       }
     }
 
@@ -472,7 +627,9 @@ export class AppRepository {
         appliedCount++;
       }
       for (const t of changes.tasks.updated || []) {
-        this.updateTask(t.id, t.version - 1, t);
+        const existing = this.tasks.get(t.id);
+        const ver = existing ? existing.version : (t.version || 1);
+        this.updateTask(t.id, ver, t);
         appliedCount++;
       }
       for (const id of changes.tasks.deleted || []) {
