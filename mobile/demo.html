@@ -2108,8 +2108,8 @@
       return CLOUD_WEB_URL;
     }
 
-    // No celular, prioriza a Nuvem HTTPS (funciona em 4G, 5G e qualquer Wi-Fi)
-    let apiBaseUrl = isCapacitorNative ? CLOUD_API_URL : `http://localhost:3000/api/v1`;
+    // A Nuvem Render e a fonte unica da verdade para todos os aparelhos e web
+    let apiBaseUrl = CLOUD_API_URL;
 
     async function apiFetch(endpoint, options = {}) {
       if (!options.headers) options.headers = {};
@@ -2123,23 +2123,16 @@
         if (typeof setNetworkStatus === 'function') setNetworkStatus(true);
         return res;
       } catch (err) {
-        // Tenta rotas alternativas em cascata: Nuvem -> USB -> Wi-Fi LAN
-        const candidateHosts = [CLOUD_API_URL, `http://localhost:3000/api/v1`, `http://${PC_LAN_IP}:3000/api/v1`];
-        for (const candidate of candidateHosts) {
-          if (apiBaseUrl === candidate) continue;
-          try {
-            const fallbackUrl = endpoint.startsWith('http') ? endpoint : `${candidate}${endpoint}`;
-            console.warn('[Network] Tentando rota alternativa:', fallbackUrl);
-            const fallbackRes = await fetch(fallbackUrl, options);
-            apiBaseUrl = candidate;
-            if (typeof setNetworkStatus === 'function') setNetworkStatus(true);
-            return fallbackRes;
-          } catch (altErr) {
-            // Continua para o próximo candidato
-          }
+        // Se falhar temporariamente (ex: variacao de sinal 4G/Wi-Fi), retenta na nuvem
+        try {
+          console.warn('[Network] Retentando chamada na Nuvem:', fullUrl);
+          const retryRes = await fetch(fullUrl, options);
+          if (typeof setNetworkStatus === 'function') setNetworkStatus(true);
+          return retryRes;
+        } catch (retryErr) {
+          if (typeof setNetworkStatus === 'function') setNetworkStatus(false, 'Servidor em nuvem inacessivel');
+          throw retryErr;
         }
-        if (typeof setNetworkStatus === 'function') setNetworkStatus(false, 'Servidor inacessível');
-        throw err;
       }
     }
 
@@ -2734,7 +2727,7 @@
 
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 2000);
+        const timer = setTimeout(() => controller.abort(), 6000);
         const res = await fetch(`${apiBaseUrl}/health`, {
           signal: timer.signal,
           cache: 'no-store'
@@ -2744,28 +2737,10 @@
         if (res.ok) {
           setNetworkStatus(true);
         } else {
-          setNetworkStatus(false, 'Servidor retornou erro');
+          setNetworkStatus(false, 'Servidor em nuvem instavel');
         }
       } catch (err) {
-        // Tenta rota alternativa (IP local ou localhost)
-        const targetHost = apiBaseUrl.includes('localhost') ? PC_LAN_IP : 'localhost';
-        try {
-          const controller2 = new AbortController();
-          const timer2 = setTimeout(() => controller2.abort(), 2000);
-          const res2 = await fetch(`http://${targetHost}:3000/api/v1/health`, {
-            signal: timer2.signal,
-            cache: 'no-store'
-          });
-          clearTimeout(timer2);
-          if (res2.ok) {
-            apiBaseUrl = `http://${targetHost}:3000/api/v1`;
-            setNetworkStatus(true);
-          } else {
-            setNetworkStatus(false, 'Servidor indisponível');
-          }
-        } catch (err2) {
-          setNetworkStatus(false, 'Sem sinal do servidor');
-        }
+        setNetworkStatus(false, 'Sem conexao com a nuvem');
       } finally {
         isCheckingBackend = false;
       }
