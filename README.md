@@ -5,7 +5,7 @@
 
 ---
 
-## 🎯 Escopo Entregue na Sprint 1 (44 Story Points)
+## 🎯 Escopo Entregue na Sprint 1 
 
 Todas as **6 User Stories** da Sprint 1 foram implementadas, estruturadas e validadas:
 
