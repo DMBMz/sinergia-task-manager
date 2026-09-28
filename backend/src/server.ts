@@ -1,7 +1,10 @@
 import { createApp } from './app';
 import { config } from './config';
+import { seedDatabase } from './database/seed';
 
 const app = createApp();
+
+seedDatabase().catch(e => console.warn('[Seed warning]', e));
 
 app.listen(config.port, () => {
   console.log(`[Sinergia Backend] Servidor rodando com sucesso na porta ${config.port}`);
