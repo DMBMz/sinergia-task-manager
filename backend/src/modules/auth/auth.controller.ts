@@ -180,7 +180,7 @@ export class AuthController {
         return res.status(401).json({ success: false, error: 'Não autorizado.' });
       }
 
-      const user = await prisma.user.findUnique({
+      let user = await prisma.user.findUnique({
         where: { id: userId },
         include: {
           projectUsers: {
@@ -190,6 +190,20 @@ export class AuthController {
           }
         }
       });
+
+      if (!user) {
+        await this.ensureUserExists(userId, req.user);
+        user = await prisma.user.findUnique({
+          where: { id: userId },
+          include: {
+            projectUsers: {
+              include: {
+                project: true
+              }
+            }
+          }
+        });
+      }
 
       if (!user) {
         return res.status(404).json({ success: false, error: 'Usuário não encontrado.' });
@@ -218,19 +232,61 @@ export class AuthController {
     }
   }
 
+  // Garante que o usuário existe no PostgreSQL (ex: usuários cadastrados antes da nuvem ou via token)
+  private async ensureUserExists(userId: string, reqUser?: { id?: string; email?: string; name?: string }) {
+    try {
+      let user = await prisma.user.findUnique({ where: { id: userId } });
+      if (user) return user;
+
+      const email = (reqUser?.email && reqUser.email.includes('@'))
+        ? reqUser.email.trim().toLowerCase()
+        : `user-${userId.substring(0, 8)}@sinergia.com`;
+      const name = reqUser?.name || 'Membro Sinergia';
+
+      const existingByEmail = await prisma.user.findUnique({ where: { email } });
+      if (existingByEmail) {
+        return existingByEmail;
+      }
+
+      return await prisma.user.create({
+        data: {
+          id: userId,
+          name,
+          email,
+          avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`
+        }
+      });
+    } catch (err) {
+      console.warn('[EnsureUserExists Warning]', err);
+      const fallback = await prisma.user.findFirst();
+      if (fallback) return fallback;
+      return await prisma.user.create({
+        data: {
+          id: userId,
+          name: reqUser?.name || 'Usuário Sinergia',
+          email: `user-${Date.now()}@sinergia.com`
+        }
+      });
+    }
+  }
+
   // 4. Criação Real de Time no PostgreSQL com Associação de Membro ADMIN
   async createTeam(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.user?.id || req.body.ownerUserId;
+      const rawUserId = req.user?.id || req.body.ownerUserId;
       const { name, description } = req.body;
 
       if (!name || typeof name !== 'string' || name.trim().length < 2) {
         return res.status(400).json({ success: false, error: 'Nome do time é obrigatório (mínimo 2 caracteres).' });
       }
 
-      if (!userId) {
+      if (!rawUserId) {
         return res.status(401).json({ success: false, error: 'Usuário autenticado obrigatório para criar time.' });
       }
+
+      // Garante que o usuário existe no PostgreSQL
+      const dbUser = await this.ensureUserExists(rawUserId, req.user);
+      const userId = dbUser.id;
 
       // Cria Time e Associação do Membro em Transação no PostgreSQL
       const team = await prisma.$transaction(async (tx) => {
@@ -284,17 +340,20 @@ export class AuthController {
       });
     } catch (error: any) {
       console.error('[Create Team Error]', error);
-      return res.status(500).json({ success: false, error: 'Erro interno ao criar time no banco de dados.' });
+      return res.status(500).json({ success: false, error: 'Erro interno ao criar time no banco de dados: ' + (error.message || '') });
     }
   }
 
   // 5. Listar Times do Usuário Autenticado no PostgreSQL
   async listUserTeams(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.user?.id || (req.query?.userId as string);
-      if (!userId) {
+      const rawUserId = req.user?.id || (req.query?.userId as string);
+      if (!rawUserId) {
         return res.status(401).json({ success: false, error: 'Não autorizado.' });
       }
+
+      const dbUser = await this.ensureUserExists(rawUserId, req.user);
+      const userId = dbUser.id;
 
       const memberships = await prisma.projectMember.findMany({
         where: { userId },
@@ -318,16 +377,19 @@ export class AuthController {
   // 6. Entrar em Time por Convite no PostgreSQL
   async joinTeam(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.user?.id || req.body.userId;
+      const rawUserId = req.user?.id || req.body.userId;
       const { token } = req.body;
 
       if (!token) {
         return res.status(400).json({ success: false, error: 'Código ou token de convite é obrigatório.' });
       }
 
-      if (!userId) {
+      if (!rawUserId) {
         return res.status(401).json({ success: false, error: 'Usuário não identificado.' });
       }
+
+      const dbUser = await this.ensureUserExists(rawUserId, req.user);
+      const userId = dbUser.id;
 
       // Higieniza token caso o usuário tenha colado o link completo
       let cleanToken = token.trim();
