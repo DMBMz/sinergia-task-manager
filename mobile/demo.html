@@ -2258,12 +2258,17 @@
       }
     }
 
-    function createNotification({ title, message, type = 'task', color = '#2563EB', taskId = null, urgency = 'info' }) {
+    function createNotification({ id = null, title, message, type = 'task', color = '#2563EB', taskId = null, urgency = 'info' }) {
       const db = getDB();
       if (!db.notifications) db.notifications = [];
 
+      const notifId = id || ('notif-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
+      if (db.notifications.some(n => n.id === notifId)) {
+        return null;
+      }
+
       const notif = {
-        id: 'notif-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        id: notifId,
         title,
         message,
         type,
@@ -5307,8 +5312,10 @@
             }
 
             // Notifica usuário caso tenha sido mencionado com @ em algum comentário recente de outro membro
+            if (!db.notifiedMentions) db.notifiedMentions = [];
             const currentUserName = (db.currentUser?.name || '').trim().toLowerCase();
             const currentUserId = db.currentUser?.id;
+
             if (currentUserName) {
               (db.tasks || []).forEach(task => {
                 (task.comments || []).forEach(c => {
@@ -5321,11 +5328,19 @@
                                      (Array.isArray(c.mentions) && c.mentions.some(m => m.toLowerCase() === currentUserName));
 
                   if (mentionsMe) {
-                    const notifId = 'notif-mention-' + (c.id || (task.id + '-' + c.timestamp));
-                    const alreadyNotified = (db.notifications || []).some(n => n.id === notifId || (n.taskId === task.id && n.message.includes(c.text)));
-                    if (!alreadyNotified) {
+                    const mentionKey = `mention_${task.id}_${c.id || c.timestamp}_${c.author}`;
+                    if (c._notified || db.notifiedMentions.includes(mentionKey)) {
+                      return;
+                    }
+                    c._notified = true;
+                    db.notifiedMentions.push(mentionKey);
+                    hasChanges = true;
+
+                    // Apenas exibe toast se o comentário for recente (últimos 30 minutos)
+                    const isRecent = !c.timestamp || (Date.now() - Number(c.timestamp)) < 30 * 60 * 1000;
+                    if (isRecent) {
                       createNotification({
-                        id: notifId,
+                        id: 'notif-' + mentionKey,
                         title: 'Nova Menção @',
                         message: `${c.author} mencionou você na tarefa "${task.title}": "${c.text}"`,
                         type: 'mention',
@@ -5333,6 +5348,7 @@
                         taskId: task.id,
                         urgency: 'urgente'
                       });
+                      db.notifications = getDB().notifications;
                     }
                   }
                 });
