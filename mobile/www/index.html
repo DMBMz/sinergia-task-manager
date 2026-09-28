@@ -1414,14 +1414,14 @@
             <strong style="color: #2563EB;">80%</strong>
           </div>
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 11px;">
-            <span>admteste</span>
+            <span>Ana Silva</span>
             <div style="flex: 1; height: 6px; background: #F1F5F9; border-radius: 9999px; margin: 0 10px; overflow: hidden;">
-              <div style="width: 60%; height: 100%; background: #10B981;"></div>
+              <div style="width: 65%; height: 100%; background: #10B981;"></div>
             </div>
-            <strong style="color: #10B981;">60%</strong>
+            <strong style="color: #10B981;">65%</strong>
           </div>
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
-            <span>Teste Celular</span>
+            <span>Carlos Mendes</span>
             <div style="flex: 1; height: 6px; background: #F1F5F9; border-radius: 9999px; margin: 0 10px; overflow: hidden;">
               <div style="width: 45%; height: 100%; background: #F59E0B;"></div>
             </div>
@@ -1840,7 +1840,6 @@
           <!-- Rodapé com Ações -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--border);">
             <button onclick="markAllNotificationsAsRead()" style="background: none; border: none; color: #2563EB; font-size: 11px; font-weight: 700; cursor: pointer;"><svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg>Marcar lidas</button>
-            <button onclick="triggerSimulatedNotification()" style="background: #EFF6FF; border: 1px solid #BFDBFE; color: #2563EB; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;"><svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Testar Alerta</button>
             <button onclick="clearAllNotifications()" style="background: none; border: none; color: #EF4444; font-size: 11px; cursor: pointer;">Limpar</button>
           </div>
         </div>
@@ -2662,7 +2661,7 @@
           el.innerHTML = '<span class="pulse-dot-green"></span> Online (Sync Ativo)';
         } else {
           el.className = 'net-tag net-offline';
-          el.innerHTML = '<span class="pulse-dot-red"></span> Modo Offline (WatermelonDB)';
+          el.innerHTML = '<span class="pulse-dot-red"></span> Modo Offline (Local)';
         }
       }
 
@@ -3111,14 +3110,9 @@
               <strong style="color: #991B1B; font-size: 13px; display: block; margin-bottom: 2px;">
                 Bloqueio de Edição Simultânea Ativo
               </strong>
-              <p style="color: #B91C1C; font-size: 11px; margin: 0 0 6px 0; line-height: 1.4;">
-                <strong>${task.lockedBy.name}</strong> está editando esta tarefa neste momento. Para evitar sobrescrita simultânea e conflito de dados, as alterações estão temporariamente <strong>bloqueadas</strong> até a finalização da edição.
+              <p style="color: #B91C1C; font-size: 11px; margin: 0; line-height: 1.4;">
+                <strong>${task.lockedBy.name}</strong> está editando esta tarefa neste momento. Para evitar conflitos de dados, as alterações estão temporariamente <strong>bloqueadas</strong> até a conclusão da edição.
               </p>
-              <div style="display: flex; gap: 6px;">
-                <button type="button" class="btn-lock-sim" onclick="simulateReleaseLock('${task.id}')">
-                  🔓 Simular que ${task.lockedBy.name} terminou
-                </button>
-              </div>
             </div>
           </div>
         `;
@@ -3166,15 +3160,9 @@
           inlineInput.placeholder = '+ Digite uma sub-tarefa...';
         }
       } else {
-        // Tarefa Livre para Edição
-        bannerContainer.innerHTML = `
-          <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
-            <button type="button" class="btn-lock-sim" onclick="simulateConcurrentLock('${task.id}')">
-              👥 Simular Edição Simultânea por Ana Silva
-            </button>
-          </div>
-        `;
-        bannerContainer.style.display = 'block';
+        // Tarefa Livre para Edição (Sem banner artificial)
+        bannerContainer.innerHTML = '';
+        bannerContainer.style.display = 'none';
 
         actionContainer.innerHTML = `
           <button class="btn-edit-task" onclick="handleStartEditTask()">
