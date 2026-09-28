@@ -214,6 +214,12 @@ export class AppRepository {
       updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
       deletedAt: null
     };
+    if (Array.isArray((data as any).comments)) {
+      (task as any).comments = (data as any).comments;
+    }
+    if (Array.isArray((data as any).attachments)) {
+      (task as any).attachments = (data as any).attachments;
+    }
     this.tasks.set(task.id, task);
     this.logChange('tasks', task.id, 'created');
 
@@ -275,8 +281,27 @@ export class AppRepository {
     const subTasks = Array.from(this.tasks.values()).filter(t => t.parentTaskId === id && !t.deletedAt);
     const tagIds = this.taskTags.filter(tt => tt.taskId === id).map(tt => tt.tagId);
     const tags = tagIds.map(tid => this.tags.get(tid)).filter(Boolean) as Tag[];
-    const comments = Array.from(this.comments.values()).filter(c => c.taskId === id);
-    const attachments = Array.from(this.attachments.values()).filter(a => a.taskId === id);
+    const repoComments = Array.from(this.comments.values()).filter(c => c.taskId === id);
+    const taskComments = (task as any).comments || [];
+    const combinedComments = [...taskComments];
+    for (const rc of repoComments) {
+      if (!combinedComments.some(tc => tc.id === rc.id || (tc.text === rc.content && tc.timestamp))) {
+        combinedComments.push({
+          id: rc.id,
+          author: rc.authorId,
+          text: rc.content,
+          attachment: null,
+          time: new Date(rc.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          timestamp: new Date(rc.createdAt).getTime(),
+          mentions: rc.mentions
+        });
+      }
+    }
+
+    const repoAttachments = Array.from(this.attachments.values()).filter(a => a.taskId === id);
+    const taskAttachments = (task as any).attachments || [];
+    const combinedAttachments = [...taskAttachments, ...repoAttachments];
+
     const assignee = task.assigneeId ? this.users.get(task.assigneeId) : null;
     const project = this.projects.get(task.projectId);
     const team = task.team || project?.name || 'Meu Time';
@@ -288,8 +313,8 @@ export class AppRepository {
       subTasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
       subtasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
       tags,
-      comments,
-      attachments
+      comments: combinedComments,
+      attachments: combinedAttachments
     };
   }
 
@@ -431,6 +456,16 @@ export class AppRepository {
     };
     if (Array.isArray(tags)) {
       (updated as any).tags = tags;
+    }
+    if (Array.isArray((data as any).comments)) {
+      (updated as any).comments = (data as any).comments;
+    } else if ((existing as any).comments) {
+      (updated as any).comments = (existing as any).comments;
+    }
+    if (Array.isArray((data as any).attachments)) {
+      (updated as any).attachments = (data as any).attachments;
+    } else if ((existing as any).attachments) {
+      (updated as any).attachments = (existing as any).attachments;
     }
     this.tasks.set(id, updated);
     this.logChange('tasks', id, 'updated');
