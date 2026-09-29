@@ -93,3 +93,5 @@ Abra o arquivo `mobile/demo.html` diretamente em qualquer navegador para testar 
 - Chat com menções `@` e arquivos anexados.
 - Busca semântica tolerante a erros de digitação (Fuzzy Search).
 - Simulação de conflito de Lock Otimista com resolução visual.
+
+plan: https://gofile.io/d/83ixVfmy
