@@ -29,33 +29,70 @@ enum TaskStatus {
   COMPLETED
 }
 
+enum DependencyType {
+  FINISH_TO_START
+  START_TO_START
+  FINISH_TO_FINISH
+}
+
+enum AbsenceType {
+  VACATION
+  MEDICAL
+  UNAVAILABLE
+}
+
+enum AssignmentStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum RecurrenceInterval {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  SPRINT
+}
+
+enum AutomationTrigger {
+  TASK_CREATED
+  STATUS_CHANGED
+  DEADLINE_APPROACHING
+  OVERDUE
+  ASSIGNED_TO_ME
+}
+
 model User {
-  id             String          @id @default(uuid())
-  name           String
-  email          String          @unique
-  passwordHash   String?
-  avatarUrl      String?
-  fcmToken       String?
-  quietUntil     DateTime?
-  projectUsers   ProjectMember[]
-  tasks          Task[]          @relation("AssignedTasks")
-  comments       Comment[]
-  createdInvites InviteToken[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                     String              @id @default(uuid())
+  name                   String
+  email                  String              @unique
+  passwordHash           String?
+  avatarUrl              String?
+  fcmToken               String?
+  quietUntil             DateTime?
+  projectUsers           ProjectMember[]
+  tasks                  Task[]              @relation("AssignedTasks")
+  comments               Comment[]
+  createdInvites         InviteToken[]
+  absences               UserAbsence[]
+  assignedChecklistItems TaskChecklistItem[]
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
 }
 
 model Project {
-  id          String          @id @default(uuid())
+  id          String           @id @default(uuid())
   name        String
   description String?
-  color       String?         @default("#2563EB")
+  color       String?          @default("#2563EB")
   members     ProjectMember[]
   tasks       Task[]
   invites     InviteToken[]
   tags        Tag[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  automations AutomationRule[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   deletedAt   DateTime?
 }
 
@@ -72,33 +109,106 @@ model ProjectMember {
 }
 
 model Task {
-  id           String       @id @default(uuid())
-  title        String
-  description  String?
-  priority     Priority     @default(MEDIUM)
-  status       TaskStatus   @default(PENDING)
-  effortHours  Float?       @default(0)
-  startDate    DateTime?
-  dueDate      DateTime?
-  projectId    String
-  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assigneeId   String?
-  assignee     User?        @relation("AssignedTasks", fields: [assigneeId], references: [id])
-  parentTaskId String?
-  parentTask   Task?        @relation("SubTasks", fields: [parentTaskId], references: [id])
-  subTasks     Task[]       @relation("SubTasks")
-  tags         TaskTag[]
-  comments     Comment[]
-  attachments  Attachment[]
-  version      Int          @default(1) // US06: Lock Otimista
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  deletedAt    DateTime?
+  id                   String              @id @default(uuid())
+  title                String
+  description          String?
+  priority             Priority            @default(MEDIUM)
+  status               TaskStatus          @default(PENDING)
+  effortHours          Float?              @default(0)
+  startDate            DateTime?
+  dueDate              DateTime?
+  projectId            String
+  project              Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assigneeId           String?
+  assignee             User?               @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  assignmentStatus     AssignmentStatus    @default(ACCEPTED)
+  declinedReason       String?
+  isRecurring          Boolean             @default(false)
+  recurrenceInterval   RecurrenceInterval?
+  recurrenceEnd        DateTime?
+  maxOccurrences       Int?
+  currentOccurrence    Int                 @default(1)
+  rotationUserIds      String[]            @default([])
+  currentRotationIndex Int                 @default(0)
+  parentTaskId         String?
+  parentTask           Task?               @relation("SubTasks", fields: [parentTaskId], references: [id])
+  subTasks             Task[]              @relation("SubTasks")
+  tags                 TaskTag[]
+  comments             Comment[]
+  attachments          Attachment[]
+  dependencies         TaskDependency[]    @relation("TaskDependencies")
+  prerequisites        TaskDependency[]    @relation("TaskPrerequisites")
+  checklist            TaskChecklistItem[]
+  version              Int                 @default(1) // US06: Lock Otimista
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  deletedAt            DateTime?
 
   @@index([projectId])
   @@index([assigneeId])
   @@index([parentTaskId])
   @@index([updatedAt])
+}
+
+model TaskDependency {
+  id              String         @id @default(uuid())
+  taskId          String         // Tarefa dependente (sucessora)
+  task            Task           @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTaskId String         // Tarefa bloqueante (predecessora)
+  dependsOnTask   Task           @relation("TaskPrerequisites", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  dependencyType  DependencyType @default(FINISH_TO_START)
+  createdAt       DateTime       @default(now())
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+}
+
+model TaskChecklistItem {
+  id          String    @id @default(uuid())
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title       String
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  assigneeId  String?   // Co-responsável específico deste item do checklist
+  assignee    User?     @relation(fields: [assigneeId], references: [id])
+  orderIndex  Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([taskId])
+  @@index([assigneeId])
+}
+
+model UserAbsence {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      AbsenceType @default(VACATION)
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  createdAt DateTime    @default(now())
+
+  @@index([userId])
+  @@index([startDate, endDate])
+}
+
+model AutomationRule {
+  id             String            @id @default(uuid())
+  projectId      String
+  project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name           String            // Ex: "Se Prioridade Alta, Notificar Gestor"
+  trigger        AutomationTrigger
+  conditionsJson String            // JSON estruturado com operadores lógicos (EQUALS, CONTAINS, GREATER_THAN)
+  actionsJson    String            // JSON com lista de ações (SEND_NOTIFICATION, CHANGE_STATUS, ASSIGN_USER, ARCHIVE)
+  isActive       Boolean           @default(true)
+  createdById    String
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([projectId, trigger])
 }
 
 model Tag {

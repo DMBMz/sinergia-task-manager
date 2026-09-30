@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Tag as TagIcon, Filter, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Search, Tag as TagIcon, Filter, Wifi, WifiOff, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { LocalTag } from '../database/schema';
 
 interface FilterBarProps {
@@ -16,6 +16,8 @@ interface FilterBarProps {
   onToggleOnline: () => void;
   isSyncing: boolean;
   onTriggerSync: () => void;
+  onOpenDrawer?: () => void;
+  activeFiltersCount?: number;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -31,7 +33,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   isOnline,
   onToggleOnline,
   isSyncing,
-  onTriggerSync
+  onTriggerSync,
+  onOpenDrawer,
+  activeFiltersCount = 0
 }) => {
   return (
     <div style={styles.container}>
@@ -64,18 +68,40 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </button>
       </div>
 
-      {/* Input de Busca com Tolerância a Erros (US05) */}
-      <div style={styles.searchBox}>
-        <Search size={16} color="#64748B" />
-        <input
-          type="text"
-          placeholder="Busca semântica & fuzzy (tolerante a erros de digitação)..."
-          value={searchQuery}
-          onChange={e => onSearchChange(e.target.value)}
-          style={styles.searchInput}
-        />
-        {searchQuery && (
-          <span style={styles.fuzzyNotice}>Fuzzy Search ativa</span>
+      {/* Input de Busca com Tolerância a Erros (US05) e Botão do Drawer */}
+      <div style={styles.searchRow}>
+        <div style={styles.searchBox}>
+          <Search size={16} color="#64748B" />
+          <input
+            type="text"
+            placeholder="Busca semântica & fuzzy (tolerante a erros de digitação)..."
+            value={searchQuery}
+            onChange={e => onSearchChange(e.target.value)}
+            style={styles.searchInput}
+          />
+          {searchQuery && (
+            <span style={styles.fuzzyNotice}>Fuzzy ativa</span>
+          )}
+        </div>
+
+        {onOpenDrawer && (
+          <button
+            type="button"
+            onClick={onOpenDrawer}
+            style={{
+              ...styles.filterDrawerBtn,
+              backgroundColor: activeFiltersCount > 0 ? '#EFF6FF' : '#FFFFFF',
+              borderColor: activeFiltersCount > 0 ? '#2563EB' : '#CBD5E1',
+              color: activeFiltersCount > 0 ? '#2563EB' : '#475569'
+            }}
+            title="Abrir painel de filtros avançados"
+          >
+            <SlidersHorizontal size={15} />
+            <span style={{ fontWeight: 600 }}>Filtros</span>
+            {activeFiltersCount > 0 && (
+              <span style={styles.filterBadge}>{activeFiltersCount}</span>
+            )}
+          </button>
         )}
       </div>
 
@@ -193,15 +219,48 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#475569',
     cursor: 'pointer'
   },
+  searchRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12
+  },
   searchBox: {
+    flex: 1,
     display: 'flex',
     alignItems: 'center',
     gap: 8,
     backgroundColor: '#F8FAFC',
     borderRadius: 10,
     padding: '8px 12px',
+    border: '1px solid #CBD5E1'
+  },
+  filterDrawerBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '8px 14px',
+    borderRadius: 10,
     border: '1px solid #CBD5E1',
-    marginBottom: 12
+    backgroundColor: '#FFFFFF',
+    fontSize: 12,
+    cursor: 'pointer',
+    position: 'relative' as const,
+    whiteSpace: 'nowrap' as const,
+    transition: 'all 0.15s ease'
+  },
+  filterBadge: {
+    backgroundColor: '#2563EB',
+    color: '#FFFFFF',
+    borderRadius: 9999,
+    fontSize: 10,
+    fontWeight: 700,
+    width: 17,
+    height: 17,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 2
   },
   searchInput: {
     flex: 1,

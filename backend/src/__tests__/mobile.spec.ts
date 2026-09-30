@@ -2,6 +2,7 @@ import { SyncService } from '../../../mobile/src/services/syncService';
 import { LocalSearchIndex } from '../../../mobile/src/services/searchIndex';
 import { MobileNotificationService } from '../../../mobile/src/services/notificationHandler';
 import { LocalTask } from '../../../mobile/src/database/schema';
+import { aiEstimator } from '../../../mobile/src/services/aiEstimator';
 
 describe('Sinergia Mobile — Testes Unitários de Serviços Mobile', () => {
 
@@ -128,4 +129,55 @@ describe('Sinergia Mobile — Testes Unitários de Serviços Mobile', () => {
       });
     });
   });
+
+  describe('US08: AiEstimatorService (Previsão de Duração TFLite / Fallback)', () => {
+    it('deve extrair vetor numérico de features da tarefa', () => {
+      const features = aiEstimator.extractFeatures({
+        title: 'Criar tela de login com autenticação biométrica',
+        description: 'Implementar tela em React Native com validação local e tokens JWT.',
+        subtasksCount: 2,
+        priority: 'HIGH',
+        tagsCount: 2
+      });
+
+      expect(features.length).toBe(6);
+      expect(features[0]).toBe(1.0); // Bias
+      expect(features[1]).toBe(7);   // Words in title
+      expect(features[3]).toBe(2);   // Subtasks
+      expect(features[4]).toBe(3);   // HIGH priority = 3
+    });
+
+    it('deve prever duração estimada realista e fornecer justificativa contextual', () => {
+      const result = aiEstimator.estimate({
+        title: 'Desenvolver módulo de exportação PDF',
+        description: 'Geração de relatórios com gráficos e tabelas para exportação.',
+        subtasksCount: 3,
+        priority: 'HIGH',
+        tagsCount: 1
+      });
+
+      expect(result.estimatedHours).toBeGreaterThan(5);
+      expect(result.confidence).toBeGreaterThanOrEqual(75);
+      expect(result.explanation).toContain('subtarefa');
+      expect(result.breakdown.subtasksEffort).toBeGreaterThan(0);
+      expect(result.breakdown.priorityImpact).toBeGreaterThan(0);
+    });
+
+    it('deve atribuir mais horas para tarefas de maior prioridade e com mais subtarefas', () => {
+      const simple = aiEstimator.estimate({
+        title: 'Revisão simples de texto',
+        priority: 'LOW',
+        subtasksCount: 0
+      });
+
+      const complex = aiEstimator.estimate({
+        title: 'Revisão simples de texto',
+        priority: 'URGENT',
+        subtasksCount: 4
+      });
+
+      expect(complex.estimatedHours).toBeGreaterThan(simple.estimatedHours);
+    });
+  });
 });
+

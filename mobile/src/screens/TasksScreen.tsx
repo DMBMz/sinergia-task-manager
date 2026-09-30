@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Plus, QrCode, Share2, Bell, CheckCircle2, AlertTriangle, Layers } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, QrCode, Share2, Bell, CheckCircle2, AlertTriangle, Layers, RotateCcw } from 'lucide-react';
 import { LocalTask, LocalTag } from '../database/schema';
 import { TaskCard } from '../components/TaskCard';
 import { FilterBar } from '../components/FilterBar';
+import { FilterDrawer, FilterState } from '../components/FilterDrawer';
+import { LocalSearchIndex } from '../services/searchIndex';
 import { PushNotification } from '../services/notificationHandler';
 
 interface TasksScreenProps {
@@ -39,24 +41,124 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedPriority, setSelectedPriority] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
-  // Filtragem (com busca e filtros de status/prioridade)
-  const filteredTasks = tasks.filter(task => {
-    // Apenas tarefas raiz na lista principal (subtarefas ficam aninhadas dentro delas)
-    if (task.parentTaskId) return false;
+  // US05: Estado de filtros avançados compostos
+  const [advancedFilters, setAdvancedFilters] = useState<FilterState>({
+    scope: 'root_only',
+    assigneeId: null,
+    tagNames: [],
+    statuses: [],
+    priorities: [],
+    overdueOnly: false,
+    thisWeekOnly: false
+  });
 
-    if (selectedStatus && task.status !== selectedStatus) return false;
-    if (selectedPriority && task.priority !== selectedPriority) return false;
+  // Contagem de filtros ativos
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (advancedFilters.scope !== 'root_only') count++;
+    if (advancedFilters.assigneeId) count++;
+    if (advancedFilters.tagNames.length > 0) count += advancedFilters.tagNames.length;
+    if (advancedFilters.statuses.length > 0) count += advancedFilters.statuses.length;
+    if (advancedFilters.priorities.length > 0) count += advancedFilters.priorities.length;
+    if (advancedFilters.overdueOnly) count++;
+    if (advancedFilters.thisWeekOnly) count++;
+    if (selectedTag) count++;
+    if (selectedStatus) count++;
+    if (selectedPriority) count++;
+    return count;
+  }, [advancedFilters, selectedTag, selectedStatus, selectedPriority]);
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = task.title.toLowerCase().includes(q);
-      const matchDesc = task.description?.toLowerCase().includes(q);
-      if (!matchTitle && !matchDesc) return false;
+  // Instância do mecanismo de busca fuzzy Levenshtein
+  const searchEngine = useMemo(() => {
+    const engine = new LocalSearchIndex();
+    engine.indexTasks(tasks);
+    return engine;
+  }, [tasks]);
+
+  // US05: Filtragem reativa composta cruzando Levenshtein com todos os critérios do Drawer
+  const filteredTasks = useMemo(() => {
+    let list = tasks;
+
+    // 1. Escopo (Root vs Subtasks)
+    if (advancedFilters.scope === 'root_only') {
+      list = list.filter(t => !t.parentTaskId);
+    } else if (advancedFilters.scope === 'subtasks_only') {
+      list = list.filter(t => !!t.parentTaskId);
     }
 
-    return true;
-  });
+    // 2. Responsável
+    if (advancedFilters.assigneeId) {
+      list = list.filter(t => t.assigneeId === advancedFilters.assigneeId);
+    }
+
+    // 3. Status
+    if (advancedFilters.statuses.length > 0) {
+      list = list.filter(t => advancedFilters.statuses.includes(t.status));
+    } else if (selectedStatus) {
+      list = list.filter(t => t.status === selectedStatus);
+    }
+
+    // 4. Prioridade
+    if (advancedFilters.priorities.length > 0) {
+      list = list.filter(t => advancedFilters.priorities.includes(t.priority));
+    } else if (selectedPriority) {
+      list = list.filter(t => t.priority === selectedPriority);
+    }
+
+    // 5. Múltiplas Tags
+    if (advancedFilters.tagNames.length > 0) {
+      list = list.filter(t => {
+        return advancedFilters.tagNames.some(tn =>
+          t.title.toLowerCase().includes(tn.toLowerCase()) ||
+          (t.description && t.description.toLowerCase().includes(tn.toLowerCase()))
+        );
+      });
+    } else if (selectedTag) {
+      list = list.filter(t =>
+        t.title.toLowerCase().includes(selectedTag.toLowerCase()) ||
+        (t.description && t.description.toLowerCase().includes(selectedTag.toLowerCase()))
+      );
+    }
+
+    // 6. Overdue (tarefas atrasadas não concluídas)
+    if (advancedFilters.overdueOnly) {
+      const now = new Date();
+      list = list.filter(t => t.dueDate && new Date(t.dueDate) < now && t.status !== 'COMPLETED');
+    }
+
+    // 7. Vence esta semana
+    if (advancedFilters.thisWeekOnly) {
+      const now = new Date();
+      const in7Days = new Date(now.getTime() + 7 * 86400000);
+      list = list.filter(t => t.dueDate && new Date(t.dueDate) >= now && new Date(t.dueDate) <= in7Days);
+    }
+
+    // 8. Busca difusa Levenshtein (Fuzzy Matching tolerante a erros)
+    if (searchQuery.trim()) {
+      const results = searchEngine.search(searchQuery.trim(), list);
+      const matchIds = new Set(results.map(r => r.task.id));
+      list = list.filter(t => matchIds.has(t.id));
+    }
+
+    return list;
+  }, [tasks, advancedFilters, selectedTag, selectedStatus, selectedPriority, searchQuery, searchEngine]);
+
+  const resetAllFilters = () => {
+    setAdvancedFilters({
+      scope: 'root_only',
+      assigneeId: null,
+      tagNames: [],
+      statuses: [],
+      priorities: [],
+      overdueOnly: false,
+      thisWeekOnly: false
+    });
+    setSelectedTag(null);
+    setSelectedStatus(null);
+    setSelectedPriority(null);
+  };
 
   return (
     <div style={styles.container}>
@@ -98,22 +200,28 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({
 
       {/* Drawer de Notificações Recebidas (US07) */}
       {showNotifications && (
-        <div style={styles.notifDrawer}>
-          <h4 style={styles.notifTitle}>Alertas Progressivos de Prazos & Menções</h4>
+        <div style={styles.notifDropdown}>
+          <div style={styles.notifHeader}>
+            <span style={{ fontWeight: 700, fontSize: 13, color: '#0F172A' }}>Central de Alertas FCM</span>
+            <button onClick={() => setShowNotifications(false)} style={styles.notifClose}>×</button>
+          </div>
           {notifications.length === 0 ? (
-            <p style={{ fontSize: 12, color: '#94A3B8' }}>Nenhuma notificação no momento.</p>
+            <p style={{ padding: 12, fontSize: 12, color: '#64748B', textAlign: 'center' }}>Nenhum alerta recente.</p>
           ) : (
             notifications.map(n => (
-              <div key={n.id} style={{ ...styles.notifItem, borderLeftColor: n.color }}>
-                <strong style={{ fontSize: 13, color: '#0F172A' }}>{n.title}</strong>
-                <p style={{ fontSize: 12, color: '#475569', margin: '2px 0 0 0' }}>{n.body}</p>
+              <div key={n.id} style={{ ...styles.notifItem, borderLeftColor: n.color || '#3B82F6' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <AlertTriangle size={14} color={n.color || '#3B82F6'} />
+                  <span style={{ fontWeight: 600, fontSize: 12 }}>{n.title}</span>
+                </div>
+                <p style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>{n.body}</p>
               </div>
             ))
           )}
         </div>
       )}
 
-      {/* Barra de Filtros, Modo Offline e Busca Semântica */}
+      {/* Barra de Filtros com Busca Difusa e Botão do Drawer (FE-05.2 / FE-05.3) */}
       <FilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -128,20 +236,53 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({
         onToggleOnline={onToggleOnline}
         isSyncing={isSyncing}
         onTriggerSync={onTriggerSync}
+        onOpenDrawer={() => setFilterDrawerOpen(true)}
+        activeFiltersCount={activeFiltersCount}
+      />
+
+      {/* Drawer Lateral de Filtros Avançados (FE-05.2) */}
+      <FilterDrawer
+        isOpen={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        filters={advancedFilters}
+        onFiltersChange={setAdvancedFilters}
+        onResetFilters={resetAllFilters}
+        tags={tags}
+        members={[
+          { id: 'user-davi-001', name: 'Davi Marinho', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Davi' },
+          { id: 'user-ana-002', name: 'Ana Silva', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana' },
+          { id: 'user-carlos-003', name: 'Carlos Tech', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos' }
+        ]}
+        activeCount={activeFiltersCount}
       />
 
       {/* Lista de Tarefas */}
       <div style={styles.taskList}>
         <div style={styles.listHeader}>
           <span style={styles.counterText}>
-            Exibindo {filteredTasks.length} de {tasks.filter(t => !t.parentTaskId).length} tarefas
+            Exibindo <strong>{filteredTasks.length}</strong> de <strong>{tasks.length}</strong> tarefas
+            {activeFiltersCount > 0 && (
+              <span style={{ color: '#2563EB', marginLeft: 6 }}>({activeFiltersCount} filtro{activeFiltersCount > 1 ? 's' : ''} ativo{activeFiltersCount > 1 ? 's' : ''})</span>
+            )}
           </span>
+
+          {activeFiltersCount > 0 && (
+            <button onClick={resetAllFilters} style={styles.resetFiltersBtn} title="Limpar todos os filtros">
+              <RotateCcw size={12} />
+              <span>Limpar filtros</span>
+            </button>
+          )}
         </div>
 
         {filteredTasks.length === 0 ? (
           <div style={styles.emptyState}>
             <p style={styles.emptyTitle}>Nenhuma tarefa encontrada.</p>
-            <p style={styles.emptySub}>Crie uma nova tarefa ou ajuste os filtros de busca.</p>
+            <p style={styles.emptySub}>Ajuste os filtros de busca ou crie uma nova tarefa.</p>
+            {activeFiltersCount > 0 && (
+              <button onClick={resetAllFilters} style={styles.emptyResetBtn}>
+                Remover todos os filtros
+              </button>
+            )}
           </div>
         ) : (
           filteredTasks.map(task => {
@@ -168,35 +309,34 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     maxWidth: 800,
     margin: '0 auto',
-    padding: '24px 16px'
+    padding: '16px',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: 16
   },
   logoIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 34,
+    height: 34,
+    borderRadius: 8,
     backgroundColor: '#2563EB',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.3)'
+    justifyContent: 'center'
   },
   appTitle: {
-    margin: 0,
     fontSize: 22,
     fontWeight: 800,
     color: '#0F172A',
-    letterSpacing: '-0.02em'
+    margin: 0
   },
   appSubtitle: {
-    margin: '2px 0 0 0',
     fontSize: 12,
-    color: '#64748B'
+    color: '#64748B',
+    marginTop: 2
   },
   headerActions: {
     display: 'flex',
@@ -204,15 +344,12 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 8
   },
   headerBtn: {
-    position: 'relative',
-    backgroundColor: '#FFFFFF',
-    border: '1px solid #E2E8F0',
-    borderRadius: 10,
     padding: 8,
+    borderRadius: 8,
+    border: '1px solid #CBD5E1',
+    backgroundColor: '#FFFFFF',
     cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
+    position: 'relative'
   },
   notifBadge: {
     position: 'absolute',
@@ -221,77 +358,105 @@ const styles: Record<string, React.CSSProperties> = {
     backgroundColor: '#EF4444',
     color: '#FFFFFF',
     fontSize: 10,
-    fontWeight: 700,
-    width: 16,
-    height: 16,
     borderRadius: 9999,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
+    padding: '1px 5px',
+    fontWeight: 700
   },
   createBtn: {
     display: 'flex',
     alignItems: 'center',
     gap: 6,
+    padding: '8px 14px',
+    borderRadius: 8,
+    border: 'none',
     backgroundColor: '#2563EB',
     color: '#FFFFFF',
-    border: 'none',
-    borderRadius: 10,
-    padding: '8px 16px',
-    fontSize: 13,
     fontWeight: 600,
-    cursor: 'pointer',
-    boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
-  },
-  notifDrawer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    border: '1px solid #CBD5E1',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-    marginBottom: 20
-  },
-  notifTitle: {
-    margin: '0 0 10px 0',
     fontSize: 13,
-    fontWeight: 700,
-    color: '#334155'
+    cursor: 'pointer'
+  },
+  notifDropdown: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    border: '1px solid #E2E8F0',
+    marginBottom: 16,
+    overflow: 'hidden'
+  },
+  notifHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '8px 12px',
+    backgroundColor: '#F8FAFC',
+    borderBottom: '1px solid #E2E8F0'
+  },
+  notifClose: {
+    background: 'none',
+    border: 'none',
+    fontSize: 16,
+    cursor: 'pointer',
+    color: '#64748B'
   },
   notifItem: {
-    backgroundColor: '#F8FAFC',
-    borderLeft: '4px solid',
     padding: '8px 12px',
-    borderRadius: '0 8px 8px 0',
-    marginBottom: 8
+    borderLeft: '4px solid',
+    borderBottom: '1px solid #F1F5F9'
   },
   taskList: {
+    marginTop: 16,
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    gap: 12
   },
   listHeader: {
-    marginBottom: 12
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 4
   },
   counterText: {
     fontSize: 12,
-    color: '#64748B',
-    fontWeight: 600
+    color: '#64748B'
+  },
+  resetFiltersBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    background: 'none',
+    border: 'none',
+    color: '#2563EB',
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: 'pointer'
   },
   emptyState: {
     textAlign: 'center',
     padding: '48px 16px',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
     border: '1px dashed #CBD5E1'
   },
   emptyTitle: {
-    margin: 0,
     fontSize: 15,
     fontWeight: 600,
-    color: '#334155'
+    color: '#334155',
+    margin: 0
   },
   emptySub: {
-    margin: '4px 0 0 0',
     fontSize: 13,
-    color: '#94A3B8'
+    color: '#64748B',
+    marginTop: 4
+  },
+  emptyResetBtn: {
+    marginTop: 12,
+    padding: '6px 14px',
+    backgroundColor: '#FFFFFF',
+    border: '1px solid #CBD5E1',
+    borderRadius: 8,
+    fontSize: 12,
+    color: '#2563EB',
+    fontWeight: 600,
+    cursor: 'pointer'
   }
 };

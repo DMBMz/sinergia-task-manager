@@ -1,6 +1,8 @@
 import {
   User, Project, ProjectMember, Task, Tag, Comment, Attachment, InviteToken,
-  Role, Priority, TaskStatus
+  Role, Priority, TaskStatus,
+  TaskDependency, TaskChecklistItem, UserAbsence, AutomationRule,
+  DependencyType, AbsenceType, AssignmentStatus, RecurrenceInterval, AutomationTrigger
 } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from './prisma';
@@ -15,6 +17,10 @@ export class AppRepository {
   comments: Map<string, Comment> = new Map();
   attachments: Map<string, Attachment> = new Map();
   inviteTokens: Map<string, InviteToken> = new Map();
+  taskDependencies: Map<string, TaskDependency> = new Map();
+  taskChecklists: Map<string, TaskChecklistItem> = new Map();
+  userAbsences: Map<string, UserAbsence> = new Map();
+  automationRules: Map<string, AutomationRule> = new Map();
 
   // Change log for delta sync
   changeLogs: Array<{
@@ -169,6 +175,68 @@ export class AppRepository {
       deletedAt: null
     };
     this.tasks.set(subtask1.id, subtask1);
+
+    // Initial Sprint 2 seeds: Checklist, Dependency, Absence, Automation
+    const clItem1: TaskChecklistItem = {
+      id: 'chk-001',
+      taskId: task1.id,
+      title: 'Validar migrações do Prisma com banco Neon',
+      isCompleted: true,
+      completedAt: new Date(),
+      assigneeId: user1.id,
+      assigneeName: user1.name,
+      orderIndex: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    const clItem2: TaskChecklistItem = {
+      id: 'chk-002',
+      taskId: task1.id,
+      title: 'Integrar Drawer de filtros avançados no mobile',
+      isCompleted: false,
+      completedAt: null,
+      assigneeId: user2.id,
+      assigneeName: user2.name,
+      orderIndex: 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.taskChecklists.set(clItem1.id, clItem1);
+    this.taskChecklists.set(clItem2.id, clItem2);
+
+    const dep1: TaskDependency = {
+      id: 'dep-001',
+      taskId: subtask1.id,
+      dependsOnTaskId: task1.id,
+      dependencyType: 'FINISH_TO_START',
+      createdAt: new Date()
+    };
+    this.taskDependencies.set(dep1.id, dep1);
+
+    const abs1: UserAbsence = {
+      id: 'abs-001',
+      userId: user2.id,
+      type: 'VACATION',
+      startDate: new Date(Date.now() + 86400000 * 20),
+      endDate: new Date(Date.now() + 86400000 * 30),
+      reason: 'Férias programadas de final de ano',
+      createdAt: new Date()
+    };
+    this.userAbsences.set(abs1.id, abs1);
+
+    const auto1: AutomationRule = {
+      id: 'auto-001',
+      projectId: project1.id,
+      name: 'Se Prioridade URGENTE, Notificar Gestor Imediatamente',
+      trigger: 'TASK_CREATED',
+      conditionsJson: JSON.stringify({ field: 'priority', operator: 'EQUALS', value: 'URGENT' }),
+      actionsJson: JSON.stringify([{ action: 'SEND_NOTIFICATION', targetRole: 'ADMIN' }]),
+      isActive: true,
+      createdById: user1.id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.automationRules.set(auto1.id, auto1);
   }
 
   logChange(table: string, recordId: string, action: 'created' | 'updated' | 'deleted') {
@@ -236,6 +304,15 @@ export class AppRepository {
       assigneeName: data.assigneeName || (typeof (data as any).assignee === 'string' ? (data as any).assignee : null),
       parentTaskId: data.parentTaskId || null,
       subtasks: Array.isArray(data.subtasks) ? data.subtasks : [],
+      assignmentStatus: data.assignmentStatus || 'ACCEPTED',
+      declinedReason: data.declinedReason || null,
+      isRecurring: Boolean(data.isRecurring),
+      recurrenceInterval: data.recurrenceInterval || null,
+      recurrenceEnd: data.recurrenceEnd ? new Date(data.recurrenceEnd) : null,
+      maxOccurrences: data.maxOccurrences !== undefined ? data.maxOccurrences : null,
+      currentOccurrence: data.currentOccurrence || 1,
+      rotationUserIds: Array.isArray(data.rotationUserIds) ? data.rotationUserIds : [],
+      currentRotationIndex: data.currentRotationIndex || 0,
       version: data.version || 1,
       lockedBy: data.lockedBy || null,
       lockedAt: data.lockedAt ? new Date(data.lockedAt) : null,
@@ -347,11 +424,40 @@ export class AppRepository {
       subtasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
       tags,
       comments: combinedComments,
-      attachments: combinedAttachments
+      attachments: combinedAttachments,
+      dependencies: Array.from(this.taskDependencies.values()).filter(d => d.taskId === id),
+      prerequisites: Array.from(this.taskDependencies.values()).filter(d => d.dependsOnTaskId === id),
+      checklist: Array.from(this.taskChecklists.values())
+        .filter(c => c.taskId === id)
+        .sort((a, b) => a.orderIndex - b.orderIndex),
+      assignmentStatus: task.assignmentStatus || 'ACCEPTED',
+      declinedReason: task.declinedReason || null,
+      isRecurring: task.isRecurring || false,
+      recurrenceInterval: task.recurrenceInterval || null,
+      recurrenceEnd: task.recurrenceEnd || null,
+      maxOccurrences: task.maxOccurrences || null,
+      currentOccurrence: task.currentOccurrence || 1,
+      rotationUserIds: task.rotationUserIds || [],
+      currentRotationIndex: task.currentRotationIndex || 0
     };
   }
 
-  getAllTasks(filter?: { projectId?: string; team?: string; tag?: string; status?: TaskStatus; priority?: Priority; query?: string }): any[] {
+  getAllTasks(filter?: {
+    projectId?: string;
+    team?: string;
+    tag?: string;
+    tags?: string | string[];
+    status?: TaskStatus;
+    statuses?: TaskStatus[];
+    priority?: Priority;
+    priorities?: Priority[];
+    assigneeId?: string;
+    scope?: 'all' | 'root_only' | 'subtasks_only';
+    dueDateStart?: string | Date;
+    dueDateEnd?: string | Date;
+    overdue?: boolean | string;
+    query?: string;
+  }): any[] {
     let result = Array.from(this.tasks.values()).filter(t => !t.deletedAt);
 
     if (filter?.projectId) {
@@ -363,16 +469,60 @@ export class AppRepository {
     if (filter?.status) {
       result = result.filter(t => t.status === filter.status);
     }
+    if (filter?.statuses && filter.statuses.length > 0) {
+      result = result.filter(t => filter.statuses!.includes(t.status));
+    }
     if (filter?.priority) {
       result = result.filter(t => t.priority === filter.priority);
     }
-    if (filter?.tag) {
-      const tagMatchIds = this.taskTags.filter(tt => {
-        const tagObj = this.tags.get(tt.tagId);
-        return tagObj && tagObj.name.toLowerCase() === filter.tag?.toLowerCase();
-      }).map(tt => tt.taskId);
-      result = result.filter(t => tagMatchIds.includes(t.id));
+    if (filter?.priorities && filter.priorities.length > 0) {
+      result = result.filter(t => filter.priorities!.includes(t.priority));
     }
+
+    // 1. Escopo (Root vs Subtasks) - BE-05.1
+    if (filter?.scope === 'root_only') {
+      result = result.filter(t => !t.parentTaskId);
+    } else if (filter?.scope === 'subtasks_only') {
+      result = result.filter(t => !!t.parentTaskId);
+    }
+
+    // 2. Responsável - BE-05.1
+    if (filter?.assigneeId) {
+      result = result.filter(t => t.assigneeId === filter.assigneeId);
+    }
+
+    // 3. Múltiplas Tags ou Tag única - BE-05.1
+    const rawTags = filter?.tags !== undefined ? filter.tags : filter?.tag;
+    if (rawTags) {
+      const requestedTags = (Array.isArray(rawTags) ? rawTags : rawTags.split(',')).map(s => s.trim().toLowerCase()).filter(Boolean);
+      if (requestedTags.length > 0) {
+        result = result.filter(t => {
+          const taskTagIds = this.taskTags.filter(tt => tt.taskId === t.id).map(tt => tt.tagId);
+          return taskTagIds.some(tid => {
+            const tagObj = this.tags.get(tid);
+            return tagObj && (requestedTags.includes(tagObj.id.toLowerCase()) || requestedTags.includes(tagObj.name.toLowerCase()));
+          });
+        });
+      }
+    }
+
+    // 4. Overdue (tarefas atrasadas não concluídas) - BE-05.1
+    if (filter?.overdue === true || filter?.overdue === 'true') {
+      const now = new Date();
+      result = result.filter(t => t.dueDate && new Date(t.dueDate) < now && t.status !== 'COMPLETED');
+    }
+
+    // 5. Intervalo de Vencimento - BE-05.1
+    if (filter?.dueDateStart) {
+      const start = new Date(filter.dueDateStart);
+      result = result.filter(t => t.dueDate && new Date(t.dueDate) >= start);
+    }
+    if (filter?.dueDateEnd) {
+      const end = new Date(filter.dueDateEnd);
+      result = result.filter(t => t.dueDate && new Date(t.dueDate) <= end);
+    }
+
+    // 6. Busca por texto
     if (filter?.query) {
       const q = filter.query.toLowerCase();
       result = result.filter(t => 
@@ -747,6 +897,212 @@ export class AppRepository {
 
     return { success: true, appliedCount };
   }
+
+  // ==========================================
+  // SPRINT 2: DEPENDENCY MANAGEMENT (US10 / DB-10.1 / BE-10.2)
+  // ==========================================
+  addDependency(taskId: string, dependsOnTaskId: string, dependencyType: DependencyType = 'FINISH_TO_START'): TaskDependency {
+    if (taskId === dependsOnTaskId) {
+      throw new Error('Uma tarefa não pode depender de si mesma.');
+    }
+    const existing = Array.from(this.taskDependencies.values()).find(
+      d => d.taskId === taskId && d.dependsOnTaskId === dependsOnTaskId
+    );
+    if (existing) return existing;
+
+    const id = 'dep-' + uuidv4().slice(0, 8);
+    const dep: TaskDependency = {
+      id,
+      taskId,
+      dependsOnTaskId,
+      dependencyType,
+      createdAt: new Date()
+    };
+    this.taskDependencies.set(id, dep);
+    this.logChange('taskDependencies', id, 'created');
+    return dep;
+  }
+
+  removeDependency(id: string): boolean {
+    const exists = this.taskDependencies.has(id);
+    if (exists) {
+      this.taskDependencies.delete(id);
+      this.logChange('taskDependencies', id, 'deleted');
+    }
+    return exists;
+  }
+
+  getTaskDependencies(taskId: string): TaskDependency[] {
+    return Array.from(this.taskDependencies.values()).filter(d => d.taskId === taskId);
+  }
+
+  getTaskPrerequisites(taskId: string): TaskDependency[] {
+    return Array.from(this.taskDependencies.values()).filter(d => d.dependsOnTaskId === taskId);
+  }
+
+  // ==========================================
+  // SPRINT 2: CHECKLIST & CLONAGEM (US21 / DB-21.1 / BE-21.2)
+  // ==========================================
+  addChecklistItem(taskId: string, title: string, assigneeId?: string | null): TaskChecklistItem {
+    const id = 'chk-' + uuidv4().slice(0, 8);
+    const existingItems = Array.from(this.taskChecklists.values()).filter(c => c.taskId === taskId);
+    const assignee = assigneeId ? this.users.get(assigneeId) : null;
+    const item: TaskChecklistItem = {
+      id,
+      taskId,
+      title,
+      isCompleted: false,
+      completedAt: null,
+      assigneeId: assigneeId || null,
+      assigneeName: assignee?.name || null,
+      orderIndex: existingItems.length,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.taskChecklists.set(id, item);
+    this.logChange('taskChecklists', id, 'created');
+    return item;
+  }
+
+  updateChecklistItem(itemId: string, data: Partial<TaskChecklistItem>): TaskChecklistItem | undefined {
+    const item = this.taskChecklists.get(itemId);
+    if (!item) return undefined;
+    if (data.title !== undefined) item.title = data.title;
+    if (data.isCompleted !== undefined) {
+      item.isCompleted = data.isCompleted;
+      item.completedAt = data.isCompleted ? new Date() : null;
+    }
+    if (data.assigneeId !== undefined) {
+      item.assigneeId = data.assigneeId;
+      const assignee = data.assigneeId ? this.users.get(data.assigneeId) : null;
+      item.assigneeName = assignee?.name || null;
+    }
+    if (data.orderIndex !== undefined) item.orderIndex = data.orderIndex;
+    item.updatedAt = new Date();
+    this.taskChecklists.set(itemId, item);
+    this.logChange('taskChecklists', itemId, 'updated');
+    return item;
+  }
+
+  deleteChecklistItem(itemId: string): boolean {
+    const exists = this.taskChecklists.has(itemId);
+    if (exists) {
+      this.taskChecklists.delete(itemId);
+      this.logChange('taskChecklists', itemId, 'deleted');
+    }
+    return exists;
+  }
+
+  getTaskChecklist(taskId: string): TaskChecklistItem[] {
+    return Array.from(this.taskChecklists.values())
+      .filter(c => c.taskId === taskId)
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }
+
+  cloneTask(taskId: string, dateOffsetDays: number = 0): any {
+    const original = this.getTaskWithDetails(taskId);
+    if (!original) throw new Error('Tarefa original não encontrada para duplicação.');
+
+    const offsetMs = dateOffsetDays * 86400000;
+    const now = new Date();
+    const newDueDate = original.dueDate ? new Date(new Date(original.dueDate).getTime() + offsetMs) : null;
+    const newStartDate = original.startDate ? new Date(new Date(original.startDate).getTime() + offsetMs) : now;
+
+    const cloned = this.createTask({
+      title: `${original.title} (Cópia)`,
+      description: original.description,
+      priority: original.priority,
+      status: 'PENDING',
+      effortHours: original.effortHours,
+      startDate: newStartDate,
+      dueDate: newDueDate,
+      projectId: original.projectId,
+      team: original.team,
+      assigneeId: original.assigneeId,
+      parentTaskId: null
+    });
+
+    const checklists = this.getTaskChecklist(taskId);
+    for (const item of checklists) {
+      this.addChecklistItem(cloned.id, item.title, item.assigneeId);
+    }
+
+    return this.getTaskWithDetails(cloned.id);
+  }
+
+  // ==========================================
+  // SPRINT 2: AUSÊNCIAS & ACEITE DE TAREFAS (US22 / DB-22.1 / BE-22.2)
+  // ==========================================
+  addUserAbsence(userId: string, type: AbsenceType, startDate: Date, endDate: Date, reason?: string | null): UserAbsence {
+    const id = 'abs-' + uuidv4().slice(0, 8);
+    const absence: UserAbsence = {
+      id,
+      userId,
+      type,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      reason: reason || null,
+      createdAt: new Date()
+    };
+    this.userAbsences.set(id, absence);
+    this.logChange('userAbsences', id, 'created');
+    return absence;
+  }
+
+  getUserAbsences(userId: string): UserAbsence[] {
+    return Array.from(this.userAbsences.values()).filter(a => a.userId === userId);
+  }
+
+  isUserAbsent(userId: string, targetDate: Date = new Date()): boolean {
+    const target = targetDate.getTime();
+    return Array.from(this.userAbsences.values()).some(a => {
+      return a.userId === userId && target >= new Date(a.startDate).getTime() && target <= new Date(a.endDate).getTime();
+    });
+  }
+
+  // ==========================================
+  // SPRINT 2: REGRAS DE AUTOMAÇÃO JSON (US15 / DB-15.1 / BE-15.2)
+  // ==========================================
+  addAutomationRule(data: {
+    projectId: string;
+    name: string;
+    trigger: AutomationTrigger;
+    conditionsJson: string;
+    actionsJson: string;
+    createdById: string;
+    isActive?: boolean;
+  }): AutomationRule {
+    const id = 'auto-' + uuidv4().slice(0, 8);
+    const rule: AutomationRule = {
+      id,
+      projectId: data.projectId,
+      name: data.name,
+      trigger: data.trigger,
+      conditionsJson: data.conditionsJson,
+      actionsJson: data.actionsJson,
+      isActive: data.isActive !== undefined ? data.isActive : true,
+      createdById: data.createdById,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.automationRules.set(id, rule);
+    this.logChange('automationRules', id, 'created');
+    return rule;
+  }
+
+  getAutomationRules(projectId: string): AutomationRule[] {
+    return Array.from(this.automationRules.values()).filter(r => r.projectId === projectId);
+  }
+
+  deleteAutomationRule(id: string): boolean {
+    const exists = this.automationRules.has(id);
+    if (exists) {
+      this.automationRules.delete(id);
+      this.logChange('automationRules', id, 'deleted');
+    }
+    return exists;
+  }
 }
 
 export const repository = new AppRepository();
+

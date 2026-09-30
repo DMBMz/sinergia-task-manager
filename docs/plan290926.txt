@@ -1,0 +1,513 @@
+Abaixo está o **planejamento de execução sequencial e ordenado** de todas as **36 tarefas da Sprint 2** (182 horas de esforço), estruturado do **1º item indispensável** até o **último item que pode ser concluído**.
+
+A ordenação foi desenhada para que **nenhum desenvolvedor fique bloqueado**: a camada de banco e o débito da US05 são resolvidos primeiro, os serviços de backend rodam logo em seguida e liberam as interfaces de frontend/mobile sem gargalos.
+
+---
+
+### 🗺️ Diagrama do Caminho Crítico (Sprint 2)
+
+```mermaid
+graph TD
+    subgraph ONDA 1: Fundação de Dados & Débito Sprint 1
+        T1[#1 BE-05.1: API Filtros] --> T8[#8 FE-05.2: UI Filtros] --> T9[#9 FE-05.3: Fuzzy + Filtros]
+        T2[#2 DB-10.1: Modelar Dependências]
+        T3[#3 DB-21.1: Modelar Checklist]
+        T4[#4 DB-22.1: Modelar Ausências]
+        T5[#5 DB-13.1: Modelar Recorrência]
+        T6[#6 DB-15.1: Modelar Automações]
+        T7[#7 ML-08.1: Treinar TFLite]
+    end
+
+    subgraph ONDA 2: Regras de Negócio & Algoritmos
+        T2 --> T10[#10 BE-10.2: Bloqueio & Conflito Agenda]
+        T4 --> T11[#11 BE-22.2: Bloqueio Férias & Aceite]
+        T11 --> T12[#12 BE-09.1: Motor Alocação Carga]
+        T3 --> T13[#13 BE-21.2: Clonagem & Checklist]
+        T10 --> T14[#14 BE-11.1: DAG Topológico]
+        T14 --> T15[#15 BE-23.1: Caminho Crítico CPM]
+        T2 --> T16[#16 BE-23.2: Dependências Externas]
+        T10 & T12 --> T17[#17 BE-12.1: Agregador Gantt]
+        T5 --> T18[#18 BE-13.2: Rodízio Round-Robin]
+        T19[#19 BE-14.1: Cálculo PERT Poker]
+        T7 --> T20[#20 FE-08.2: Runtime TFLite Mobile]
+    end
+
+    subgraph ONDA 3: Telas, Visualizações & Interfaces
+        T10 --> T21[#21 FE-10.3: UI Bloqueio]
+        T13 --> T22[#22 FE-21.3: UI Checklist & Duplicar]
+        T11 --> T23[#23 FE-22.3: UI Férias & Aceite]
+        T12 --> T24[#24 FE-09.2: Auto-Alocação]
+        T12 --> T25[#25 FE-09.3: Barra Capacidade]
+        T20 --> T26[#26 FE-08.3: Sugestão IA Esforço]
+        T14 --> T27[#27 FE-11.2: Mapa Mental]
+        T14 --> T28[#28 FE-11.3: Lista Topológica]
+        T15 & T16 --> T29[#29 FE-23.3: Destaque CPM]
+        T17 --> T30[#30 FE-12.2: Gráfico Gantt]
+        T17 --> T31[#31 FE-12.3: Dashboard Carga]
+        T18 --> T32[#32 FE-13.3: UI Recorrência]
+        T19 --> T33[#33 FE-14.2: Votação Poker]
+        T33 --> T34[#34 FE-14.3: Consenso Tarefa]
+    end
+
+    subgraph ONDA 4: Automações Avançadas & Fechamento
+        T6 --> T35[#35 BE-15.2: Engine Automação JSON]
+        T35 --> T36[#36 FE-15.3: Editor Visual Se/Então]
+    end
+```
+
+---
+
+## 📋 Lista Mestra Sequencial de Tarefas (Do #1 ao #36)
+
+### 🌊 ONDA 1: Fundação de Dados, Débito da US05 e Treinamento ML
+*Objetivo: Concluir o débito técnico da Sprint 1 e aplicar todas as migrações relacionais no banco que alimentam os algoritmos.*
+
+| Ordem | ID da Task | US | Horas | Nome da Tarefa | Pré-requisito | Papel Recomendado |
+| :---: | :--- | :---: | :---: | :--- | :--- | :---: |
+| **#1** | **`BE-05.1`** | US05 | 5h | Suporte na API a filtros de responsável, tags múltiplas e escopo | Nenhum | Backend |
+| **#2** | **`DB-10.1`** | US10 | 4h | Modelar tabela `TaskDependency` no Prisma e WatermelonDB | Nenhum | Database / Backend |
+| **#3** | **`DB-21.1`** | US21 | 3h | Modelar itens de checklist com co-responsáveis e clonagem | Nenhum | Database / Backend |
+| **#4** | **`DB-22.1`** | US22 | 3h | Modelar tabela de Ausências/Férias e status de aceite | Nenhum | Database / Backend |
+| **#5** | **`DB-13.1`** | US13 | 3h | Modelar campos de recorrência e lista de rodízio na Tarefa | Nenhum | Database / Backend |
+| **#6** | **`DB-15.1`** | US15 | 3h | Modelar tabela `AutomationRule` (JSON se/então) no banco | Nenhum | Database / Backend |
+| **#7** | **`ML-08.1`** | US08 | 8h | Treinar e converter modelo de regressão para `.tflite` | Nenhum | Data / ML / Backend |
+| **#8** | **`FE-05.2`** | US05 | 6h | Criar drawer/modal de filtros avançados no app mobile | `#1 (BE-05.1)` | Mobile / Frontend |
+| **#9** | **`FE-05.3`** | US05 | 4h | Integrar busca difusa Levenshtein com os filtros compostos | `#8 (FE-05.2)` | Mobile / Frontend |
+
+> **Marco 1 Atingido:** US05 100% entregue e esquemas relacionais prontos no banco.
+
+---
+
+### ⚙️ ONDA 2: Motores de Negócio, Algoritmos e Runtimes
+*Objetivo: Construir os algoritmos de grafos (DAG/CPM), cálculo de capacidade, bloqueios de transição e runtime TFLite.*
+
+| Ordem | ID da Task | US | Horas | Nome da Tarefa | Pré-requisito | Papel Recomendado |
+| :---: | :--- | :---: | :---: | :--- | :--- | :---: |
+| **#10** | **`BE-10.2`** | US10 | 7h | Validação de bloqueio de dependências e conflitos de agenda | `#2 (DB-10.1)` | Backend |
+| **#11** | **`BE-22.2`** | US22 | 6h | Bloqueio de férias na alocação e rotas de aceite/recusa | `#4 (DB-22.1)` | Backend |
+| **#12** | **`BE-09.1`** | US09 | 8h | Engine de cálculo de carga de trabalho e recomendação | `#11 (BE-22.2)` | Backend |
+| **#13** | **`BE-21.2`** | US21 | 6h | Endpoints de checklist e serviço de clonagem com novas datas | `#3 (DB-21.1)` | Backend |
+| **#14** | **`BE-11.1`** | US11 | 6h | Algoritmo de ordenação topológica (Kahn/DAG) | `#10 (BE-10.2)` | Backend |
+| **#15** | **`BE-23.1`** | US23 | 6h | Algoritmo do Caminho Crítico (CPM) calculando folgas | `#14 (BE-11.1)` | Backend |
+| **#16** | **`BE-23.2`** | US23 | 4h | Alertas preditivos para dependências externas de terceiros | `#2 (DB-10.1)` | Backend |
+| **#17** | **`BE-12.1`** | US12 | 6h | Endpoints agregadores de dados para Gantt e capacidade | `#10, #12` | Backend |
+| **#18** | **`BE-13.2`** | US13 | 5h | Serviço de rotação automática Round-Robin na conclusão | `#5 (DB-13.1)` | Backend |
+| **#19** | **`BE-14.1`** | US14 | 5h | Cálculo PERT consensual e endpoints de Planning Poker | Nenhum | Backend |
+| **#20** | **`FE-08.2`** | US08 | 8h | Integrar runtime TensorFlow Lite no React Native | `#7 (ML-08.1)` | Mobile / Frontend |
+
+> **Marco 2 Atingido:** Todas as APIs, cálculos matemáticos e regras de bloqueio operacionais.
+
+---
+
+### 📱 ONDA 3: Telas Operacionais, Visualizações Gráficas e UI Mobile
+*Objetivo: Implementar as telas que conectam os novos serviços diretamente aos usuários no aplicativo.*
+
+| Ordem | ID da Task | US | Horas | Nome da Tarefa | Pré-requisito | Papel Recomendado |
+| :---: | :--- | :---: | :---: | :--- | :--- | :---: |
+| **#21** | **`FE-10.3`** | US10 | 5h | Interface de dependências e feedback visual de bloqueio | `#10 (BE-10.2)` | Mobile / Frontend |
+| **#22** | **`FE-21.3`** | US21 | 5h | Componente de checklist com co-responsáveis e duplicar | `#13 (BE-21.2)` | Mobile / Frontend |
+| **#23** | **`FE-22.3`** | US22 | 5h | Tela de ausências e cards interativos para aceitar/recusar | `#11 (BE-22.2)` | Mobile / Frontend |
+| **#24** | **`FE-09.2`** | US09 | 5h | Botão de auto-alocação inteligente na criação de tarefas | `#12 (BE-09.1)` | Mobile / Frontend |
+| **#25** | **`FE-09.3`** | US09 | 4h | Barra visual de capacidade/ocupação por membro no seletor | `#12 (BE-09.1)` | Mobile / Frontend |
+| **#26** | **`FE-08.3`** | US08 | 4h | Sugestão preditiva de esforço (IA) na tela de tarefas | `#20 (FE-08.2)` | Mobile / Frontend |
+| **#27** | **`FE-11.2`** | US11 | 7h | Visualização em Mapa Mental / Grafo de dependências | `#14 (BE-11.1)` | Mobile / Frontend |
+| **#28** | **`FE-11.3`** | US11 | 3h | Ordenação automática da lista pela sequência topológica | `#14 (BE-11.1)` | Mobile / Frontend |
+| **#29** | **`FE-23.3`** | US23 | 5h | Destaque visual do Caminho Crítico no Gantt e badges | `#15, #16` | Mobile / Frontend |
+| **#30** | **`FE-12.2`** | US12 | 8h | Tela de Gráfico de Gantt interativo horizontal | `#17 (BE-12.1)` | Mobile / Frontend |
+| **#31** | **`FE-12.3`** | US12 | 5h | Dashboard de carga de trabalho da equipe com alertas | `#17 (BE-12.1)` | Mobile / Frontend |
+| **#32** | **`FE-13.3`** | US13 | 4h | Controles de recorrência e fila de rodízio no formulário | `#18 (BE-13.2)` | Mobile / Frontend |
+| **#33** | **`FE-14.2`** | US14 | 5h | Interface de votação de Planning Poker com cartões | `#19 (BE-14.1)` | Mobile / Frontend |
+| **#34** | **`FE-14.3`** | US14 | 3h | Exibição de consenso ponderado e aplicação na tarefa | `#33 (FE-14.2)` | Mobile / Frontend |
+
+> **Marco 3 Atingido:** 11 das 12 User Stories da Sprint 2 concluídas com visualização interativa.
+
+---
+
+### ⚡ ONDA 4: Automações Avançadas e Fechamento da Sprint
+*Objetivo: Configurar o motor de regras que orquestra os eventos disparados por todas as tarefas amadurecidas.*
+
+| Ordem | ID da Task | US | Horas | Nome da Tarefa | Pré-requisito | Papel Recomendado |
+| :---: | :--- | :---: | :---: | :--- | :--- | :---: |
+| **#35** | **`BE-15.2`** | US15 | 7h | Engine de automação disparada por eventos do ciclo de vida | `#6 (DB-15.1)` | Backend |
+| **#36** | **`FE-15.3`** | US15 | 6h | Tela de gerenciamento com editor visual 'Se/Então' e JSON | `#35 (BE-15.2)` | Mobile / Frontend |
+
+> **Marco 4 Atingido:** Sprint 2 100% finalizada com 36 tasks entregues.
+
+---
+
+## 👥 Alocação Prática da Equipe por Trilhas Paralelas
+
+| Desenvolvedor | Sequência de Execução Pessoal |
+| :--- | :--- |
+| **Dev 1 — Backend / Database:** | `#1` ➡️ `#2` ➡️ `#3` ➡️ `#4` ➡️ `#5` ➡️ `#6` ➡️ `#10` ➡️ `#11` ➡️ `#12` ➡️ `#13` ➡️ `#14` ➡️ `#15` ➡️ `#17` ➡️ `#35` |
+| **Dev 2 — Mobile / Frontend:** | `#8` ➡️ `#9` ➡️ `#21` ➡️ `#22` ➡️ `#23` ➡️ `#24` ➡️ `#25` ➡️ `#27` ➡️ `#28` ➡️ `#30` ➡️ `#31` ➡️ `#36` |
+| **Dev 3 — Data / Fullstack:** | `#7` ➡️ `#16` ➡️ `#18` ➡️ `#19` ➡️ `#20` ➡️ `#26` ➡️ `#29` ➡️ `#32` ➡️ `#33` ➡️ `#34` |
+
+Todas essas tarefas já estão devidamente integradas na planilha oficial:
+👉 **[BackLog_Davi_v2.xlsx](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/docs/BackLog_Davi_v2.xlsx)**
+
+
+
+Aqui estão as **especificações técnicas detalhadas** para cada uma das **9 tarefas da Onda 1**, organizadas para que os desenvolvedores possam iniciar o desenvolvimento imediatamente sem dúvidas de implementação ou modelagem.
+
+---
+
+### 📌 Sumário da Onda 1
+* **#1 `BE-05.1`** — Suporte na API a filtros avançados de responsável, múltiplas tags e escopo (5h)
+* **#2 `DB-10.1`** — Modelagem da entidade `TaskDependency` no Prisma e WatermelonDB (4h)
+* **#3 `DB-21.1`** — Modelagem de itens de checklist (`TaskChecklistItem`) com co-responsáveis (3h)
+* **#4 `DB-22.1`** — Modelagem de tabela de Ausências/Férias e estados de aceite na Tarefa (3h)
+* **#5 `DB-13.1`** — Modelagem de campos de recorrência e fila de rodízio na Tarefa (3h)
+* **#6 `DB-15.1`** — Modelagem de regras de automação (`AutomationRule` JSON) no banco (3h)
+* **#7 `ML-08.1`** — Treinamento e exportação do modelo preditivo TFLite (`.tflite`) (8h)
+* **#8 `FE-05.2`** — Criação do componente `FilterDrawer.tsx` no mobile (6h)
+* **#9 `FE-05.3`** — Integração da busca difusa Levenshtein com os filtros compostos (4h)
+
+---
+
+## 🛠️ Especificações Técnicas Detalhadas
+
+### `#1` | `BE-05.1`: Suporte na API a Filtros Combinados de Responsável, Múltiplas Tags e Escopo
+* **US Associada:** `US05` *(Débito Técnico da Sprint 1)*
+* **Esforço Estimado:** `5h`
+* **Papel:** Backend Developer
+* **Arquivos Impactados:**
+  * [tasks.controller.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/modules/tasks/tasks.controller.ts)
+  * [repository.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/repository.ts)
+  * [sprint1.spec.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/__tests__/sprint1.spec.ts) (adicionar testes de regressão)
+
+#### 📝 O que deve ser feito:
+1. No [tasks.controller.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/modules/tasks/tasks.controller.ts), estender os query params recebidos no `GET /api/v1/tasks`:
+   * `assigneeId` (string): ID do usuário responsável.
+   * `tags` (string ou array de strings): Nomes ou IDs das tags (suportar busca por interseção ou união).
+   * `scope` (`'all' | 'root_only' | 'subtasks_only'`): Permite alternar se exibe apenas tarefas pai, apenas subtarefas ou todas.
+   * `dueDateStart` e `dueDateEnd` (ISO strings): Filtro por intervalo de vencimento.
+   * `overdue` (`'true' | 'false'`): Filtro rápido para listar apenas tarefas atrasadas (`dueDate < now && status !== 'COMPLETED'`).
+2. Atualizar o método `getAllTasks` no [repository.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/repository.ts) para aplicar essas regras cumulativamente sobre a coleção de tarefas em memória e na query do Prisma.
+
+#### ✅ Critérios de Aceitação (DoD):
+* [ ] A rota `GET /api/v1/tasks?assigneeId=user-davi-001` retorna apenas tarefas atribuídas a Davi.
+* [ ] A rota `GET /api/v1/tasks?scope=root_only` oculta tarefas filhas cujo `parentTaskId !== null`.
+* [ ] A rota `GET /api/v1/tasks?tags=Sprint 1,Mobile` filtra tarefas que contêm qualquer uma dessas tags.
+* [ ] A rota `GET /api/v1/tasks?overdue=true` retorna apenas itens vencidos e não concluídos.
+* [ ] Filtros combinados funcionam juntos (ex: `assigneeId` + `scope=root_only` + `status=IN_PROGRESS`).
+
+---
+
+### `#2` | `DB-10.1`: Modelagem da Entidade `TaskDependency` no Prisma e WatermelonDB
+* **US Associada:** `US10` *(Conflitos e Dependências)*
+* **Esforço Estimado:** `4h`
+* **Papel:** Database / Backend Developer
+* **Arquivos Impactados:**
+  * [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma)
+  * [types.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/types.ts)
+  * [repository.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/repository.ts)
+  * [schema.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/mobile/src/database/schema.ts) (WatermelonDB Mobile)
+
+#### 📝 O que deve ser feito:
+1. No [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma), criar o modelo `TaskDependency`:
+   ```prisma
+   enum DependencyType {
+     FINISH_TO_START // Padrão: A predecessora precisa terminar para a sucessora iniciar
+     START_TO_START
+     FINISH_TO_FINISH
+   }
+
+   model TaskDependency {
+     id               String         @id @default(uuid())
+     taskId           String         // Tarefa dependente (sucessora)
+     task             Task           @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+     dependsOnTaskId  String         // Tarefa bloqueante (predecessora)
+     dependsOnTask    Task           @relation("TaskPrerequisites", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+     dependencyType   DependencyType @default(FINISH_TO_START)
+     createdAt        DateTime       @default(now())
+
+     @@unique([taskId, dependsOnTaskId])
+     @@index([taskId])
+     @@index([dependsOnTaskId])
+   }
+   ```
+2. Adicionar as relações inversas correspondentes no modelo `Task`.
+3. Replicar o schema no WatermelonDB em [mobile/src/database/schema.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/mobile/src/database/schema.ts) criando a tabela `task_dependencies` com colunas `task_id`, `depends_on_task_id`, `dependency_type` e `created_at`.
+4. Adicionar mapa `dependencies: Map<string, TaskDependency>` no [repository.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/repository.ts).
+
+#### ✅ Critérios de Aceitação (DoD):
+* [ ] `npx prisma validate` executa sem erros de sintaxe ou relações órfãs.
+* [ ] Schema do WatermelonDB exportado com versionamento incrementado para a nova tabela.
+* [ ] Repositório em memória registra e consulta dependências bidirecionais (predecessoras e sucessoras).
+
+---
+
+### `#3` | `DB-21.1`: Modelagem de Checklist Interna com Co-Responsáveis e Suporte a Clonagem
+* **US Associada:** `US21` *(Checklist e Duplicação)*
+* **Esforço Estimado:** `3h`
+* **Papel:** Database / Backend Developer
+* **Arquivos Impactados:**
+  * [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma)
+  * [types.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/types.ts)
+  * [schema.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/mobile/src/database/schema.ts)
+
+#### 📝 O que deve ser feito:
+1. No [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma), criar o modelo `TaskChecklistItem`:
+   ```prisma
+   model TaskChecklistItem {
+     id          String    @id @default(uuid())
+     taskId      String
+     task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+     title       String
+     isCompleted Boolean   @default(false)
+     completedAt DateTime?
+     assigneeId  String?   // Co-responsável específico deste item do checklist
+     assignee    User?     @relation(fields: [assigneeId], references: [id])
+     orderIndex  Int       @default(0)
+     createdAt   DateTime  @default(now())
+     updatedAt   DateTime  @updatedAt
+
+     @@index([taskId])
+     @@index([assigneeId])
+   }
+   ```
+2. Adicionar o relacionamento `checklist TaskChecklistItem[]` no modelo `Task`.
+3. Adicionar método utilitário `cloneTaskData(taskId: string, dateOffsetDays: number)` nos tipos para suportar o recálculo temporal ao duplicar.
+
+#### ✅ Critérios de Aceitação (DoD):
+* [ ] Cada item de checklist armazena título, status de conclusão e opcionalmente um membro responsável distinto do responsável da tarefa pai.
+* [ ] Cascata de exclusão ativa: deletar a tarefa pai remove automaticamente seus itens de checklist.
+
+---
+
+### `#4` | `DB-22.1`: Modelagem de Tabela de Ausências/Férias e Status de Aceite de Atribuições
+* **US Associada:** `US22` *(Férias e Aceite/Recusa)*
+* **Esforço Estimado:** `3h`
+* **Papel:** Database / Backend Developer
+* **Arquivos Impactados:**
+  * [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma)
+  * [types.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/types.ts)
+  * [repository.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/repository.ts)
+
+#### 📝 O que deve ser feito:
+1. No [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma), criar enum e modelo `UserAbsence`:
+   ```prisma
+   enum AbsenceType {
+     VACATION    // Férias
+     MEDICAL     // Licença médica
+     UNAVAILABLE // Indisponibilidade temporária
+   }
+
+   enum AssignmentStatus {
+     PENDING     // Aguardando confirmação do membro atribuído
+     ACCEPTED    // Aceito pelo membro
+     DECLINED    // Recusado com justificativa
+   }
+
+   model UserAbsence {
+     id        String      @id @default(uuid())
+     userId    String
+     user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+     type      AbsenceType @default(VACATION)
+     startDate DateTime
+     endDate   DateTime
+     reason    String?
+     createdAt DateTime    @default(now())
+
+     @@index([userId])
+     @@index([startDate, endDate])
+   }
+   ```
+2. No modelo `Task`, adicionar os campos:
+   * `assignmentStatus AssignmentStatus @default(ACCEPTED)` (tarefas criadas por si mesmo nascem aceitas; atribuídas por terceiros nascem `PENDING`).
+   * `declinedReason String?` (armazena motivo em caso de recusa).
+
+#### ✅ Critérios de Aceitação (DoD):
+* [ ] Permite cadastrar um intervalo de datas em que um usuário está de férias ou ausente.
+* [ ] Tarefas atribuídas a terceiros registram o status inicial `PENDING` com auditoria do autor que realizou a delegação.
+
+---
+
+### `#5` | `DB-13.1`: Modelagem de Recorrência e Fila de Rodízio (Round-Robin) na Tarefa
+* **US Associada:** `US13` *(Rodízio de Responsáveis)*
+* **Esforço Estimado:** `3h`
+* **Papel:** Database / Backend Developer
+* **Arquivos Impactados:**
+  * [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma)
+  * [types.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/types.ts)
+
+#### 📝 O que deve ser feito:
+1. No [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma), criar o enum `RecurrenceInterval` e adicionar atributos no modelo `Task`:
+   ```prisma
+   enum RecurrenceInterval {
+     DAILY
+     WEEKLY
+     BIWEEKLY
+     MONTHLY
+     SPRINT
+   }
+   ```
+2. Adicionar campos no model `Task`:
+   * `isRecurring Boolean @default(false)`
+   * `recurrenceInterval RecurrenceInterval?`
+   * `recurrenceEnd DateTime?` (data limite para interrupção do ciclo)
+   * `maxOccurrences Int?` (limite numérico de repetições)
+   * `currentOccurrence Int @default(1)`
+   * `rotationUserIds String[]` (lista ordenada de IDs de usuários para o rodízio circular)
+   * `currentRotationIndex Int @default(0)` (aponta para o índice do membro atual)
+
+#### ✅ Critérios de Aceitação (DoD):
+* [ ] Tarefa armazena a regra de frequência e a fila circular de membros (`rotationUserIds`).
+* [ ] Suporta parada do rodízio por data limite ou por número máximo de repetições.
+
+---
+
+### `#6` | `DB-15.1`: Modelagem de Regras de Automação (`AutomationRule` JSON)
+* **US Associada:** `US15` *(Regras de Automação "Se/Então")*
+* **Esforço Estimado:** `3h`
+* **Papel:** Database / Backend Developer
+* **Arquivos Impactados:**
+  * [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma)
+  * [types.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/database/types.ts)
+
+#### 📝 O que deve ser feito:
+1. No [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma), modelar a tabela `AutomationRule`:
+   ```prisma
+   enum AutomationTrigger {
+     TASK_CREATED
+     STATUS_CHANGED
+     DEADLINE_APPROACHING
+     OVERDUE
+     ASSIGNED_TO_ME
+   }
+
+   model AutomationRule {
+     id             String            @id @default(uuid())
+     projectId      String
+     project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+     name           String            // Ex: "Se Prioridade Alta, Notificar Gestor"
+     trigger        AutomationTrigger
+     conditionsJson String            // JSON estruturado com operadores lógicos (EQUALS, CONTAINS, GREATER_THAN)
+     actionsJson    String            // JSON com lista de ações (SEND_NOTIFICATION, CHANGE_STATUS, ASSIGN_USER, ARCHIVE)
+     isActive       Boolean           @default(true)
+     createdById    String
+     createdAt      DateTime          @default(now())
+     updatedAt      DateTime          @updatedAt
+
+     @@index([projectId, trigger])
+   }
+   ```
+2. Definir os schemas Zod de validação do JSON em `backend/src/modules/automations/automation.schema.ts` para garantir integridade sintática na persistência.
+
+#### ✅ Critérios de Aceitação (DoD):
+* [ ] O banco armazena o evento de disparo (`trigger`), a regra condicional em JSON e o payload de ações.
+* [ ] Schemas Zod validam se o JSON de condições e ações atende à especificação estrutural.
+
+---
+
+### `#7` | `ML-08.1`: Treinamento e Conversão do Modelo Preditivo TFLite (`.tflite`)
+* **US Associada:** `US08` *(Previsão TensorFlow Lite Local)*
+* **Esforço Estimado:** `8h`
+* **Papel:** Data / ML / Backend Engineer
+* **Arquivos Impactados:**
+  * `mobile/assets/models/task_duration_predictor.tflite` (novo artefato binário)
+  * `mobile/src/services/aiEstimator.ts` (serviço utilitário)
+  * `backend/src/scripts/train_model.py` ou script Node gerador de dataset
+
+#### 📝 O que deve ser feito:
+1. Criar script de geração de dataset sintético representativo de histórico de tarefas com as features:
+   * `title_word_count`: Número de palavras no título (1 a 15).
+   * `desc_char_count`: Tamanho da descrição em caracteres (0 a 1000).
+   * `subtasks_count`: Quantidade de subtarefas aninhadas (0 a 10).
+   * `priority_weight`: Peso numérico da prioridade (Low: 1, Medium: 2, High: 3, Urgent: 4).
+   * `tags_count`: Quantidade de tags vinculadas (0 a 5).
+   * `target_duration_hours`: Duração real em horas (variável contínua alvo).
+2. Treinar um modelo leve de regressão (Linear/Ridge ou MLP de 2 camadas densas `16 -> 8 -> 1`).
+3. Exportar e quantizar o modelo para `.tflite` com tamanho inferior a **1.5 MB** para rodar com baixíssimo overhead de bateria e memória no mobile.
+4. Adicionar função de fallback puramente matemática em TypeScript no `aiEstimator.ts` baseada em pesos calculados, garantindo que o app forneça estimativas preditivas mesmo se o runtime nativo do TFLite estiver indisponível.
+
+#### ✅ Critérios de Aceitação (DoD):
+* [ ] Binário `.tflite` gerado e salvo em `mobile/assets/models/task_duration_predictor.tflite`.
+* [ ] Entrada do modelo aceita vetor de features numéricas e retorna float representando horas estimadas.
+* [ ] Fallback determinístico implementado para suportar testes unitários e modo web/simulador.
+
+---
+
+### `#8` | `FE-05.2`: Criação do Componente `FilterDrawer.tsx` no Mobile
+* **US Associada:** `US05` *(Filtros Avançados)*
+* **Esforço Estimado:** `6h`
+* **Papel:** Mobile / Frontend Developer
+* **Arquivos Impactados:**
+  * `mobile/src/components/FilterDrawer.tsx` (novo componente)
+  * [FilterBar.tsx](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/mobile/src/components/FilterBar.tsx) (botão para abrir drawer)
+  * [TasksScreen.tsx](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/mobile/src/screens/TasksScreen.tsx)
+
+#### 📝 O que deve ser feito:
+1. Criar o componente `FilterDrawer.tsx` (modal lateral ou bottom sheet deslizante) contendo:
+   * **Seletor de Responsável:** Lista visual de avatares com nomes dos membros da equipe e opção "Qualquer Responsável" ou "Atribuídas a mim".
+   * **Múltiplas Tags:** Multi-seleção com chips coloridos (checkbox toggle).
+   * **Escopo da Tarefa:** Segmented Control (`Todas` | `Apenas Principais` | `Apenas Subtarefas`).
+   * **Status & Prioridade:** Chips com seleção múltipla.
+   * **Filtros Rápidos:** Botão "Atrasadas" (overdue) e "Com vencimento esta semana".
+   * **Rodapé:** Botão "Limpar Filtros" e botão "Aplicar (N filtros ativos)".
+2. No [FilterBar.tsx](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/mobile/src/components/FilterBar.tsx), adicionar um botão de filtro com ícone de `SlidersHorizontal` exibindo um badge com a contagem de filtros aplicados.
+
+#### ✅ Critérios de Aceitação (DoD):
+* [ ] O drawer abre suavemente ao clicar no botão de filtros na tela principal.
+* [ ] Permite selecionar múltiplos critérios simultaneamente e limpar tudo com um clique.
+* [ ] O badge exibe o número exato de filtros ativos (ex: `3` se filtrou por Davi + Alta + Tag Mobile).
+
+---
+
+### `#9` | `FE-05.3`: Integração da Busca Difusa Levenshtein com Filtros Compostos
+* **US Associada:** `US05` *(Busca Fuzzy e Filtros Reativos)*
+* **Esforço Estimado:** `4h`
+* **Papel:** Mobile / Frontend Developer
+* **Arquivos Impactados:**
+  * [searchIndex.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/mobile/src/services/searchIndex.ts)
+  * [TasksScreen.tsx](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/mobile/src/screens/TasksScreen.tsx)
+  * `mobile/src/__tests__/mobileSprint1.spec.ts` (ou criar `mobileSprint2.spec.ts`)
+
+#### 📝 O que deve ser feito:
+1. No [TasksScreen.tsx](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/mobile/src/screens/TasksScreen.tsx), refatorar a função de filtragem reativa `filteredTasks` para cruzar todos os critérios do `FilterDrawer` em conjunção com a busca difusa:
+   ```typescript
+   const filteredTasks = useMemo(() => {
+     return tasks.filter(task => {
+       // 1. Escopo (Root vs Subtasks)
+       if (filters.scope === 'root_only' && task.parentTaskId) return false;
+       if (filters.scope === 'subtasks_only' && !task.parentTaskId) return false;
+
+       // 2. Responsável
+       if (filters.assigneeId && task.assigneeId !== filters.assigneeId) return false;
+
+       // 3. Status e Prioridade
+       if (filters.statuses.length > 0 && !filters.statuses.includes(task.status)) return false;
+       if (filters.priorities.length > 0 && !filters.priorities.includes(task.priority)) return false;
+
+       // 4. Múltiplas Tags
+       if (filters.tagIds.length > 0) {
+         const taskTags = getTaskTags(task.id);
+         const hasAnyTag = taskTags.some(t => filters.tagIds.includes(t.id));
+         if (!hasAnyTag) return false;
+       }
+
+       // 5. Busca Difusa Levenshtein (tolerância a erros)
+       if (searchQuery.trim()) {
+         return searchIndexService.matches(task, searchQuery);
+       }
+
+       return true;
+     });
+   }, [tasks, filters, searchQuery]);
+   ```
+2. Garantir que a busca tolere erros de digitação (ex: digitar `"arquitetura"` ou `"arkitetura"` localiza `"Estruturação da Arquitetura"`).
+
+#### ✅ Critérios de Aceitação (DoD):
+* [ ] Buscar por texto com erro fonético/digitação retorna os resultados corretos respeitando os filtros de responsável e escopo já selecionados.
+* [ ] Mudanças nos filtros atualizam a lista de tarefas instantaneamente sem recarregar a tela.
+* [ ] Contador no topo exibe: *"Exibindo X de Y tarefas (filtros ativos)"*.
+
+---
+
+## 🚀 Como Iniciar
+
+1. O desenvolvedor de **Database / Backend** pode abrir o [schema.prisma](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/prisma/schema.prisma) e implementar em lote os modelos das tarefas **`#2`, `#3`, `#4`, `#5` e `#6`**, executando em seguida `npx prisma format`.
+2. O desenvolvedor de **Backend/API** pode implementar os filtros da rota no [tasks.controller.ts](file:///c:/Users/teste/Downloads/p2/sinergia-task-manager/backend/src/modules/tasks/tasks.controller.ts) (**`#1`**).
+3. O desenvolvedor **Frontend** pode construir a interface do `FilterDrawer.tsx` (**`#8` e `#9`**).
+4. O engenheiro de **Data/ML** pode gerar o modelo `.tflite` (**`#7`**).

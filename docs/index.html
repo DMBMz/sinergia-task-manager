@@ -1100,6 +1100,235 @@
       margin-right: 5px;
       box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
     }
+
+    /* Sprint 2 Onda 1: Filter Bar & Filter Drawer Styles */
+    .task-filter-bar {
+      padding: 0 16px 8px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .task-search-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .task-search-input-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    .task-search-input-wrapper svg {
+      position: absolute;
+      left: 10px;
+      color: #94A3B8;
+      pointer-events: none;
+    }
+    .task-search-input {
+      width: 100%;
+      height: 36px;
+      padding: 0 32px 0 34px;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .task-search-input:focus {
+      border-color: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .task-search-clear {
+      position: absolute;
+      right: 8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      color: #64748B;
+      border: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn-filter-trigger {
+      position: relative;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .btn-filter-trigger:hover, .btn-filter-trigger.active {
+      background: #EFF6FF;
+      border-color: #2563EB;
+      color: #2563EB;
+    }
+    .filter-count-badge {
+      background: #2563EB;
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 9999px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .quick-chips-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .quick-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+    .quick-chip {
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      color: #64748B;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .quick-chip.active {
+      background: #2563EB;
+      border-color: #2563EB;
+      color: #FFFFFF;
+      box-shadow: 0 1px 4px rgba(37, 99, 235, 0.25);
+    }
+    .filter-drawer-card {
+      background: #FFFFFF;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      width: 100%;
+      max-height: 88%;
+      overflow-y: auto;
+      padding: 20px 18px 24px 18px;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.25);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      animation: slideUpDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUpDrawer {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .filter-section {
+      margin-bottom: 16px;
+    }
+    .filter-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748B;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .filter-segmented {
+      display: flex;
+      background: #F1F5F9;
+      border-radius: 10px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .filter-seg-btn {
+      flex: 1;
+      padding: 6px 4px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: #64748B;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .filter-seg-btn.active {
+      background: #FFFFFF;
+      color: #2563EB;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .filter-chips-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .filter-tag-chip {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .filter-tag-chip.active {
+      border-color: #2563EB;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      font-weight: 700;
+    }
+    .filter-member-chip {
+      padding: 4px 10px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      color: #475569;
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .filter-member-chip.active {
+      border-color: #2563EB;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      font-weight: 700;
+    }
+    .filter-member-avatar {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+    }
   </style>
 </head>
 <body>
@@ -1215,6 +1444,30 @@
           <div id="aiWorkloadText">
             <strong style="font-size: 12px; color: #1E3A8A;">Carga de Trabalho IA: <span style="color: #10B981;">Equilibrada</span></strong>
             <p style="font-size: 10px; color: #3B82F6; margin-top: 2px;">Equipe disponível para novas tarefas.</p>
+          </div>
+        </div>
+
+        <!-- Sprint 2 Onda 1: Barra de Busca Fuzzy & Filtros Avançados -->
+        <div class="task-filter-bar">
+          <div class="task-search-row">
+            <div class="task-search-input-wrapper">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="taskSearchInput" class="task-search-input" placeholder="Buscar tarefas (título, tag, membro)..." oninput="handleTaskSearchInput(this.value)">
+              <button type="button" id="taskSearchClearBtn" class="task-search-clear" onclick="clearTaskSearch()">✕</button>
+            </div>
+            <button type="button" id="btnOpenFilterDrawer" class="btn-filter-trigger" onclick="openFilterDrawer()">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              <span>Filtros</span>
+              <span id="filterActiveBadge" class="filter-count-badge" style="display: none;">0</span>
+            </button>
+          </div>
+          <div class="quick-chips-row">
+            <button type="button" class="quick-chip active" id="qchip-all" onclick="setQuickFilter('all')">Todas</button>
+            <button type="button" class="quick-chip" id="qchip-mine" onclick="setQuickFilter('mine')">👤 Minhas</button>
+            <button type="button" class="quick-chip" id="qchip-overdue" onclick="setQuickFilter('overdue')">⚠️ Atrasadas</button>
+            <button type="button" class="quick-chip" id="qchip-this_week" onclick="setQuickFilter('this_week')">📅 Esta Semana</button>
+            <button type="button" class="quick-chip" id="qchip-high_urgency" onclick="setQuickFilter('high_urgency')">🔥 Alta / Urgente</button>
+            <button type="button" class="quick-chip" id="qchip-with_subtasks" onclick="setQuickFilter('with_subtasks')">📑 Subtarefas</button>
           </div>
         </div>
 
@@ -2101,6 +2354,111 @@
           </div>
 
           <button class="btn-primary" onclick="saveTaskDeadlineEdit()">Salvar Novo Prazo</button>
+        </div>
+      </div>
+
+      <!-- Sprint 2 Onda 1: Modal Drawer de Filtros Avançados -->
+      <div id="modalFilterDrawer" class="modal-overlay" onclick="closeFilterDrawerOnBackdrop(event)">
+        <div class="filter-drawer-card" onclick="event.stopPropagation()">
+          <!-- Header -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: #EFF6FF; color: #2563EB;">
+                <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              </span>
+              <div>
+                <h3 style="font-size: 15px; font-weight: 800; color: #0F172A; margin: 0;">Filtros Avançados</h3>
+                <p style="font-size: 11px; color: #64748B; margin-top: 1px;">Combine critérios múltiplos de visualização</p>
+              </div>
+            </div>
+            <button type="button" onclick="closeFilterDrawer()" style="background: none; border: none; font-size: 18px; color: #94A3B8; cursor: pointer; padding: 2px 6px;">✕</button>
+          </div>
+
+          <!-- 1. Escopo -->
+          <div class="filter-section">
+            <div class="filter-section-title">
+              <span>Escopo da Tarefa</span>
+            </div>
+            <div class="filter-segmented">
+              <button type="button" class="filter-seg-btn active" id="fscope-all" onclick="setDrawerScope('all')">Todas</button>
+              <button type="button" class="filter-seg-btn" id="fscope-root_only" onclick="setDrawerScope('root_only')">Apenas Principais</button>
+              <button type="button" class="filter-seg-btn" id="fscope-subtasks_only" onclick="setDrawerScope('subtasks_only')">Apenas Subtarefas</button>
+            </div>
+          </div>
+
+          <!-- 2. Responsável -->
+          <div class="filter-section">
+            <div class="filter-section-title">
+              <span>Responsável</span>
+              <span id="clearDrawerAssigneeBtn" style="font-size: 10px; color: #2563EB; cursor: pointer; display: none;" onclick="setDrawerAssignee(null)">Limpar</span>
+            </div>
+            <div id="drawerAssigneesContainer" class="filter-chips-grid">
+              <!-- Renderizado via JS -->
+            </div>
+          </div>
+
+          <!-- 3. Tags do Projeto -->
+          <div class="filter-section">
+            <div class="filter-section-title">
+              <span>Tags (<span id="drawerTagsCount">0</span> selecionadas)</span>
+              <span id="clearDrawerTagsBtn" style="font-size: 10px; color: #2563EB; cursor: pointer; display: none;" onclick="clearDrawerTags()">Desmarcar todas</span>
+            </div>
+            <div id="drawerTagsContainer" class="filter-chips-grid">
+              <!-- Renderizado via JS -->
+            </div>
+          </div>
+
+          <!-- 4. Status -->
+          <div class="filter-section">
+            <div class="filter-section-title">
+              <span>Status</span>
+            </div>
+            <div class="filter-chips-grid" id="drawerStatusContainer">
+              <button type="button" class="filter-tag-chip" id="fst-PENDING" onclick="toggleDrawerStatus('PENDING')">⏳ Pendente</button>
+              <button type="button" class="filter-tag-chip" id="fst-IN_PROGRESS" onclick="toggleDrawerStatus('IN_PROGRESS')">🚀 Em Andamento</button>
+              <button type="button" class="filter-tag-chip" id="fst-IN_REVIEW" onclick="toggleDrawerStatus('IN_REVIEW')">👀 Em Revisão</button>
+              <button type="button" class="filter-tag-chip" id="fst-BLOCKED" onclick="toggleDrawerStatus('BLOCKED')">🚫 Bloqueada</button>
+              <button type="button" class="filter-tag-chip" id="fst-COMPLETED" onclick="toggleDrawerStatus('COMPLETED')">✅ Concluída</button>
+            </div>
+          </div>
+
+          <!-- 5. Prioridade -->
+          <div class="filter-section">
+            <div class="filter-section-title">
+              <span>Prioridade</span>
+            </div>
+            <div class="filter-chips-grid" id="drawerPriorityContainer">
+              <button type="button" class="filter-tag-chip" id="fpr-LOW" onclick="toggleDrawerPriority('LOW')">🟢 Baixa</button>
+              <button type="button" class="filter-tag-chip" id="fpr-MEDIUM" onclick="toggleDrawerPriority('MEDIUM')">🔵 Média</button>
+              <button type="button" class="filter-tag-chip" id="fpr-HIGH" onclick="toggleDrawerPriority('HIGH')">🟠 Alta</button>
+              <button type="button" class="filter-tag-chip" id="fpr-URGENT" onclick="toggleDrawerPriority('URGENT')">🔴 Urgente</button>
+            </div>
+          </div>
+
+          <!-- 6. Filtros Temporais Rápidos -->
+          <div class="filter-section">
+            <div class="filter-section-title">
+              <span>Condições de Prazo</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="filter-tag-chip" id="foverdue-toggle" onclick="toggleDrawerOverdue()" style="flex: 1; justify-content: center;">
+                ⚠️ Apenas Atrasadas
+              </button>
+              <button type="button" class="filter-tag-chip" id="fthisweek-toggle" onclick="toggleDrawerThisWeek()" style="flex: 1; justify-content: center;">
+                📅 Vence Esta Semana
+              </button>
+            </div>
+          </div>
+
+          <!-- Footer Actions -->
+          <div style="display: flex; gap: 8px; margin-top: 18px; border-top: 1px solid #F1F5F9; padding-top: 14px;">
+            <button type="button" onclick="resetAllFilters()" style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #CBD5E1; background: #FFFFFF; color: #64748B; font-weight: 700; font-size: 12px; cursor: pointer;">
+              🔄 Limpar Tudo
+            </button>
+            <button type="button" onclick="closeFilterDrawer()" class="btn-primary" style="flex: 1.5; padding: 10px; font-size: 12px; border-radius: 10px;">
+              Ver Resultados
+            </button>
+          </div>
         </div>
       </div>
 
@@ -3005,7 +3363,335 @@
       return item;
     }
 
-    // Renderizar Lista de Tarefas do Time Ativo (Próximas e Concluídas separadas)
+    // =========================================================================
+    // Sprint 2 Onda 1: Sistema Reativo de Filtros Compostos & Busca Fuzzy Levenshtein
+    // =========================================================================
+    const filterState = {
+      searchQuery: '',
+      scope: 'all',          // 'all' | 'root_only' | 'subtasks_only'
+      assignee: null,        // string | null
+      tags: [],              // string[]
+      statuses: [],          // string[] ('PENDING', 'IN_PROGRESS', 'IN_REVIEW', 'BLOCKED', 'COMPLETED')
+      priorities: [],        // string[] ('LOW', 'MEDIUM', 'HIGH', 'URGENT')
+      overdueOnly: false,
+      thisWeekOnly: false,
+      quickFilter: 'all'     // 'all' | 'mine' | 'overdue' | 'this_week' | 'high_urgency' | 'with_subtasks'
+    };
+
+    function levenshteinDistance(a, b) {
+      if (!a || !b) return (a || '').length || (b || '').length;
+      const m = a.length, n = b.length;
+      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const cost = a[i - 1].toLowerCase() === b[j - 1].toLowerCase() ? 0 : 1;
+          dp[i][j] = Math.min(
+            dp[i - 1][j] + 1,
+            dp[i][j - 1] + 1,
+            dp[i - 1][j - 1] + cost
+          );
+        }
+      }
+      return dp[m][n];
+    }
+
+    function getTaskTagNames(task) {
+      if (!Array.isArray(task.tags)) return [];
+      return task.tags.map(t => {
+        if (typeof t === 'string' && t !== '[object Object]') return t;
+        if (typeof t === 'object' && t !== null) {
+          return t.name || t.title || (t.tag && t.tag.name) || (t.tag && t.tag.title) || '';
+        }
+        return '';
+      }).filter(Boolean);
+    }
+
+    function taskMatchesSearch(task, rawQuery) {
+      const q = (rawQuery || '').trim().toLowerCase();
+      if (!q) return true;
+      const title = (task.title || '').toLowerCase();
+      const desc = (task.description || '').toLowerCase();
+      const assignee = (task.assignee || '').toLowerCase();
+      const tags = getTaskTagNames(task).map(t => t.toLowerCase());
+
+      // 1. Busca exata por inclusão
+      if (title.includes(q) || desc.includes(q) || assignee.includes(q)) return true;
+      if (tags.some(t => t.includes(q))) return true;
+
+      // 2. Busca tolerante a erros de digitação (Fuzzy Levenshtein)
+      const qTokens = q.split(/\s+/).filter(Boolean);
+      const titleTokens = title.split(/\s+/).filter(Boolean);
+      for (const qt of qTokens) {
+        if (qt.length < 3) continue;
+        for (const tt of titleTokens) {
+          if (Math.abs(tt.length - qt.length) <= 2) {
+            const dist = levenshteinDistance(tt, qt);
+            if (dist <= (qt.length > 5 ? 2 : 1)) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function handleTaskSearchInput(val) {
+      filterState.searchQuery = val;
+      const clearBtn = document.getElementById('taskSearchClearBtn');
+      if (clearBtn) {
+        clearBtn.style.display = val ? 'flex' : 'none';
+      }
+      renderTaskList();
+    }
+
+    function clearTaskSearch() {
+      const input = document.getElementById('taskSearchInput');
+      if (input) input.value = '';
+      const clearBtn = document.getElementById('taskSearchClearBtn');
+      if (clearBtn) clearBtn.style.display = 'none';
+      filterState.searchQuery = '';
+      renderTaskList();
+    }
+
+    function setQuickFilter(type) {
+      filterState.quickFilter = type;
+      // Atualiza visual dos chips rápidos
+      const chips = ['all', 'mine', 'overdue', 'this_week', 'high_urgency', 'with_subtasks'];
+      chips.forEach(c => {
+        const el = document.getElementById(`qchip-${c}`);
+        if (el) {
+          if (c === type) el.classList.add('active');
+          else el.classList.remove('active');
+        }
+      });
+      renderTaskList();
+    }
+
+    function getActiveDrawerFilterCount() {
+      let count = 0;
+      if (filterState.scope !== 'all') count++;
+      if (filterState.assignee) count++;
+      if (filterState.tags.length > 0) count += filterState.tags.length;
+      if (filterState.statuses.length > 0) count += filterState.statuses.length;
+      if (filterState.priorities.length > 0) count += filterState.priorities.length;
+      if (filterState.overdueOnly) count++;
+      if (filterState.thisWeekOnly) count++;
+      return count;
+    }
+
+    function updateFilterBadge() {
+      const count = getActiveDrawerFilterCount();
+      const badge = document.getElementById('filterActiveBadge');
+      const btn = document.getElementById('btnOpenFilterDrawer');
+      if (badge) {
+        if (count > 0) {
+          badge.innerText = count;
+          badge.style.display = 'inline-flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+      if (btn) {
+        if (count > 0) btn.classList.add('active');
+        else btn.classList.remove('active');
+      }
+    }
+
+    function openFilterDrawer() {
+      renderFilterDrawerUI();
+      const modal = document.getElementById('modalFilterDrawer');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeFilterDrawer() {
+      const modal = document.getElementById('modalFilterDrawer');
+      if (modal) modal.style.display = 'none';
+      updateFilterBadge();
+      renderTaskList();
+    }
+
+    function closeFilterDrawerOnBackdrop(e) {
+      if (e.target && e.target.id === 'modalFilterDrawer') {
+        closeFilterDrawer();
+      }
+    }
+
+    function setDrawerScope(scope) {
+      filterState.scope = scope;
+      ['all', 'root_only', 'subtasks_only'].forEach(s => {
+        const el = document.getElementById(`fscope-${s}`);
+        if (el) {
+          if (s === scope) el.classList.add('active');
+          else el.classList.remove('active');
+        }
+      });
+      updateFilterBadge();
+    }
+
+    function setDrawerAssignee(name) {
+      filterState.assignee = name;
+      renderFilterDrawerUI();
+      updateFilterBadge();
+    }
+
+    function toggleDrawerTag(tagName) {
+      const idx = filterState.tags.indexOf(tagName);
+      if (idx >= 0) filterState.tags.splice(idx, 1);
+      else filterState.tags.push(tagName);
+      renderFilterDrawerUI();
+      updateFilterBadge();
+    }
+
+    function clearDrawerTags() {
+      filterState.tags = [];
+      renderFilterDrawerUI();
+      updateFilterBadge();
+    }
+
+    function toggleDrawerStatus(status) {
+      const idx = filterState.statuses.indexOf(status);
+      if (idx >= 0) filterState.statuses.splice(idx, 1);
+      else filterState.statuses.push(status);
+      renderFilterDrawerUI();
+      updateFilterBadge();
+    }
+
+    function toggleDrawerPriority(priority) {
+      const idx = filterState.priorities.indexOf(priority);
+      if (idx >= 0) filterState.priorities.splice(idx, 1);
+      else filterState.priorities.push(priority);
+      renderFilterDrawerUI();
+      updateFilterBadge();
+    }
+
+    function toggleDrawerOverdue() {
+      filterState.overdueOnly = !filterState.overdueOnly;
+      renderFilterDrawerUI();
+      updateFilterBadge();
+    }
+
+    function toggleDrawerThisWeek() {
+      filterState.thisWeekOnly = !filterState.thisWeekOnly;
+      renderFilterDrawerUI();
+      updateFilterBadge();
+    }
+
+    function resetAllFilters() {
+      filterState.scope = 'all';
+      filterState.assignee = null;
+      filterState.tags = [];
+      filterState.statuses = [];
+      filterState.priorities = [];
+      filterState.overdueOnly = false;
+      filterState.thisWeekOnly = false;
+      renderFilterDrawerUI();
+      updateFilterBadge();
+      renderTaskList();
+    }
+
+    function renderFilterDrawerUI() {
+      const db = getDB();
+      const team = db.currentTeam;
+      const allTasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
+
+      // 1. Escopo buttons
+      ['all', 'root_only', 'subtasks_only'].forEach(s => {
+        const el = document.getElementById(`fscope-${s}`);
+        if (el) {
+          if (s === filterState.scope) el.classList.add('active');
+          else el.classList.remove('active');
+        }
+      });
+
+      // 2. Responsáveis
+      const assigneesSet = new Set(['Davi', 'Alice', 'Bruno', 'Carlos', 'Mariana']);
+      if (db.currentUser && db.currentUser.name) assigneesSet.add(db.currentUser.name);
+      allTasks.forEach(t => { if (t.assignee) assigneesSet.add(t.assignee); });
+      const memberList = Array.from(assigneesSet);
+
+      const assigneesContainer = document.getElementById('drawerAssigneesContainer');
+      const clearAssigneeBtn = document.getElementById('clearDrawerAssigneeBtn');
+      if (clearAssigneeBtn) {
+        clearAssigneeBtn.style.display = filterState.assignee ? 'inline' : 'none';
+      }
+      if (assigneesContainer) {
+        let html = `
+          <button type="button" class="filter-member-chip ${filterState.assignee === null ? 'active' : ''}" onclick="setDrawerAssignee(null)">
+            <span>👥 Qualquer</span>
+          </button>
+        `;
+        memberList.forEach(m => {
+          const isSel = filterState.assignee === m;
+          const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(m)}`;
+          html += `
+            <button type="button" class="filter-member-chip ${isSel ? 'active' : ''}" onclick="setDrawerAssignee('${escapeHtml(m)}')">
+              <img src="${avatarUrl}" class="filter-member-avatar" alt="${escapeHtml(m)}">
+              <span>${escapeHtml(m)}</span>
+              ${isSel ? '<span style="color: #2563EB; font-weight: 800;">✓</span>' : ''}
+            </button>
+          `;
+        });
+        assigneesContainer.innerHTML = html;
+      }
+
+      // 3. Tags
+      const tagsSet = new Set(['Sprint 1', 'Sprint 2', 'Frontend', 'Backend', 'UI/UX', 'Bug', 'IA', 'Database', 'DevOps']);
+      allTasks.forEach(t => {
+        getTaskTagNames(t).forEach(tagName => tagsSet.add(tagName));
+      });
+      const tagList = Array.from(tagsSet);
+
+      const tagsContainer = document.getElementById('drawerTagsContainer');
+      const tagsCountEl = document.getElementById('drawerTagsCount');
+      const clearTagsBtn = document.getElementById('clearDrawerTagsBtn');
+      if (tagsCountEl) tagsCountEl.innerText = filterState.tags.length;
+      if (clearTagsBtn) clearTagsBtn.style.display = filterState.tags.length > 0 ? 'inline' : 'none';
+
+      if (tagsContainer) {
+        tagsContainer.innerHTML = tagList.map(tag => {
+          const isSel = filterState.tags.includes(tag);
+          return `
+            <button type="button" class="filter-tag-chip ${isSel ? 'active' : ''}" onclick="toggleDrawerTag('${escapeHtml(tag)}')">
+              <span>🏷️ ${escapeHtml(tag)}</span>
+              ${isSel ? '<span style="color: #2563EB; font-weight: 800;">✓</span>' : ''}
+            </button>
+          `;
+        }).join('');
+      }
+
+      // 4. Status
+      ['PENDING', 'IN_PROGRESS', 'IN_REVIEW', 'BLOCKED', 'COMPLETED'].forEach(st => {
+        const el = document.getElementById(`fst-${st}`);
+        if (el) {
+          if (filterState.statuses.includes(st)) el.classList.add('active');
+          else el.classList.remove('active');
+        }
+      });
+
+      // 5. Prioridades
+      ['LOW', 'MEDIUM', 'HIGH', 'URGENT'].forEach(pr => {
+        const el = document.getElementById(`fpr-${pr}`);
+        if (el) {
+          if (filterState.priorities.includes(pr)) el.classList.add('active');
+          else el.classList.remove('active');
+        }
+      });
+
+      // 6. Overdue / This week toggles
+      const overdueBtn = document.getElementById('foverdue-toggle');
+      if (overdueBtn) {
+        if (filterState.overdueOnly) overdueBtn.classList.add('active');
+        else overdueBtn.classList.remove('active');
+      }
+
+      const thisWeekBtn = document.getElementById('fthisweek-toggle');
+      if (thisWeekBtn) {
+        if (filterState.thisWeekOnly) thisWeekBtn.classList.add('active');
+        else thisWeekBtn.classList.remove('active');
+      }
+    }
+
+    // Renderizar Lista de Tarefas do Time Ativo com Filtros Compostos & Busca Fuzzy
     function renderTaskList(forceShowAll) {
       if (typeof forceShowAll === 'boolean') {
         showAllPendingTasks = forceShowAll;
@@ -3020,8 +3706,86 @@
 
       const team = db.currentTeam;
       const allTeamTasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
-      const pendingTasks = allTeamTasks.filter(t => t.status !== 'COMPLETED');
-      const completedTasks = allTeamTasks.filter(t => t.status === 'COMPLETED');
+
+      // Aplicação dos Filtros Compostos (Onda 1 Sprint 2)
+      const filteredTasks = allTeamTasks.filter(task => {
+        // 1. Busca textual / Fuzzy Levenshtein
+        if (filterState.searchQuery && filterState.searchQuery.trim() !== '') {
+          if (!taskMatchesSearch(task, filterState.searchQuery)) return false;
+        }
+
+        // 2. Escopo da tarefa (root_only, subtasks_only)
+        const isSub = Boolean(task.parentId || task.isSubtask);
+        if (filterState.scope === 'root_only' && isSub) return false;
+        if (filterState.scope === 'subtasks_only' && !isSub) return false;
+
+        // 3. Responsável
+        if (filterState.assignee && task.assignee !== filterState.assignee) return false;
+
+        // 4. Múltiplas Tags (match se tiver qualquer uma das selecionadas)
+        if (filterState.tags && filterState.tags.length > 0) {
+          const tTags = getTaskTagNames(task).map(t => t.toLowerCase());
+          const matchTag = filterState.tags.some(sel => tTags.includes(sel.toLowerCase()));
+          if (!matchTag) return false;
+        }
+
+        // 5. Status
+        if (filterState.statuses && filterState.statuses.length > 0) {
+          if (!filterState.statuses.includes(task.status)) return false;
+        }
+
+        // 6. Prioridades
+        if (filterState.priorities && filterState.priorities.length > 0) {
+          const p = (task.priority || '').toUpperCase();
+          const mappedP = (p === 'ALTA' || p === 'HIGH') ? 'HIGH'
+            : (p === 'URGENTE' || p === 'URGENT') ? 'URGENT'
+            : (p === 'MEDIA' || p === 'MÉDIA' || p === 'MEDIUM') ? 'MEDIUM'
+            : 'LOW';
+          if (!filterState.priorities.includes(mappedP) && !filterState.priorities.includes(task.priority)) return false;
+        }
+
+        // 7. Apenas Atrasadas
+        if (filterState.overdueOnly) {
+          if (task.status === 'COMPLETED' || !task.dueDate) return false;
+          const due = new Date(task.dueDate).getTime();
+          if (isNaN(due) || due >= Date.now()) return false;
+        }
+
+        // 8. Vence esta semana
+        if (filterState.thisWeekOnly) {
+          if (!task.dueDate) return false;
+          const due = new Date(task.dueDate).getTime();
+          const now = Date.now();
+          const oneWeek = now + 7 * 86400000;
+          if (isNaN(due) || due < now || due > oneWeek) return false;
+        }
+
+        // 9. Filtro Rápido (Chips)
+        if (filterState.quickFilter === 'mine') {
+          const curUser = db.currentUser ? db.currentUser.name : 'Davi';
+          if (task.assignee !== curUser) return false;
+        } else if (filterState.quickFilter === 'overdue') {
+          if (task.status === 'COMPLETED' || !task.dueDate) return false;
+          const due = new Date(task.dueDate).getTime();
+          if (isNaN(due) || due >= Date.now()) return false;
+        } else if (filterState.quickFilter === 'this_week') {
+          if (!task.dueDate) return false;
+          const due = new Date(task.dueDate).getTime();
+          const now = Date.now();
+          const oneWeek = now + 7 * 86400000;
+          if (isNaN(due) || due < now || due > oneWeek) return false;
+        } else if (filterState.quickFilter === 'high_urgency') {
+          const p = (task.priority || '').toLowerCase();
+          if (p !== 'alta' && p !== 'urgente' && p !== 'high' && p !== 'urgent') return false;
+        } else if (filterState.quickFilter === 'with_subtasks') {
+          if (!task.subtasks || task.subtasks.length === 0) return false;
+        }
+
+        return true;
+      });
+
+      const pendingTasks = filteredTasks.filter(t => t.status !== 'COMPLETED');
+      const completedTasks = filteredTasks.filter(t => t.status === 'COMPLETED');
 
       // Atualiza badges de contagem nos títulos das seções
       const pendingBadge = document.getElementById('pendingTasksCountBadge');
@@ -3062,6 +3826,17 @@
               </div>
               <strong style="font-size: 13px; color: #1E293B; display: block;">Nenhuma tarefa no time "${team || 'atual'}"</strong>
               <p style="font-size: 11px; color: #64748B; margin-top: 4px;">Toque no botão abaixo ou no "+" para cadastrar a primeira tarefa!</p>
+            </div>
+          `;
+        } else if (filteredTasks.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 20px 16px; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 14px; margin: 0 16px 8px 16px;">
+              <span style="font-size: 22px;">🔍</span>
+              <strong style="font-size: 12.5px; color: #1E293B; display: block; margin-top: 4px;">Nenhuma tarefa encontrada</strong>
+              <p style="font-size: 11px; color: #64748B; margin-top: 2px;">Nenhuma tarefa corresponde aos filtros ou à busca atual.</p>
+              <button onclick="resetAllFilters(); clearTaskSearch(); setQuickFilter('all');" style="margin-top: 8px; padding: 5px 12px; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; color: #2563EB; font-size: 11px; font-weight: 700; cursor: pointer;">
+                Limpar Todos os Filtros
+              </button>
             </div>
           `;
         } else {

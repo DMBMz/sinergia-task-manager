@@ -1,0 +1,270 @@
+[
+  {
+    "id": 1,
+    "text": "Aluno(a): DAVI MIGUEL BENTO MARINHO Aplicativo Sinergia"
+  },
+  {
+    "id": 2,
+    "text": "O aplicativo Sinergia é uma plataforma de gestao e compartilhamento de tarefas que transcende o simples checklist, integrando inteligencia distribuida para alocacao automatica de responsabilidades, previsao de duracao baseada em historico, deteccao de conflitos de agenda e recomendacao de sequenciamento otimizado para equipes e grupos domesticos."
+  },
+  {
+    "id": 3,
+    "text": "Desenvolvido com React Native e Node.js, compilado exclusivamente para Android, o aplicativo utiliza um sistema de eventos baseado em aprendizado de maquina para prever atrasos, um motor de regras para delegacao automatica e um mecanismo de sincronizacao em tempo real que mantem todos os membros de um grupo alinhados sobre o status de cada tarefa."
+  },
+  {
+    "id": 4,
+    "text": "O sistema deve permitir ao usuario criar tarefas com titulo, descricao, prioridade, data de vencimento, estimativa de esforco e subtarefas aninhadas, com a opcao de vincular tarefas a projetos maiores e visualizar a estrutura hierarquica em um mapa mental interativo."
+  },
+  {
+    "id": 5,
+    "text": "O modulo de compartilhamento deve permitir ao usuario convidar outros membros para uma tarefa especifica ou para um projeto inteiro, com niveis de permissao que incluem visualizacao, edicao, delegacao e administracao, utilizando um sistema de convites via codigo QR ou link temporario."
+  },
+  {
+    "id": 6,
+    "text": "O sistema de alocacao automatica deve analisar a carga de trabalho atual de cada membro, suas habilidades declaradas e o historico de conclusao de tarefas similares, e sugerir a atribuicao mais equilibrada para novas tarefas, reduzindo a sobrecarga e maximizando a eficiencia."
+  },
+  {
+    "id": 7,
+    "text": "O modulo de previsao de duracao deve utilizar regressao linear e redes neurais leves, executadas localmente com TensorFlow Lite, para estimar o tempo real necessario para conclusao de uma tarefa com base em dados historicos de tarefas semelhantes, incluindo variaveis como dia da semana, horario e complexidade."
+  },
+  {
+    "id": 8,
+    "text": "O sistema de deteccao de conflitos deve verificar automaticamente se a alocacao de uma tarefa gera sobreposicao com outras tarefas ja atribuidas ao mesmo membro, considerando estimativas de duracao e datas de vencimento, e sugerir remanejamentos para evitar conflitos."
+  },
+  {
+    "id": 9,
+    "text": "O modulo de sequenciamento inteligente deve recomendar a ordem ideal de execucao das tarefas de um projeto, considerando dependencias entre tarefas, urgencia, esforco e disponibilidade dos membros, utilizando um algoritmo de ordenacao topologica com ponderacao por prioridade."
+  },
+  {
+    "id": 10,
+    "text": "O sistema de notificacoes contextuais deve enviar alertas personalizados para cada membro com base em seu papel, proximidade de prazos e mudancas no status das tarefas, utilizando Firebase Cloud Messaging para entrega em tempo real, com a opcao de configurar silencio por periodo."
+  },
+  {
+    "id": 11,
+    "text": "O modulo de historico de atividades deve registrar todas as alteracoes feitas em tarefas e projetos, incluindo criacao, edicao, atribuicao, conclusao e comentarios, com um feed cronologico que permite ao usuario rastrear a evolucao do trabalho ao longo do tempo."
+  },
+  {
+    "id": 12,
+    "text": "O sistema de comentarios e anexos deve permitir que os membros discutam tarefas especificas, adicionem arquivos de imagem, documentos e gravacoes de audio, com o armazenamento desses anexos feito em um servico de objetos gratuito como o MinIO, acessivel via API REST."
+  },
+  {
+    "id": 13,
+    "text": "O modulo de visualizacao de carga deve exibir um painel com a carga de trabalho atual de cada membro, representada por graficos de barras e indicadores de capacidade, permitindo ao gestor identificar rapidamente quem esta sobrecarregado ou ocioso."
+  },
+  {
+    "id": 14,
+    "text": "O sistema de dependencias deve permitir ao usuario definir que uma tarefa so pode ser iniciada apos a conclusao de outra, e o aplicativo deve bloquear automaticamente a alteracao de status da tarefa dependente enquanto a antecedente nao for concluida."
+  },
+  {
+    "id": 15,
+    "text": "O modulo de recorrencia deve suportar tarefas que se repetem diariamente, semanalmente, mensalmente ou em intervalos personalizados, com a opcao de definir condicoes de parada, como apos um numero especifico de ocorrencias ou em uma data final."
+  },
+  {
+    "id": 16,
+    "text": "O sistema de estimativa coletiva deve permitir que varios membros fornecam suas proprias estimativas de duracao para uma tarefa, e o aplicativo calcula uma estimativa consensual usando a media ponderada pela precisao historica de cada avaliador."
+  },
+  {
+    "id": 17,
+    "text": "O modulo de integracao com calendario deve sincronizar automaticamente as tarefas com os calendarios padrao do dispositivo, utilizando a API do Google Calendar ou o provedor de calendario do Android, para que os compromissos aparecam junto com as tarefas."
+  },
+  {
+    "id": 18,
+    "text": "O sistema de delegacao automatica deve, quando um membro esta sobrecarregado, sugerir automaticamente a transferencia de tarefas menos prioritarias para membros com menor carga, com base em regras de politicas configuradas pelo administrador do grupo."
+  },
+  {
+    "id": 19,
+    "text": "O modulo de etiquetas e filtros deve permitir ao usuario classificar tarefas com tags personalizadas, e o aplicativo deve oferecer filtros avancados por tag, prioridade, responsavel, data e status, com a opcao de salvar filtros como visualizacoes rapidas."
+  },
+  {
+    "id": 20,
+    "text": "O sistema de modo offline deve permitir ao usuario criar, editar e concluir tarefas mesmo sem conexao com a internet, armazenando as alteracoes em um banco de dados local e sincronizando automaticamente quando a conectividade for restaurada."
+  },
+  {
+    "id": 21,
+    "text": "O modulo de aprovacao deve permitir que tarefas concluidas sejam submetidas a aprovacao por um responsavel designado, e o aplicativo deve manter a tarefa em status de \"aguardando aprovacao\" ate que o responsavel a aprove ou solicite revisao."
+  },
+  {
+    "id": 22,
+    "text": "O sistema de alertas de prazo deve enviar notificacoes progressivas conforme um prazo se aproxima, com alertas iniciais em sete dias, tres dias, um dia e uma hora antes do vencimento, com cores de alerta variando de verde a vermelho."
+  },
+  {
+    "id": 23,
+    "text": "O modulo de analise de produtividade deve gerar relatorios individuais e de grupo com metricas como tarefas concluidas por periodo, tempo medio de conclusao, indice de atraso e taxa de reabertura, apresentando esses dados em graficos interativos."
+  },
+  {
+    "id": 24,
+    "text": "O sistema de busca semântica deve permitir ao usuario pesquisar tarefas por conteudo da descricao, comentarios e anexos, utilizando um indice invertido armazenado localmente com a biblioteca react-native-search-index, que retorna resultados mesmo com erros ortograficos."
+  },
+  {
+    "id": 25,
+    "text": "O modulo de modelos de projetos deve permitir ao usuario salvar um conjunto de tarefas como um modelo, com suas dependencias, estimativas e atribuicoes padrao, e reutilizar esse modelo para novos projetos com um unico toque."
+  },
+  {
+    "id": 26,
+    "text": "O sistema de bloqueio de edicao deve impedir que dois usuarios editem a mesma tarefa simultaneamente, utilizando um mecanismo de lock otimista baseado em versoes, que notifica o usuario se a tarefa foi alterada por outro membro enquanto ele editava."
+  },
+  {
+    "id": 27,
+    "text": "O modulo de lista de verificacao deve, dentro de uma tarefa, permitir ao usuario criar uma lista de itens a serem marcados como concluidos, com a opcao de definir responsaveis diferentes para cada item da lista."
+  },
+  {
+    "id": 28,
+    "text": "O sistema de previsao de conclusao deve, com base no progresso atual e na taxa de execucao, estimar a data provavel de conclusao de um projeto e atualizar essa previsao diariamente, exibindo uma projecao no painel principal."
+  },
+  {
+    "id": 29,
+    "text": "O modulo de integracao com ferramentas de comunicacao deve permitir ao usuario iniciar uma chamada de voz ou video diretamente do aplicativo para discutir uma tarefa, utilizando a API WebRTC com servidor de sinalizacao Node.js, sem custos adicionais."
+  },
+  {
+    "id": 30,
+    "text": "O sistema de priorizacao dinamica deve reordenar automaticamente a lista de tarefas de cada membro com base em fatores como prazo, dependencias, esforco e importancia estrategica, atualizando a ordem em tempo real conforme as condicoes mudam."
+  },
+  {
+    "id": 31,
+    "text": "O modulo de relatorios de desempenho deve gerar um ranking anonimo entre os membros do grupo com base em metricas de produtividade, incentivando a competicao saudavel, com a opcao de desativar essa funcionalidade por privacidade."
+  },
+  {
+    "id": 32,
+    "text": "O sistema de lembretes baseados em localizacao deve utilizar o GPS para enviar notificacoes quando um membro estiver proximo de um local onde precisa executar uma tarefa, como comprar material ou entregar um documento."
+  },
+  {
+    "id": 33,
+    "text": "O modulo de retrospectivas deve, ao final de um projeto, guiar o grupo por uma sessao estruturada de retrospectiva com questoes sobre o que funcionou bem e o que pode ser melhorado, e armazenar essas respostas para consulta futura."
+  },
+  {
+    "id": 34,
+    "text": "O sistema de copia de tarefas deve permitir ao usuario duplicar uma tarefa existente com todas as suas subtarefas, anexos e comentarios, ajustando automaticamente as datas para uma nova linha do tempo baseada na data atual."
+  },
+  {
+    "id": 35,
+    "text": "O modulo de gestao de ferias e ausencias deve permitir que os membros registrem periodos de indisponibilidade, e o sistema automaticamente nao aloca tarefas para esses membros durante o periodo, redistribuindo as tarefas existentes."
+  },
+  {
+    "id": 36,
+    "text": "O sistema de notificacao de mudancas deve enviar um resumo diario por email ou notificacao push com todas as alteracoes ocorridas nas tarefas e projetos dos quais o usuario participa, com a opcao de personalizar a frequencia."
+  },
+  {
+    "id": 37,
+    "text": "O modulo de estimativa de custo deve permitir ao usuario associar um valor monetario a cada tarefa, seja por hora de trabalho ou custo fixo, e calcular automaticamente o custo total de um projeto, com graficos de custo por membro e por categoria."
+  },
+  {
+    "id": 38,
+    "text": "O sistema de arquivamento deve permitir ao usuario arquivar projetos e tarefas concluidas, removendo-os da vista principal mas mantendo-os disponiveis para consulta e restauracao, com um indice de busca para localizar itens arquivados."
+  },
+  {
+    "id": 39,
+    "text": "O modulo de templates de tarefas deve oferecer uma biblioteca de modelos predefinidos para atividades comuns, como \"reuniao semanal\", \"entrega de relatorio\" ou \"revisao de codigo\", que podem ser adicionados rapidamente com um clique."
+  },
+  {
+    "id": 40,
+    "text": "O sistema de analise de dependencias criticas deve identificar tarefas que, se atrasadas, atrasarao todo o projeto, destacando- as no painel com um indicador de \"caminho critico\" e sugerindo acoes preventivas."
+  },
+  {
+    "id": 41,
+    "text": "O modulo de integracao com armazenamento em nuvem deve permitir ao usuario vincular contas de servicos como Google Drive ou Dropbox para fazer backup automatico de todos os dados do aplicativo, utilizando suas respectivas APIs gratuitas."
+  },
+  {
+    "id": 42,
+    "text": "O sistema de historico de estimativas deve registrar todas as estimativas fornecidas para uma tarefa, comparando com o tempo real gasto, e gerar um relatorio de precisao por membro, ajudando a calibrar futuras estimativas."
+  },
+  {
+    "id": 43,
+    "text": "O modulo de personalizacao de status deve permitir ao usuario criar status personalizados alem dos padroes como \"pendente\", \"em andamento\" e \"concluida\", como \"em revisao\" ou \"bloqueada\", com cores e icones associados."
+  },
+  {
+    "id": 44,
+    "text": "O sistema de rotacao de responsabilidades deve, para tarefas recorrentes, alternar automaticamente o responsavel entre os membros a cada ocorrencia, garantindo distribuicao igualitaria de tarefas repetitivas."
+  },
+  {
+    "id": 45,
+    "text": "O modulo de comentarios com marcacao deve permitir que os usuarios marquem outros membros em comentarios com o simbolo @, e o aplicativo envia uma notificacao especifica para o membro marcado, com um atalho para a tarefa em questao."
+  },
+  {
+    "id": 46,
+    "text": "O sistema de alertas de baixo progresso deve, quando uma tarefa ou projeto esta com menos de vinte por cento do progresso esperado para o tempo decorrido, enviar um alerta ao responsavel e ao gestor, sugerindo uma reuniao de alinhamento."
+  },
+  {
+    "id": 47,
+    "text": "O modulo de visualizacao Gantt deve exibir um cronograma visual de todas as tarefas de um projeto em um grafico de barras horizontais, com dependencias representadas por setas, permitindo arrastar tarefas para ajustar datas."
+  },
+  {
+    "id": 48,
+    "text": "O sistema de sugestao de pausas deve analisar a carga de trabalho continua de um membro e sugerir pausas ou dias de descanso quando a sobrecarga atinge um limiar predefinido, promovendo bem-estar e prevenindo burnout."
+  },
+  {
+    "id": 49,
+    "text": "O modulo de exportacao para PDF deve gerar relatorios detalhados de projetos e tarefas em formato PDF, com opcao de incluir graficos, comentarios e historico, para compartilhamento com stakeholders externos."
+  },
+  {
+    "id": 50,
+    "text": "O sistema de verificacao de disponibilidade deve, antes de atribuir uma tarefa, verificar se o membro tem conflitos de agenda com outras tarefas ou compromissos externos registrados, e sugerir o melhor momento para iniciar a tarefa."
+  },
+  {
+    "id": 51,
+    "text": "O modulo de recebimento de tarefas deve permitir que um membro receba uma tarefa atribuida por outro, podendo aceitar, recusar ou solicitar alteracoes na atribuicao, com um fluxo de notificacao para o atribuidor sobre a decisao."
+  },
+  {
+    "id": 52,
+    "text": "O sistema de metrica de complexidade deve calcular um indice de complexidade para cada tarefa com base no numero de subtarefas, dependencias, anexos e comentarios, auxiliando na priorizacao e estimativa de esforco."
+  },
+  {
+    "id": 53,
+    "text": "O modulo de integracao com sistemas de controle de versao deve permitir vincular tarefas a commits em repositorios Git, utilizando a API do GitHub ou GitLab, para que o progresso do desenvolvimento seja refletido no status das tarefas."
+  },
+  {
+    "id": 54,
+    "text": "O sistema de notificacao de conclusao antecipada deve, quando uma tarefa e concluida antes do prazo, sugerir ao usuario que pegue tarefas de backlog ou ajude colegas com tarefas atrasadas, otimizando o uso do tempo ocioso."
+  },
+  {
+    "id": 55,
+    "text": "O modulo de auditoria de permissao deve permitir ao administrador do grupo revisar todas as permissoes concedidas a cada membro, revogar acessos e visualizar um log de quem acessou quais tarefas e quando."
+  },
+  {
+    "id": 56,
+    "text": "O sistema de metas individuais deve permitir ao usuario definir metas pessoais de produtividade, como concluir cinco tarefas por dia, e o aplicativo monitora o progresso e exibe um indicador de alcance da meta."
+  },
+  {
+    "id": 57,
+    "text": "O modulo de revisao de tarefas deve permitir que um membro solicite revisao de uma tarefa concluida a outro membro, com um formulario estruturado para feedback sobre qualidade, prazo e execucao."
+  },
+  {
+    "id": 58,
+    "text": "O sistema de integracao com email deve permitir criar tarefas a partir de emails recebidos, utilizando a API do Gmail ou Outlook, com extracao automatica de remetente, assunto e corpo do email como descricao da tarefa."
+  },
+  {
+    "id": 59,
+    "text": "O modulo de separacao por projetos deve permitir ao usuario organizar tarefas em projetos com cores, icones e permissoes independentes, e alternar rapidamente entre a visualizacao de um projeto especifico ou a visao geral de todos."
+  },
+  {
+    "id": 60,
+    "text": "O sistema de previsao de recursos deve estimar, com base no historico de projetos anteriores, quais recursos humanos e materiais serao necessarios para um novo projeto, auxiliando no planejamento antes do inicio."
+  },
+  {
+    "id": 61,
+    "text": "O modulo de tarefas dependentes de condicoes deve permitir que uma tarefa so seja iniciada se uma condicao externa for atendida, como a chegada de um material ou a aprovacao de um orcamento, com monitoramento do status da condicao."
+  },
+  {
+    "id": 62,
+    "text": "O sistema de duracao de reunioes deve, ao criar uma tarefa do tipo reuniao, sugerir a duracao ideal com base na agenda dos participantes e no historico de duracao de reunioes semelhantes."
+  },
+  {
+    "id": 63,
+    "text": "O modulo de anotacoes rapidas deve permitir ao usuario capturar ideias ou lembretes como tarefas nao estruturadas, que posteriormente podem ser convertidas em tarefas completas com atribuicoes e prazos."
+  },
+  {
+    "id": 64,
+    "text": "O sistema de comparacao de produtividade deve exibir um grafico comparativo da produtividade do grupo em diferentes periodos, como mes a mes ou trimestre a trimestre, para identificar tendencias de desempenho."
+  },
+  {
+    "id": 65,
+    "text": "O modulo de regras de automacao deve permitir ao usuario configurar regras do tipo \"se entao\", como \"se uma tarefa de alta prioridade for criada, notificar o gestor imediatamente\", utilizando um motor de regras baseado em JSON."
+  },
+  {
+    "id": 66,
+    "text": "O sistema de resumo diario deve, ao final de cada dia, enviar um resumo para cada membro com as tarefas concluidas, as pendentes e as que vencerao no dia seguinte, com um botao para confirmar o planejamento do dia seguinte."
+  },
+  {
+    "id": 67,
+    "text": "O modulo de gestao de dependencias externas deve permitir ao usuario registrar dependencias que estao fora do controle da equipe, como fornecedores ou clientes, e o aplicativo envia alertas quando essas dependencias estao proximas de seus prazos."
+  }
+]

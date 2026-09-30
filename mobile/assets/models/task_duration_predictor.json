@@ -1,0 +1,25 @@
+{
+  "modelName": "TaskDurationPredictor",
+  "version": "1.0.0",
+  "type": "LinearRegression",
+  "targetUnit": "hours",
+  "metrics": {
+    "maeHours": 0.354,
+    "r2Score": 0.9967,
+    "trainingSamples": 1500
+  },
+  "weights": {
+    "bias": 1.4977,
+    "titleWordCount": 0.2494,
+    "descCharCount": 0.007956,
+    "subtasksCount": 2.7986,
+    "priorityWeight": 1.7676,
+    "tagsCount": 0.4074
+  },
+  "priorityMapping": {
+    "LOW": 1,
+    "MEDIUM": 2,
+    "HIGH": 3,
+    "URGENT": 4
+  }
+}

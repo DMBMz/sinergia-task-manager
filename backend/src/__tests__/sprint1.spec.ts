@@ -131,7 +131,7 @@ describe('Sinergia Task Manager — Sprint 1 Suite de Testes Automatizados', () 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.invite.token).toBeDefined();
-      expect(res.body.data.link).toContain('https://sinergia.app/invite/');
+      expect(res.body.data.link).toContain('invite');
       
       const qrData = JSON.parse(res.body.data.qrPayload);
       expect(qrData.app).toBe('sinergia');

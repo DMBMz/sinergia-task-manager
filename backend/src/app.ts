@@ -41,6 +41,19 @@ export function createApp() {
   app.post('/api/v1/tasks/:id/unlock', (req, res) => tasksController.unlock(req, res));
   app.delete('/api/v1/tasks/:id', (req, res) => tasksController.remove(req, res));
 
+  // US10: Dependencies (DB-10.1 / BE-10.2)
+  app.post('/api/v1/tasks/:id/dependencies', (req, res) => tasksController.addDependency(req, res));
+  app.delete('/api/v1/tasks/:id/dependencies/:depId', (req, res) => tasksController.removeDependency(req, res));
+
+  // US21: Checklist & Clone (DB-21.1 / BE-21.2)
+  app.post('/api/v1/tasks/:id/checklist', (req, res) => tasksController.addChecklistItem(req, res));
+  app.patch('/api/v1/tasks/:id/checklist/:itemId', (req, res) => tasksController.updateChecklistItem(req, res));
+  app.delete('/api/v1/tasks/:id/checklist/:itemId', (req, res) => tasksController.deleteChecklistItem(req, res));
+  app.post('/api/v1/tasks/:id/clone', (req, res) => tasksController.clone(req, res));
+
+  // US22: Aceite / Recusa de atribuição de tarefas (DB-22.1 / BE-22.2)
+  app.post('/api/v1/tasks/:id/assignment', (req, res) => tasksController.respondAssignment(req, res));
+
   // US02: WatermelonDB Offline Delta Sync
   app.get('/api/v1/sync/pull', (req, res) => syncController.pull(req, res));
   app.post('/api/v1/sync/push', (req, res) => syncController.push(req, res));
