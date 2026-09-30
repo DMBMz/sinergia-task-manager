@@ -1,8 +1,8 @@
-# Script to package and sign Sinergia APK with updated frontend
+# Script to package and install Sinergia APK on device via USB (ADB)
 $ErrorActionPreference = "Stop"
 
 $tempRoot = [System.IO.Path]::GetTempPath()
-$work = Join-Path $tempRoot "sinergia_build"
+$work = Join-Path $tempRoot "sinergia_build_inplace"
 $projectRoot = "c:\Users\Fatec\sn\sinergia-task-manager"
 $signerJar = "$env:USERPROFILE\uber-apk-signer.jar"
 $adbExe = "$env:USERPROFILE\platform-tools\adb.exe"
@@ -11,82 +11,87 @@ Write-Host ">>> Cleaning temp directory: $work"
 if (Test-Path $work) {
     Remove-Item $work -Recurse -Force
 }
-New-Item -ItemType Directory -Path "$work\extracted" -Force | Out-Null
-New-Item -ItemType Directory -Path "$work\signed" -Force | Out-Null
+New-Item -ItemType Directory -Path $work -Force | Out-Null
 
-Write-Host ">>> Extracting base APK..."
+$baseApk = Join-Path $projectRoot "mobile\www\sinergia.apk"
+$targetApk = Join-Path $work "sinergia-target.apk"
+
+# Ensure we have clean base apk if needed
+Write-Host ">>> Preparing base APK copy..."
+Copy-Item $baseApk $targetApk -Force
+
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-# Use an original clean copy or mobile/www/sinergia.apk if it exists
-[System.IO.Compression.ZipFile]::ExtractToDirectory("$projectRoot\mobile\www\sinergia.apk", "$work\extracted")
+Write-Host ">>> Updating index.html in-place inside APK (preserving uncompressed resources.arsc)..."
+$zip = [System.IO.Compression.ZipFile]::Open($targetApk, [System.IO.Compression.ZipArchiveMode]::Update)
 
-Write-Host ">>> Copying latest frontend assets (Sprint 2 Onda 1 & Onda 2)..."
-Copy-Item "$projectRoot\docs\index.html" "$work\extracted\assets\public\index.html" -Force
-if (Test-Path "$projectRoot\mobile\www\jsqr.js") {
-    Copy-Item "$projectRoot\mobile\www\jsqr.js" "$work\extracted\assets\public\jsqr.js" -Force
-}
-if (Test-Path "$projectRoot\mobile\www\qrcode.min.js") {
-    Copy-Item "$projectRoot\mobile\www\qrcode.min.js" "$work\extracted\assets\public\qrcode.min.js" -Force
+# 1. Remove old signatures
+$entriesToDelete = @($zip.Entries | Where-Object { $_.FullName -like "META-INF/*" })
+foreach ($e in $entriesToDelete) {
+    $e.Delete()
 }
 
-# Remove recursive APK if present inside assets
-if (Test-Path "$work\extracted\assets\public\sinergia.apk") {
-    Remove-Item "$work\extracted\assets\public\sinergia.apk" -Force
+# 2. Update assets/public/index.html
+$oldHtml = $zip.GetEntry("assets/public/index.html")
+if ($oldHtml) {
+    $oldHtml.Delete()
+}
+$newHtmlPath = Join-Path $projectRoot "docs\index.html"
+[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $newHtmlPath, "assets/public/index.html") | Out-Null
+
+# 3. Update jsqr.js and qrcode.min.js if needed
+$jsqrPath = Join-Path $projectRoot "mobile\www\jsqr.js"
+if (Test-Path $jsqrPath) {
+    $oldJsqr = $zip.GetEntry("assets/public/jsqr.js")
+    if ($oldJsqr) { $oldJsqr.Delete() }
+    [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $jsqrPath, "assets/public/jsqr.js") | Out-Null
 }
 
-# Remove old META-INF to allow clean re-signing
-if (Test-Path "$work\extracted\META-INF") {
-    Remove-Item "$work\extracted\META-INF" -Recurse -Force
+$qrPath = Join-Path $projectRoot "mobile\www\qrcode.min.js"
+if (Test-Path $qrPath) {
+    $oldQr = $zip.GetEntry("assets/public/qrcode.min.js")
+    if ($oldQr) { $oldQr.Delete() }
+    [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $qrPath, "assets/public/qrcode.min.js") | Out-Null
 }
 
-Write-Host ">>> Repackaging unsigned APK with uncompressed resources.arsc (Android R+ requirement)..."
-$unsignedApk = "$work\sinergia-unsigned.apk"
-$extractedPath = "$work\extracted"
+# 4. Remove recursive APK if present
+$recApk = $zip.GetEntry("assets/public/sinergia.apk")
+if ($recApk) { $recApk.Delete() }
 
-$archive = [System.IO.Compression.ZipFile]::Open($unsignedApk, [System.IO.Compression.ZipArchiveMode]::Create)
-$allFiles = Get-ChildItem -Path $extractedPath -Recurse | Where-Object { -not $_.PSIsContainer }
+$zip.Dispose()
 
-foreach ($f in $allFiles) {
-    $rel = $f.FullName.Substring($extractedPath.Length).TrimStart('\', '/').Replace('\', '/')
-    # Android R+ requires resources.arsc (and uncompressed media) to be stored uncompressed
-    if ($rel -eq "resources.arsc" -or $rel.EndsWith(".png") -or $rel.EndsWith(".so")) {
-        $level = [System.IO.Compression.CompressionLevel]::NoCompression
-    } else {
-        $level = [System.IO.Compression.CompressionLevel]::Optimal
-    }
-    [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $f.FullName, $rel, $level) | Out-Null
-}
-$archive.Dispose()
+Write-Host ">>> Signing with uber-apk-signer (v1, v2, v3 + zipalign)..."
+& java -jar $signerJar -a $targetApk --out $work --allowResign --verbose
 
-Write-Host ">>> Signing APK with uber-apk-signer (v1, v2, v3 schemes + zipalign)..."
-& java -jar $signerJar -a $unsignedApk --out "$work\signed" --allowResign --verbose
-
-$signedApks = Get-ChildItem -Path "$work\signed" -Filter "*.apk"
+$signedApks = Get-ChildItem -Path $work -Filter "*-aligned-debugSigned.apk"
 if ($signedApks.Count -eq 0) {
     throw "Signing failed! No signed APK generated."
 }
 
 $finalApk = $signedApks[0].FullName
-Write-Host ">>> Signed APK created successfully: $finalApk (Size: $((Get-Item $finalApk).Length) bytes)"
+Write-Host ">>> Signed APK created: $finalApk (Size: $((Get-Item $finalApk).Length) bytes)"
 
-# Copy back to mobile/www/sinergia.apk
-Copy-Item $finalApk "$projectRoot\mobile\www\sinergia.apk" -Force
-Write-Host ">>> Updated $projectRoot\mobile\www\sinergia.apk"
+# Copy back to mobile/www/sinergia.apk so the repo is always up to date
+try {
+    Copy-Item $finalApk $baseApk -Force -ErrorAction SilentlyContinue
+    Write-Host ">>> Updated $baseApk"
+} catch {
+    Write-Host ">>> Note: Base APK in www locked, will update on next run."
+}
 
 # Check connected device
 Write-Host ">>> Checking ADB devices..."
 & $adbExe devices
 
-# If old package is signed with a different key, uninstall first if needed, but try install -r first
-Write-Host ">>> Installing on phone via ADB (adb install -r -d)..."
-$installResult = & $adbExe install -r -d $finalApk 2>&1
-Write-Host $installResult
+Write-Host ">>> Installing on phone via ADB (adb install -r)..."
+$res = & $adbExe install -r $finalApk 2>&1
+Write-Host $res
 
-if ($installResult -match "INSTALL_FAILED_UPDATE_INCOMPATIBLE" -or $installResult -match "signatures do not match") {
+if ($res -match "INSTALL_FAILED_UPDATE_INCOMPATIBLE" -or $res -match "signatures do not match") {
     Write-Host ">>> Signature difference detected. Reinstalling cleanly..."
     & $adbExe uninstall com.sinergia.app
-    & $adbExe install -r $finalApk
+    & $adbExe install $finalApk
 }
 
 Write-Host ">>> Launching com.sinergia.app on phone..."

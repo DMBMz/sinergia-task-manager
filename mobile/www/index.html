@@ -3510,6 +3510,9 @@
       renderFilterDrawerUI();
       const modal = document.getElementById('modalFilterDrawer');
       if (modal) modal.style.display = 'flex';
+      if (typeof loadAvailableUsers === 'function') {
+        loadAvailableUsers().then(() => renderFilterDrawerUI()).catch(() => {});
+      }
     }
 
     function closeFilterDrawer() {
@@ -3612,11 +3615,47 @@
         }
       });
 
-      // 2. Responsáveis
-      const assigneesSet = new Set(['Davi', 'Alice', 'Bruno', 'Carlos', 'Mariana']);
-      if (db.currentUser && db.currentUser.name) assigneesSet.add(db.currentUser.name);
-      allTasks.forEach(t => { if (t.assignee) assigneesSet.add(t.assignee); });
-      const memberList = Array.from(assigneesSet);
+      // 2. Responsáveis Reais do Time (Sem dados mockados)
+      const memberMap = new Map();
+
+      // (a) Usuário logado
+      if (db.currentUser && db.currentUser.name && db.currentUser.name.trim()) {
+        const myName = db.currentUser.name.trim();
+        memberMap.set(myName, {
+          name: myName,
+          avatar: db.currentUser.avatar || db.currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(myName)}`
+        });
+      }
+
+      // (b) Usuários cadastrados no banco / time atual (db.allUsers ou cachedAvailableUsers)
+      const availableUsers = (Array.isArray(db.allUsers) && db.allUsers.length > 0)
+        ? db.allUsers
+        : (typeof cachedAvailableUsers !== 'undefined' ? cachedAvailableUsers : []);
+
+      availableUsers.forEach(u => {
+        if (u && u.name && u.name.trim()) {
+          const uName = u.name.trim();
+          if (!memberMap.has(uName)) {
+            memberMap.set(uName, {
+              name: uName,
+              avatar: u.avatarUrl || u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(uName)}`
+            });
+          }
+        }
+      });
+
+      // (c) Qualquer responsável com tarefa atribuída no time atual
+      allTasks.forEach(t => {
+        const aName = (t.assigneeName || t.assignee || '').trim();
+        if (aName && aName !== 'Qualquer' && aName !== 'Equipe' && !memberMap.has(aName)) {
+          memberMap.set(aName, {
+            name: aName,
+            avatar: t.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(aName)}`
+          });
+        }
+      });
+
+      const memberList = Array.from(memberMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 
       const assigneesContainer = document.getElementById('drawerAssigneesContainer');
       const clearAssigneeBtn = document.getElementById('clearDrawerAssigneeBtn');
@@ -3629,26 +3668,39 @@
             <span>👥 Qualquer</span>
           </button>
         `;
-        memberList.forEach(m => {
-          const isSel = filterState.assignee === m;
-          const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(m)}`;
-          html += `
-            <button type="button" class="filter-member-chip ${isSel ? 'active' : ''}" onclick="setDrawerAssignee('${escapeHtml(m)}')">
-              <img src="${avatarUrl}" class="filter-member-avatar" alt="${escapeHtml(m)}">
-              <span>${escapeHtml(m)}</span>
-              ${isSel ? '<span style="color: #2563EB; font-weight: 800;">✓</span>' : ''}
-            </button>
-          `;
-        });
+        if (memberList.length === 0) {
+          html += `<span style="font-size: 11px; color: #94A3B8; padding: 6px 2px;">Nenhum membro encontrado no time atual.</span>`;
+        } else {
+          memberList.forEach(m => {
+            const isSel = filterState.assignee === m.name;
+            const avatarUrl = m.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(m.name)}`;
+            html += `
+              <button type="button" class="filter-member-chip ${isSel ? 'active' : ''}" onclick="setDrawerAssignee('${escapeHtml(m.name)}')">
+                <img src="${avatarUrl}" class="filter-member-avatar" alt="${escapeHtml(m.name)}">
+                <span>${escapeHtml(m.name)}</span>
+                ${isSel ? '<span style="color: #2563EB; font-weight: 800;">✓</span>' : ''}
+              </button>
+            `;
+          });
+        }
         assigneesContainer.innerHTML = html;
       }
 
-      // 3. Tags
-      const tagsSet = new Set(['Sprint 1', 'Sprint 2', 'Frontend', 'Backend', 'UI/UX', 'Bug', 'IA', 'Database', 'DevOps']);
+      // 3. Tags Reais (Apenas as tags já adicionadas em tasks deste time, sem mock)
+      const tagsSet = new Set();
       allTasks.forEach(t => {
-        getTaskTagNames(t).forEach(tagName => tagsSet.add(tagName));
+        getTaskTagNames(t).forEach(tagName => {
+          if (tagName && typeof tagName === 'string' && tagName.trim()) {
+            tagsSet.add(tagName.trim());
+          }
+        });
       });
-      const tagList = Array.from(tagsSet);
+      const tagList = Array.from(tagsSet).sort((a, b) => a.localeCompare(b));
+
+      // Remove seleções de tags que não existam mais nas tarefas do time
+      if (Array.isArray(filterState.tags) && filterState.tags.length > 0) {
+        filterState.tags = filterState.tags.filter(t => tagsSet.has(t));
+      }
 
       const tagsContainer = document.getElementById('drawerTagsContainer');
       const tagsCountEl = document.getElementById('drawerTagsCount');
@@ -3657,15 +3709,19 @@
       if (clearTagsBtn) clearTagsBtn.style.display = filterState.tags.length > 0 ? 'inline' : 'none';
 
       if (tagsContainer) {
-        tagsContainer.innerHTML = tagList.map(tag => {
-          const isSel = filterState.tags.includes(tag);
-          return `
-            <button type="button" class="filter-tag-chip ${isSel ? 'active' : ''}" onclick="toggleDrawerTag('${escapeHtml(tag)}')">
-              <span>🏷️ ${escapeHtml(tag)}</span>
-              ${isSel ? '<span style="color: #2563EB; font-weight: 800;">✓</span>' : ''}
-            </button>
-          `;
-        }).join('');
+        if (tagList.length === 0) {
+          tagsContainer.innerHTML = `<span style="font-size: 11px; color: #94A3B8; padding: 6px 2px;">Nenhuma tag adicionada em tarefas deste time.</span>`;
+        } else {
+          tagsContainer.innerHTML = tagList.map(tag => {
+            const isSel = filterState.tags.includes(tag);
+            return `
+              <button type="button" class="filter-tag-chip ${isSel ? 'active' : ''}" onclick="toggleDrawerTag('${escapeHtml(tag)}')">
+                <span>🏷️ ${escapeHtml(tag)}</span>
+                ${isSel ? '<span style="color: #2563EB; font-weight: 800;">✓</span>' : ''}
+              </button>
+            `;
+          }).join('');
+        }
       }
 
       // 4. Status

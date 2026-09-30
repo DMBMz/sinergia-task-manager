@@ -70,6 +70,47 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({
     return count;
   }, [advancedFilters, selectedTag, selectedStatus, selectedPriority]);
 
+  // US05: Membros reais derivados dinamicamente das tarefas do time ativo (sem nomes mockados)
+  const teamMembers = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; avatarUrl?: string }>();
+    tasks.forEach(t => {
+      const name = (t.assigneeName || t.assigneeId || '').trim();
+      if (name && !map.has(name)) {
+        map.set(name, {
+          id: t.assigneeId || name,
+          name: name,
+          avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [tasks]);
+
+  // US05: Apenas as tags reais já adicionadas em tarefas deste time (remove todas não utilizadas)
+  const actualTeamTags = useMemo(() => {
+    const tagNamesSet = new Set<string>();
+    tasks.forEach(t => {
+      if (Array.isArray(t.tags)) {
+        t.tags.forEach((tag: any) => {
+          const name = typeof tag === 'string' ? tag : (tag?.name || tag?.title);
+          if (name && typeof name === 'string' && name.trim()) {
+            tagNamesSet.add(name.trim());
+          }
+        });
+      }
+    });
+
+    return Array.from(tagNamesSet).map(name => {
+      const existing = tags.find(tg => tg.name.toLowerCase() === name.toLowerCase());
+      return existing || {
+        id: `tag-${name}`,
+        name: name,
+        color: '#2563EB',
+        projectId: ''
+      };
+    });
+  }, [tasks, tags]);
+
   // Instância do mecanismo de busca fuzzy Levenshtein
   const searchEngine = useMemo(() => {
     const engine = new LocalSearchIndex();
@@ -231,7 +272,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({
         onSelectStatus={setSelectedStatus}
         selectedPriority={selectedPriority}
         onSelectPriority={setSelectedPriority}
-        tags={tags}
+        tags={actualTeamTags}
         isOnline={isOnline}
         onToggleOnline={onToggleOnline}
         isSyncing={isSyncing}
@@ -247,12 +288,8 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({
         filters={advancedFilters}
         onFiltersChange={setAdvancedFilters}
         onResetFilters={resetAllFilters}
-        tags={tags}
-        members={[
-          { id: 'user-davi-001', name: 'Davi Marinho', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Davi' },
-          { id: 'user-ana-002', name: 'Ana Silva', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana' },
-          { id: 'user-carlos-003', name: 'Carlos Tech', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos' }
-        ]}
+        tags={actualTeamTags}
+        members={teamMembers}
         activeCount={activeFiltersCount}
       />
 

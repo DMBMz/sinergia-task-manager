@@ -142,6 +142,11 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                 <span style={{ fontWeight: filters.assigneeId === null ? 600 : 400 }}>Qualquer Membro</span>
               </button>
 
+              {members.length === 0 && (
+                <span style={{ fontSize: 12, color: '#94A3B8', padding: '6px 2px' }}>
+                  Nenhum membro com tarefas no time atual.
+                </span>
+              )}
               {members.map(member => {
                 const isSelected = filters.assigneeId === member.id;
                 return (
@@ -183,6 +188,11 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
               )}
             </div>
             <div style={styles.chipsWrap}>
+              {tags.length === 0 && (
+                <span style={{ fontSize: 12, color: '#94A3B8', padding: '6px 2px' }}>
+                  Nenhuma tag adicionada em tarefas deste time.
+                </span>
+              )}
               {tags.map(tag => {
                 const isSelected = filters.tagNames.includes(tag.name);
                 return (
