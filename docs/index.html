@@ -3309,6 +3309,14 @@
         }
       }
 
+      // Sprint 2 Onda 2: Indicador de Caminho Crítico (CPM) e Bloqueio de Dependências
+      let cpmBadge = '';
+      if (task.status === 'BLOCKED') {
+        cpmBadge = `<span style="background: #FEE2E2; color: #991B1B; border: 1px solid #F87171; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🔒 Bloqueada</span>`;
+      } else if (task.isCritical || (!isCompleted && (task.priority === 'Alta' || task.priority === 'Urgente'))) {
+        cpmBadge = `<span style="background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🔥 CPM Crítica</span>`;
+      }
+
       const tagsHtml = (Array.isArray(task.tags) && task.tags.length > 0)
         ? task.tags.map(t => {
             let name = '';
@@ -3348,6 +3356,7 @@
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
               <strong style="${titleStyle}">${escapeHtml(task.title)}</strong>
               ${statusBadge}
+              ${cpmBadge}
               <span style="font-size: 10px;">${syncBadge}</span>
               ${lockCardTag}
               ${tagsHtml}

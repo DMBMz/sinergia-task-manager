@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { repository } from '../../database/repository';
 import { Priority, TaskStatus, DependencyType, AssignmentStatus } from '../../database/types';
+import { TaskDependencyGuard } from './tasks.guard';
+import { DagService } from '../planning/dag.service';
+import { RecurrenceRoundRobinService } from '../recurrence/recurrence.service';
 
 export class TasksController {
   async list(req: Request, res: Response) {
@@ -137,6 +140,19 @@ export class TasksController {
       });
     }
 
+    // Sprint 2 Onda 2: Validação de dependências antes de transição para IN_PROGRESS ou COMPLETED (BE-10.2 / US10)
+    if (updateData.status) {
+      const guardResult = TaskDependencyGuard.validateTransition(id, updateData.status as TaskStatus);
+      if (!guardResult.allowed) {
+        return res.status(400).json({
+          success: false,
+          blocked: true,
+          error: guardResult.reason,
+          blockingTasks: guardResult.blockingTasks
+        });
+      }
+    }
+
     // US06: Lock Otimista & Bloqueio Simultâneo
     const result = repository.updateTask(id, Number(version), updateData);
 
@@ -161,6 +177,12 @@ export class TasksController {
 
     if (!result.task) {
       return res.status(404).json({ success: false, error: 'Tarefa não encontrada.' });
+    }
+
+    // Sprint 2 Onda 2: Ao concluir tarefa, desbloqueia dependentes e processa recorrência Round-Robin
+    if (result.task && updateData.status === 'COMPLETED') {
+      TaskDependencyGuard.onTaskCompleted(id).catch(err => console.error('[Guard Error]', err));
+      RecurrenceRoundRobinService.handleTaskCompletion(id).catch(err => console.error('[Recurrence Error]', err));
     }
 
     const updatedTask = repository.getTaskWithDetails(id);
@@ -223,6 +245,21 @@ export class TasksController {
 
     if (!dependsOnTaskId) {
       return res.status(400).json({ success: false, error: 'dependsOnTaskId é obrigatório.' });
+    }
+
+    if (id === dependsOnTaskId) {
+      return res.status(400).json({ success: false, error: 'Uma tarefa não pode depender de si mesma.' });
+    }
+
+    // Sprint 2 Onda 2: Validação de Ciclos em Grafo (Kahn / DAG) antes de inserir dependência (BE-11.1 / US11)
+    const allTasks = repository.getAllTasks();
+    const existingDeps = Array.from((repository as any).taskDependencies.values()) as any[];
+    if (DagService.wouldCreateCycle(allTasks, existingDeps, id, dependsOnTaskId)) {
+      return res.status(400).json({
+        success: false,
+        hasCycle: true,
+        error: 'Não é possível adicionar esta dependência: criaria um ciclo circular no grafo de tarefas (Deadlock).'
+      });
     }
 
     try {

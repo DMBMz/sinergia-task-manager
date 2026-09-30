@@ -380,6 +380,25 @@ export class AppRepository {
     return task && !task.deletedAt ? task : undefined;
   }
 
+  getTaskById(id: string): Task | undefined {
+    return this.getTask(id);
+  }
+
+  getUserById(id: string): User | undefined {
+    return this.users.get(id);
+  }
+
+  getAllUsers(): User[] {
+    return Array.from(this.users.values());
+  }
+
+  createTag(name: string, color: string = '#2563EB', projectId: string = 'proj-1'): Tag {
+    const id = 'tag-' + uuidv4().slice(0, 8);
+    const tag: Tag = { id, name, color, projectId };
+    this.tags.set(id, tag);
+    return tag;
+  }
+
   getTaskWithDetails(id: string) {
     const task = this.getTask(id);
     if (!task) return null;

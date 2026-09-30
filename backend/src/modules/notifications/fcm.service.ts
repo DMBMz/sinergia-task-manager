@@ -94,3 +94,5 @@ export class NotificationService {
     this.sentNotifications = [];
   }
 }
+
+export const notificationService = new NotificationService();

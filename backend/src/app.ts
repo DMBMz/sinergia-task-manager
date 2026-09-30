@@ -11,6 +11,8 @@ import { AuthController } from './modules/auth/auth.controller';
 import { authMiddleware, optionalAuthMiddleware } from './modules/auth/auth.middleware';
 import { repository } from './database/repository';
 import { prisma } from './database/prisma';
+import { planningController } from './modules/planning/planning.controller';
+import { capacityController } from './modules/capacity/capacity.controller';
 
 export function createApp() {
   const app = express();
@@ -53,6 +55,23 @@ export function createApp() {
 
   // US22: Aceite / Recusa de atribuição de tarefas (DB-22.1 / BE-22.2)
   app.post('/api/v1/tasks/:id/assignment', (req, res) => tasksController.respondAssignment(req, res));
+
+  // Sprint 2 Onda 2: Algoritmos de Grafos, DAG, CPM e Planning Poker (US11, US23, US14)
+  app.get('/api/v1/planning/dag/:projectId?', (req, res) => planningController.getTopologicalSort(req, res));
+  app.get('/api/v1/planning/cpm/:projectId?', (req, res) => planningController.getCriticalPath(req, res));
+  app.get('/api/v1/planning/gantt/:projectId?', (req, res) => planningController.getGanttData(req, res));
+  app.get('/api/v1/planning/external-dependencies/:projectId?', (req, res) => planningController.getExternalDependencies(req, res));
+  app.post('/api/v1/planning/poker/:id/vote', (req, res) => planningController.votePoker(req, res));
+  app.post('/api/v1/planning/poker/:id/reveal', (req, res) => planningController.revealPokerVotes(req, res));
+  app.get('/api/v1/planning/poker/:id/results', (req, res) => planningController.getPokerSummary(req, res));
+  app.post('/api/v1/planning/poker/:id/apply', (req, res) => planningController.applyPokerConsensus(req, res));
+
+  // Sprint 2 Onda 2: Capacidade da Equipe, Ausências e Alocação Inteligente (US09, US22, US12)
+  app.get('/api/v1/capacity/member/:userId', (req, res) => capacityController.getMemberWorkload(req, res));
+  app.get('/api/v1/capacity/team', (req, res) => capacityController.getTeamWorkload(req, res));
+  app.post('/api/v1/capacity/suggest', (req, res) => capacityController.suggestAssignee(req, res));
+  app.post('/api/v1/capacity/absences', (req, res) => capacityController.addAbsence(req, res));
+  app.get('/api/v1/capacity/absences/:userId', (req, res) => capacityController.getMemberAbsences(req, res));
 
   // US02: WatermelonDB Offline Delta Sync
   app.get('/api/v1/sync/pull', (req, res) => syncController.pull(req, res));
