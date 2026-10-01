@@ -1329,6 +1329,99 @@
       height: 18px;
       border-radius: 50%;
     }
+
+    /* Sprint 2 Onda 3: Abas e Cartões de Gestão de Membros em Projetos */
+    .proj-tab-btn {
+      background: transparent;
+      color: #64748B;
+      transition: all 0.2s ease;
+    }
+    .proj-tab-btn.active {
+      background: #FFFFFF !important;
+      color: #1E293B !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    .member-manage-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: all 0.15s ease;
+    }
+    .member-manage-card:hover {
+      border-color: #BFDBFE;
+    }
+    .role-badge-admin {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #BFDBFE;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .role-badge-manager {
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FCD34D;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .role-badge-member {
+      background: #F1F5F9;
+      color: #475569;
+      border: 1px solid #CBD5E1;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .role-select-box {
+      border: 1.5px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #F8FAFC;
+      color: #1E293B;
+      cursor: pointer;
+    }
+    .role-select-box:focus {
+      outline: none;
+      border-color: #2563EB;
+      background: #FFFFFF;
+    }
+    .btn-remove-member {
+      background: #FEE2E2;
+      border: 1px solid #FECACA;
+      color: #DC2626;
+      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.15s;
+    }
+    .btn-remove-member:hover {
+      background: #DC2626;
+      color: #FFFFFF;
+    }
   </style>
 </head>
 <body>
@@ -1676,69 +1769,136 @@
           </div>
         </div>
 
-        <div style="padding: 0 16px 8px 16px; display: flex; justify-content: space-between; align-items: center;">
-          <strong style="font-size: 15px;">Planejamento de Projeto</strong>
-          <span style="background: #EFF6FF; color: #2563EB; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px;">Visão Diária</span>
-        </div>
-
-        <!-- 3 Stats -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px 12px 16px;">
-          <div style="background: #FFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px; font-size: 11px;">
-            <span style="color: #64748B;">● Saúde</span><br>
-            <strong style="color: #10B981; font-size: 13px;">82% <span style="font-size: 9px; font-weight: 500;">bom</span></strong>
-          </div>
-          <div style="background: #FFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px; font-size: 11px;">
-            <span style="color: #64748B;">● Atrasadas</span><br>
-            <strong style="color: #F59E0B; font-size: 13px;">3 <span style="font-size: 9px; font-weight: 500;">Tarefas</span></strong>
-          </div>
-          <div style="background: #FFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px; font-size: 11px;">
-            <span style="color: #64748B;">● Conflitos</span><br>
-            <strong style="color: #EF4444; font-size: 13px;">2 <span style="font-size: 9px; font-weight: 500;">ativos</span></strong>
+        <!-- Segmented Tabs: Planejamento vs Membros do Time -->
+        <div style="padding: 0 16px 12px 16px;">
+          <div style="display: flex; background: #F1F5F9; border-radius: 12px; padding: 3px; gap: 4px; border: 1px solid var(--border);">
+            <button type="button" id="tabBtnProjectPlanning" class="proj-tab-btn active" onclick="switchProjectTab('planning')" style="flex: 1; padding: 8px 6px; border: none; border-radius: 10px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+              <span>📊 Planejamento</span>
+            </button>
+            <button type="button" id="tabBtnProjectMembers" class="proj-tab-btn" onclick="switchProjectTab('members')" style="flex: 1; padding: 8px 6px; border: none; border-radius: 10px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <span>👥 Membros</span>
+              <span id="projMembersCountBadge" style="background: #2563EB; color: #FFFFFF; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 9999px;">0</span>
+            </button>
           </div>
         </div>
 
-        <!-- Linha do Tempo de Dependências -->
-        <div style="padding: 0 16px 6px 16px; display: flex; justify-content: space-between;">
-          <strong style="font-size: 12px;">Linha do Tempo de Dependências</strong>
-          <span style="font-size: 10px; color: #64748B;">Sprint 14</span>
-        </div>
+        <!-- ABA 1: PLANEJAMENTO & LINHA DO TEMPO (Visão Geral) -->
+        <div id="projectPlanningTabContent">
+          <div style="padding: 0 16px 8px 16px; display: flex; justify-content: space-between; align-items: center;">
+            <strong style="font-size: 14px; color: #1E293B;">Entregas & Marcos</strong>
+            <span style="background: #EFF6FF; color: #2563EB; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px;">Visão Diária</span>
+          </div>
 
-        <div id="planningTimelineContainer"></div>
-
-        <!-- Capacidade de Carga de Trabalho -->
-        <div style="padding: 10px 16px 6px 16px; display: flex; justify-content: space-between;">
-          <strong style="font-size: 12px;">Capacidade de Carga de Trabalho</strong>
-          <span style="font-size: 10px; color: #64748B;">Esta Sprint</span>
-        </div>
-
-        <div style="margin: 0 16px 12px 16px; background: #FFF; border: 1px solid var(--border); border-radius: 12px; padding: 10px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 11px;">
-            <span>Davi Marinho</span>
-            <div style="flex: 1; height: 6px; background: #F1F5F9; border-radius: 9999px; margin: 0 10px; overflow: hidden;">
-              <div style="width: 80%; height: 100%; background: #2563EB;"></div>
+          <!-- 3 Stats -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px 12px 16px;">
+            <div style="background: #FFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px; font-size: 11px;">
+              <span style="color: #64748B;">● Saúde</span><br>
+              <strong style="color: #10B981; font-size: 13px;">82% <span style="font-size: 9px; font-weight: 500;">bom</span></strong>
             </div>
-            <strong style="color: #2563EB;">80%</strong>
-          </div>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 11px;">
-            <span>Ana Silva</span>
-            <div style="flex: 1; height: 6px; background: #F1F5F9; border-radius: 9999px; margin: 0 10px; overflow: hidden;">
-              <div style="width: 65%; height: 100%; background: #10B981;"></div>
+            <div style="background: #FFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px; font-size: 11px;">
+              <span style="color: #64748B;">● Atrasadas</span><br>
+              <strong style="color: #F59E0B; font-size: 13px;">3 <span style="font-size: 9px; font-weight: 500;">Tarefas</span></strong>
             </div>
-            <strong style="color: #10B981;">65%</strong>
-          </div>
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
-            <span>Carlos Mendes</span>
-            <div style="flex: 1; height: 6px; background: #F1F5F9; border-radius: 9999px; margin: 0 10px; overflow: hidden;">
-              <div style="width: 45%; height: 100%; background: #F59E0B;"></div>
+            <div style="display: grid; background: #FFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px; font-size: 11px;">
+              <span style="color: #64748B;">● Conflitos</span>
+              <strong style="color: #EF4444; font-size: 13px;">2 <span style="font-size: 9px; font-weight: 500;">ativos</span></strong>
             </div>
-            <strong style="color: #F59E0B;">45%</strong>
+          </div>
+
+          <!-- Linha do Tempo de Dependências -->
+          <div style="padding: 0 16px 6px 16px; display: flex; justify-content: space-between;">
+            <strong style="font-size: 12px;">Linha do Tempo de Dependências</strong>
+            <span style="font-size: 10px; color: #64748B;">Sprint Ativa</span>
+          </div>
+
+          <div id="planningTimelineContainer"></div>
+
+          <!-- Capacidade de Carga de Trabalho -->
+          <div style="padding: 10px 16px 6px 16px; display: flex; justify-content: space-between;">
+            <strong style="font-size: 12px;">Capacidade de Carga de Trabalho</strong>
+            <span style="font-size: 10px; color: #64748B;">Esta Sprint</span>
+          </div>
+
+          <div style="margin: 0 16px 12px 16px; background: #FFF; border: 1px solid var(--border); border-radius: 12px; padding: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 11px;">
+              <span>Davi Marinho</span>
+              <div style="flex: 1; height: 6px; background: #F1F5F9; border-radius: 9999px; margin: 0 10px; overflow: hidden;">
+                <div style="width: 80%; height: 100%; background: #2563EB;"></div>
+              </div>
+              <strong style="color: #2563EB;">80%</strong>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 11px;">
+              <span>Ana Silva</span>
+              <div style="flex: 1; height: 6px; background: #F1F5F9; border-radius: 9999px; margin: 0 10px; overflow: hidden;">
+                <div style="width: 65%; height: 100%; background: #10B981;"></div>
+              </div>
+              <strong style="color: #10B981;">65%</strong>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+              <span>Carlos Mendes</span>
+              <div style="flex: 1; height: 6px; background: #F1F5F9; border-radius: 9999px; margin: 0 10px; overflow: hidden;">
+                <div style="width: 45%; height: 100%; background: #F59E0B;"></div>
+              </div>
+              <strong style="color: #F59E0B;">45%</strong>
+            </div>
           </div>
         </div>
 
-        <!-- Botão Convidar Flutuante -->
-        <button onclick="openInviteModal()" style="position: absolute; bottom: 70px; right: 20px; background: #2563EB; color: #FFFFFF; border: none; border-radius: 20px; padding: 8px 14px; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(37,99,235,0.4);">
-          + Convidar
-        </button>
+        <!-- ABA 2: GESTÃO & DIRETÓRIO DE MEMBROS DO TIME -->
+        <div id="projectMembersTabContent" style="display: none; padding: 0 16px 85px 16px;">
+          <!-- Top Info Card com Papel Atual e Seletor de Modo (para Gestores) -->
+          <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div>
+                <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; color: #64748B;">Time Ativo:</span>
+                <h3 id="membersViewTeamName" style="font-size: 14px; font-weight: 800; color: #0F172A; margin: 1px 0 0 0;">Meu Time</h3>
+              </div>
+              <div id="currentUserRolePill">
+                <!-- Preenchido dinamicamente via JS -->
+              </div>
+            </div>
+
+            <!-- Simulador / Alternador de Visão para Administradores e Gerentes -->
+            <div id="memberViewToggleContainer" style="display: none; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #E2E8F0; align-items: center; justify-content: space-between;">
+              <span style="font-size: 10.5px; color: #64748B;">Alternar Modo de Exibição:</span>
+              <div style="display: inline-flex; background: #F1F5F9; border-radius: 8px; padding: 2px; gap: 2px;">
+                <button type="button" id="btnViewModeAdmin" onclick="toggleMemberViewPreview('admin')" style="padding: 3px 8px; border: none; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; background: #2563EB; color: #FFFFFF;">
+                  🛡️ Gestão (Admin/Gerente)
+                </button>
+                <button type="button" id="btnViewModeRegular" onclick="toggleMemberViewPreview('regular')" style="padding: 3px 8px; border: none; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer; background: transparent; color: #64748B;">
+                  👁️ Membro Comum (Leitura)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barra de Ações & Busca -->
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+            <div style="position: relative; flex: 1;">
+              <input type="text" id="memberSearchInput" oninput="filterMembersListUI(this.value)" placeholder="🔍 Buscar por nome ou e-mail..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 11.5px; background: #FFFFFF;">
+            </div>
+            <!-- Botão de Ação do Gestor -->
+            <div id="memberManagerActions" style="display: none; gap: 6px;">
+              <button type="button" onclick="openInviteModal()" style="display: inline-flex; align-items: center; gap: 4px; padding: 8px 12px; background: #2563EB; color: #FFFFFF; border: none; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 6px rgba(37,99,235,0.3);">
+                <span>+ Convidar</span>
+              </button>
+              <button type="button" onclick="openDirectAddMemberModal()" style="display: inline-flex; align-items: center; gap: 4px; padding: 8px 10px; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;">
+                <span>+ Adicionar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Banner Informativo para Modo Membro Comum -->
+          <div id="regularMemberBanner" style="display: none; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; font-size: 11px; color: #475569; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">👥</span>
+            <span><strong>Diretório da Equipe (Somente Leitura):</strong> Visualize os integrantes deste time e seus respectivos papéis.</span>
+          </div>
+
+          <!-- Container com Lista Dinâmica de Membros -->
+          <div id="projectMembersListContainer">
+            <!-- Renderizado via renderProjectMembersTab() -->
+          </div>
+        </div>
 
         <div class="bottom-nav">
           <button class="nav-item" onclick="switchScreen('dashboard', null)"><svg class="svg-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 2px;"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</button>
@@ -1774,10 +1934,14 @@
           </div>
 
           <div style="margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #1E293B;">Tags:</label>
-            <div style="display: flex; gap: 6px; margin-top: 4px; align-items: center;">
-              <span id="selectedTagDisplay" style="background: #FEF3C7; color: #B45309; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">Sprint 1</span>
-              <button type="button" onclick="promptAddTag()" style="border: 1px dashed #CBD5E1; background: #F8FAFC; border-radius: 50%; width: 22px; height: 22px; cursor: pointer;">+</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label style="font-size: 12px; font-weight: 700; color: #1E293B;">Tags da Tarefa:</label>
+              <button type="button" onclick="openTagSelectorModal('create')" style="border: 1px dashed #2563EB; background: #EFF6FF; color: #2563EB; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                <span>🏷️ + Adicionar / Selecionar</span>
+              </button>
+            </div>
+            <div id="createTaskTagsContainer" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; min-height: 28px; padding: 2px 0;">
+              <!-- Renderizado dinamicamente, vazio por padrão -->
             </div>
           </div>
 
@@ -2041,6 +2205,50 @@
         </div>
       </div>
 
+      <!-- Modal Adicionar Membro Diretamente (Gestor/Admin) -->
+      <div id="modalDirectAddMember" class="modal-overlay" style="display: none;">
+        <div class="modal-card" style="max-width: 360px; padding: 20px 18px; text-align: left;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 32px; height: 32px; border-radius: 10px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                👤
+              </div>
+              <div>
+                <h3 class="modal-title" style="margin: 0; font-size: 14px; text-align: left;">Adicionar ao Time</h3>
+                <span style="font-size: 10px; color: #64748B;">Vincular membro diretamente</span>
+              </div>
+            </div>
+            <button type="button" onclick="closeModal('modalDirectAddMember')" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #64748B; padding: 4px;">✕</button>
+          </div>
+
+          <form onsubmit="handleDirectAddMemberSubmit(event)">
+            <div style="margin-bottom: 10px;">
+              <label style="font-size: 11px; font-weight: 700; color: #1E293B; display: block; margin-bottom: 3px;">Nome Completo *</label>
+              <input type="text" id="directAddMemberName" required placeholder="Ex: Lucas Ferreira" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; background: #F8FAFC;">
+            </div>
+
+            <div style="margin-bottom: 10px;">
+              <label style="font-size: 11px; font-weight: 700; color: #1E293B; display: block; margin-bottom: 3px;">E-mail Corporativo *</label>
+              <input type="email" id="directAddMemberEmail" required placeholder="Ex: lucas@sinergia.com" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; background: #F8FAFC;">
+            </div>
+
+            <div style="margin-bottom: 14px;">
+              <label style="font-size: 11px; font-weight: 700; color: #1E293B; display: block; margin-bottom: 3px;">Papel / Permissão no Time *</label>
+              <select id="directAddMemberRole" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 11.5px; font-weight: 600; background: #FFFFFF; color: #0F172A;">
+                <option value="VIEW">👁️ Membro Comum (Somente Leitura)</option>
+                <option value="EDIT" selected>⚡ Gerente / Editor (Criar Tarefas & Gerir)</option>
+                <option value="ADMIN">👑 Administrador (Acesso Total ao Time)</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-secondary" style="flex: 1; padding: 9px; font-size: 11.5px;" onclick="closeModal('modalDirectAddMember')">Cancelar</button>
+              <button type="submit" class="btn-primary" style="flex: 1.2; padding: 9px; font-size: 11.5px;">+ Adicionar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <!-- Modal Scanner de QR Code Nativo com Câmera -->
       <div id="modalQRScanner" class="modal-overlay" style="display: none; background: rgba(15, 23, 42, 0.95); z-index: 10000;">
         <div class="modal-card" style="max-width: 380px; padding: 20px 16px; background: #0F172A; color: #F8FAFC; text-align: center; border: 1px solid rgba(255,255,255,0.12); border-radius: 20px;">
@@ -2272,9 +2480,13 @@
               </div>
             </div>
 
-            <!-- 6. Gerenciador Completo de Tags -->
             <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px; padding: 10px;">
-              <span style="font-size: 11px; font-weight: 700; color: #1E293B; display: block; margin-bottom: 6px;">🏷️ Tags da Tarefa:</span>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 700; color: #1E293B;">🏷️ Tags da Tarefa:</span>
+                <button type="button" onclick="openTagSelectorModal('edit')" style="border: 1px dashed #2563EB; background: #EFF6FF; color: #2563EB; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 700; cursor: pointer;">
+                  + Selecionar do Time
+                </button>
+              </div>
               
               <!-- Chips de tags ativas -->
               <div id="editTaskTagsContainer" style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; min-height: 24px;"></div>
@@ -2457,6 +2669,63 @@
             </button>
             <button type="button" onclick="closeFilterDrawer()" class="btn-primary" style="flex: 1.5; padding: 10px; font-size: 12px; border-radius: 10px;">
               Ver Resultados
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Seletor de Tags (Fácil Alocação & Tags Existentes de Outras Tarefas) -->
+      <div id="modalTagSelector" class="modal-overlay" onclick="closeTagSelectorOnBackdrop(event)" style="display: none; z-index: 10001;">
+        <div class="modal-card" style="max-width: 380px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; padding: 0;" onclick="event.stopPropagation()">
+          <!-- Header -->
+          <div style="padding: 16px 18px 12px 18px; border-bottom: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 18px;">🏷️</span>
+              <div>
+                <h3 style="font-size: 14px; font-weight: 800; color: #0F172A; margin: 0;">Tags da Tarefa</h3>
+                <p style="font-size: 11px; color: #64748B; margin: 1px 0 0 0;">Selecione tags existentes ou crie uma nova</p>
+              </div>
+            </div>
+            <button type="button" onclick="closeTagSelectorModal()" style="border: none; background: #F1F5F9; border-radius: 50%; width: 26px; height: 26px; font-size: 14px; color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
+          </div>
+
+          <!-- Conteúdo com Scroll -->
+          <div style="padding: 16px 18px; overflow-y: auto; flex: 1;">
+            <!-- 1. Campo para criar nova tag -->
+            <div style="margin-bottom: 16px;">
+              <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Criar Nova Tag:</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="text" id="newCustomTagInput" placeholder="Ex: Backend, Bug, Sprint 2..." style="flex: 1; padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 12px;" onkeydown="if(event.key==='Enter'){event.preventDefault();handleCreateCustomTag();}">
+                <button type="button" onclick="handleCreateCustomTag()" style="padding: 8px 14px; background: #2563EB; color: #FFFFFF; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;">
+                  + Adicionar
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. Tags selecionadas para a tarefa -->
+            <div style="margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">Tags Selecionadas:</label>
+                <span id="tagSelectorSelectedCountBadge" style="font-size: 10px; font-weight: 700; color: #2563EB; background: #EFF6FF; padding: 1px 6px; border-radius: 9999px;">0</span>
+              </div>
+              <div id="tagSelectorSelectedContainer" style="display: flex; gap: 6px; flex-wrap: wrap; min-height: 28px; padding: 6px 8px; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px;">
+                <!-- Renderizado dinamicamente -->
+              </div>
+            </div>
+
+            <!-- 3. Tags Existentes no Time (Fácil Alocação) -->
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Tags Existentes no Time (toque para selecionar):</label>
+              <div id="tagSelectorAvailableContainer" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <!-- Renderizado dinamicamente com todas as tags de outras tarefas -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Rodapé -->
+          <div style="padding: 12px 18px; border-top: 1px solid #F1F5F9; background: #FAFAFA; display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" onclick="closeTagSelectorModal()" style="width: 100%; padding: 10px; background: #2563EB; color: #FFFFFF; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">
+              Concluir Seleção
             </button>
           </div>
         </div>
@@ -3023,6 +3292,12 @@
         switchScreen('dashboard', null);
         renderDashboard();
         renderTimeline();
+        if (typeof loadAvailableUsers === 'function') {
+          loadAvailableUsers().then(() => {
+            populateAssigneeSelect();
+            renderFilterDrawerUI();
+          }).catch(() => {});
+        }
         setTimeout(() => syncWithBackend(true), 600);
       }
     });
@@ -3048,7 +3323,14 @@
       if (screenId === 'dashboard') {
         renderDashboard();
       } else if (screenId === 'project-planning') {
-        renderTimeline();
+        if (typeof activeProjectTab !== 'undefined' && activeProjectTab === 'members') {
+          renderProjectMembersTab();
+        } else {
+          renderTimeline();
+        }
+        if (typeof updateProjectMembersCountBadge === 'function') {
+          updateProjectMembersCountBadge();
+        }
       } else if (screenId === 'create-task') {
         prepareCreateTaskScreen();
       }
@@ -3604,7 +3886,15 @@
     function renderFilterDrawerUI() {
       const db = getDB();
       const team = db.currentTeam;
-      const allTasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
+      const teamId = db.currentTeamId;
+
+      // Tarefas restritas estritamente ao time ativo
+      const teamTasks = (db.tasks || []).filter(t => {
+        if (teamId && t.projectId === teamId) return true;
+        if (team && t.team && t.team.trim().toLowerCase() === team.trim().toLowerCase()) return true;
+        if (!team && !teamId) return true;
+        return false;
+      });
 
       // 1. Escopo buttons
       ['all', 'root_only', 'subtasks_only'].forEach(s => {
@@ -3615,45 +3905,63 @@
         }
       });
 
-      // 2. Responsáveis Reais do Time (Sem dados mockados)
+      // 2. Responsáveis Reais Exclusivamente do Time Atual
       const memberMap = new Map();
+      const currentTeamName = team || 'Meu Time';
+      const currentTeamId = teamId || 'proj-sinergia-001';
+      const teamKey = (currentTeamId || currentTeamName).toLowerCase().trim();
 
-      // (a) Usuário logado
-      if (db.currentUser && db.currentUser.name && db.currentUser.name.trim()) {
-        const myName = db.currentUser.name.trim();
-        memberMap.set(myName, {
-          name: myName,
-          avatar: db.currentUser.avatar || db.currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(myName)}`
-        });
+      // Recupera membros do time atual do cache estruturado ou estado
+      let teamMembers = [];
+      if (db.teamMembersByTeam && Array.isArray(db.teamMembersByTeam[teamKey]) && db.teamMembersByTeam[teamKey].length > 0) {
+        teamMembers = db.teamMembersByTeam[teamKey];
+      } else if (Array.isArray(db.teamUsers) && db.teamUsers.length > 0) {
+        teamMembers = db.teamUsers;
+      } else if (Array.isArray(db.allUsers) && db.allUsers.length > 0) {
+        teamMembers = db.allUsers;
       }
 
-      // (b) Usuários cadastrados no banco / time atual (db.allUsers ou cachedAvailableUsers)
-      const availableUsers = (Array.isArray(db.allUsers) && db.allUsers.length > 0)
-        ? db.allUsers
-        : (typeof cachedAvailableUsers !== 'undefined' ? cachedAvailableUsers : []);
+      // Fallback inicial offline se ainda não carregado
+      if (teamMembers.length === 0) {
+        if (db.currentUser) {
+          teamMembers.push({
+            id: db.currentUser.id || 'user-davi-001',
+            name: db.currentUser.name || 'Davi',
+            avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl
+          });
+        }
+        const isDefaultTeam = currentTeamName === 'Meu Time' || currentTeamName === 'Sinergia Mobile App' || currentTeamId === 'proj-sinergia-001';
+        if (isDefaultTeam && !teamMembers.some(u => u.name === 'Ana Silva')) {
+          teamMembers.push({
+            id: 'user-ana-002',
+            name: 'Ana Silva',
+            email: 'ana@sinergia.com',
+            avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana'
+          });
+        }
+      }
 
-      availableUsers.forEach(u => {
+      // Adiciona TODOS os membros oficiais do time ao filtro
+      teamMembers.forEach(u => {
         if (u && u.name && u.name.trim()) {
           const uName = u.name.trim();
-          if (!memberMap.has(uName)) {
-            memberMap.set(uName, {
-              name: uName,
-              avatar: u.avatarUrl || u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(uName)}`
-            });
-          }
-        }
-      });
-
-      // (c) Qualquer responsável com tarefa atribuída no time atual
-      allTasks.forEach(t => {
-        const aName = (t.assigneeName || t.assignee || '').trim();
-        if (aName && aName !== 'Qualquer' && aName !== 'Equipe' && !memberMap.has(aName)) {
-          memberMap.set(aName, {
-            name: aName,
-            avatar: t.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(aName)}`
+          memberMap.set(uName, {
+            name: uName,
+            avatar: u.avatarUrl || u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(uName)}`
           });
         }
       });
+
+      // Garante que o currentUser logado está no mapa
+      if (db.currentUser && db.currentUser.name && db.currentUser.name.trim()) {
+        const myName = db.currentUser.name.trim();
+        if (!memberMap.has(myName)) {
+          memberMap.set(myName, {
+            name: myName,
+            avatar: db.currentUser.avatar || db.currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(myName)}`
+          });
+        }
+      }
 
       const memberList = Array.from(memberMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -3686,15 +3994,21 @@
         assigneesContainer.innerHTML = html;
       }
 
-      // 3. Tags Reais (Apenas as tags já adicionadas em tasks deste time, sem mock)
+      // 3. Tags Reais (Todas as tags cadastradas ou usadas em tarefas deste time)
       const tagsSet = new Set();
-      allTasks.forEach(t => {
+      teamTasks.forEach(t => {
         getTaskTagNames(t).forEach(tagName => {
           if (tagName && typeof tagName === 'string' && tagName.trim()) {
             tagsSet.add(tagName.trim());
           }
         });
       });
+      if (Array.isArray(db.tags)) {
+        db.tags.forEach(tg => {
+          const name = (typeof tg === 'string' ? tg : (tg?.name || '')).trim();
+          if (name) tagsSet.add(name);
+        });
+      }
       const tagList = Array.from(tagsSet).sort((a, b) => a.localeCompare(b));
 
       // Remove seleções de tags que não existam mais nas tarefas do time
@@ -3960,21 +4274,25 @@
       // 1. Tags da Tarefa
       const tagsContainer = document.getElementById('detailTaskTagsContainer');
       if (tagsContainer) {
-        const rawTags = Array.isArray(task.tags) && task.tags.length > 0 ? task.tags : (task.tag ? [task.tag] : ['Sprint 1']);
-        tagsContainer.innerHTML = rawTags.map(tg => {
-          let name = '';
-          if (typeof tg === 'string' && tg !== '[object Object]') {
-            name = tg;
-          } else if (typeof tg === 'object' && tg !== null) {
-            name = tg.name || tg.title || (tg.tag && tg.tag.name) || (tg.tag && tg.tag.title) || '';
-          }
-          if (!name || name === '[object Object]') return '';
-          return `
-          <span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">
-            🏷️ ${escapeHtml(name)}
-          </span>
-        `;
-        }).join('');
+        const rawTags = Array.isArray(task.tags) && task.tags.length > 0 ? task.tags : (task.tag ? [task.tag] : []);
+        if (rawTags.length === 0) {
+          tagsContainer.innerHTML = '<span style="font-size: 10.5px; color: #94A3B8; font-style: italic;">Nenhuma tag vinculada</span>';
+        } else {
+          tagsContainer.innerHTML = rawTags.map(tg => {
+            let name = '';
+            if (typeof tg === 'string' && tg !== '[object Object]') {
+              name = tg;
+            } else if (typeof tg === 'object' && tg !== null) {
+              name = tg.name || tg.title || (tg.tag && tg.tag.name) || (tg.tag && tg.tag.title) || '';
+            }
+            if (!name || name === '[object Object]') return '';
+            return `
+            <span style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">
+              🏷️ ${escapeHtml(name)}
+            </span>
+          `;
+          }).join('');
+        }
       }
 
       // 2. Status da Tarefa
@@ -4287,7 +4605,7 @@
       // Carrega e renderiza Tags
       editingTaskTags = Array.isArray(task.tags) && task.tags.length > 0 
         ? task.tags.map(t => (typeof t === 'object' && t !== null ? (t.name || t.id || '') : String(t || ''))).filter(Boolean)
-        : (task.tag ? [task.tag] : ['Sprint 1']);
+        : (task.tag ? [task.tag] : []);
       renderEditingTags();
 
       // Carrega e renderiza Subtarefas
@@ -4653,35 +4971,78 @@
     // --- GESTÃO DE USUÁRIOS REAIS DO POSTGRESQL (US01 / Tarefas) ---
     async function loadAvailableUsers() {
       const db = getDB();
+      const currentTeamName = db.currentTeam || 'Meu Time';
+      const currentTeamId = db.currentTeamId || 'proj-sinergia-001';
+      const teamKey = (currentTeamId || currentTeamName).toLowerCase().trim();
+
       let users = [];
 
       try {
-        const url = db.currentTeamId ? `/users?teamId=${db.currentTeamId}` : '/users';
+        const params = new URLSearchParams();
+        if (currentTeamId) params.append('teamId', currentTeamId);
+        if (currentTeamName) params.append('team', currentTeamName);
+        const url = `/users?${params.toString()}`;
         const res = await apiFetch(url);
         if (res.ok) {
           const data = await res.json();
-          if (data.success && Array.isArray(data.data)) {
+          if (data.success && Array.isArray(data.data) && data.data.length > 0) {
             users = data.data;
-            db.allUsers = users;
-            saveDB(db, false);
           }
         }
       } catch (e) {
         console.warn('[Users] Falha ao carregar usuários do servidor, usando cache:', e);
       }
 
+      // Se a API não retornou usuários (offline ou time recém criado), busca no cache estruturado por time
       if (!users || users.length === 0) {
-        users = db.allUsers || [];
+        if (db.teamMembersByTeam && Array.isArray(db.teamMembersByTeam[teamKey]) && db.teamMembersByTeam[teamKey].length > 0) {
+          users = [...db.teamMembersByTeam[teamKey]];
+        } else if (Array.isArray(db.teamUsers) && db.teamUsers.length > 0) {
+          users = [...db.teamUsers];
+        }
       }
 
-      if (db.currentUser && !users.some(u => u.name === db.currentUser.name || u.id === db.currentUser.id)) {
+      // Se ainda estiver vazio (ex: boot inicial do app), garante os membros padrão do time
+      if (!users || users.length === 0) {
+        users = [];
+        if (db.currentUser) {
+          users.push({
+            id: db.currentUser.id || 'user-davi-001',
+            name: db.currentUser.name || 'Davi',
+            email: db.currentUser.email || 'davi@sinergia.com',
+            avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Davi',
+            role: 'ADMIN'
+          });
+        }
+        const isDefaultTeam = currentTeamName === 'Meu Time' || currentTeamName === 'Sinergia Mobile App' || currentTeamId === 'proj-sinergia-001';
+        if (isDefaultTeam && !users.some(u => u.name === 'Ana Silva')) {
+          users.push({
+            id: 'user-ana-002',
+            name: 'Ana Silva',
+            email: 'ana@sinergia.com',
+            avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana',
+            role: 'EDIT'
+          });
+        }
+      }
+
+      // Garante que o currentUser autenticado está presente na lista
+      if (db.currentUser && !users.some(u => u.name === db.currentUser.name || (u.id && u.id === db.currentUser.id))) {
         users.unshift({
-          id: db.currentUser.id,
+          id: db.currentUser.id || 'user-davi-001',
           name: db.currentUser.name,
           email: db.currentUser.email,
-          avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl
+          avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(db.currentUser.name)}`,
+          role: 'ADMIN'
         });
       }
+
+      // Salva no banco local estruturado estritamente por time
+      if (!db.teamMembersByTeam) db.teamMembersByTeam = {};
+      db.teamMembersByTeam[teamKey] = users;
+      db.teamUsers = users;
+      db.allUsers = users;
+      saveDB(db, false);
 
       return users;
     }
@@ -5055,6 +5416,8 @@
       }
       draftSubtasks = [];
       renderDraftSubtasks();
+      createTaskSelectedTags = [];
+      renderCreateTaskTags();
       initCreateTaskDeadline();
     }
 
@@ -5390,6 +5753,7 @@
         const newTask = {
           id: 'task-' + Date.now(),
           team: currentTeam,
+          projectId: db.currentTeamId || 'proj-sinergia-001',
           title,
           description: desc,
           priority,
@@ -5401,7 +5765,9 @@
           dueDateIso: dueDateIso,
           effortHours: effort,
           assignee: selectedAssignee,
+          assigneeName: selectedAssignee,
           avatar: assigneeAvatar,
+          tags: [...createTaskSelectedTags],
           subtasks: typeof draftSubtasks !== 'undefined' ? [...draftSubtasks] : [],
           comments: [],
           attachments: [],
@@ -5412,6 +5778,17 @@
 
         if (!db.tasks) db.tasks = [];
         db.tasks.unshift(newTask);
+
+        // Garante que todas as novas tags são registradas em db.tags para fácil alocação
+        if (newTask.tags && newTask.tags.length > 0) {
+          if (!Array.isArray(db.tags)) db.tags = [];
+          newTask.tags.forEach(tg => {
+            if (!db.tags.some(t => (typeof t === 'string' ? t : t?.name) === tg)) {
+              db.tags.push({ id: 'tag-' + Date.now(), name: tg, color: '#3B82F6' });
+            }
+          });
+        }
+
         saveDB(db, true);
 
         // Envia criação para o backend via API assíncrona
@@ -5426,25 +5803,39 @@
             priority: newTask.priority === 'Alta' ? 'HIGH' : (newTask.priority === 'Baixa' ? 'LOW' : (newTask.priority === 'Urgente' ? 'URGENT' : 'MEDIUM')),
             effortHours: newTask.effortHours,
             dueDate: newTask.dueDateIso,
-            projectId: db.currentTeamId || 'proj-sinergia-001',
-            assigneeId: user.id || 'user-davi-001',
+            projectId: newTask.projectId,
+            assigneeId: assigneeObj?.id || user.id || 'user-davi-001',
             assignee: selectedAssignee,
             assigneeName: selectedAssignee,
+            tags: newTask.tags,
             subtasks: newTask.subtasks
           })
-        }).then(res => {
+        }).then(async res => {
           if (res.ok) {
+            const resData = await res.json().catch(() => null);
+            if (resData && resData.data && Array.isArray(resData.data.tags) && resData.data.tags.length > 0) {
+              const serverTags = resData.data.tags.map(t => typeof t === 'string' ? t : (t?.name || t?.title || '')).filter(Boolean);
+              if (serverTags.length > 0) {
+                newTask.tags = serverTags;
+              }
+            }
             newTask._status = 'synced';
             saveDB(db, false);
           }
           syncWithBackend(true);
         }).catch(err => console.log('[API] Sync task creation offline/background:', err));
 
-        // Reseta form e rascunhos
+        // Reseta form, tags e rascunhos
         if (titleInput) titleInput.value = '';
         if (descInput) descInput.value = '';
+        createTaskSelectedTags = [];
+        renderCreateTaskTags();
         if (typeof draftSubtasks !== 'undefined') draftSubtasks = [];
         if (typeof renderDraftSubtasks === 'function') renderDraftSubtasks();
+
+        // Atualiza imediatamente a interface dos filtros e a lista
+        renderFilterDrawerUI();
+        renderTaskList();
 
         showToast(`Tarefa criada no time "${currentTeam}"!`);
 
@@ -5622,10 +6013,18 @@
       const db = getDB();
       db.currentTeam = team.name;
       db.currentTeamId = team.id;
+      const teamKey = (team.id || team.name).toLowerCase().trim();
+      db.teamUsers = (db.teamMembersByTeam && db.teamMembersByTeam[teamKey]) ? db.teamMembersByTeam[teamKey] : [];
       saveDB(db, false);
       closeTeamDropdown();
       showToast(`Time alterado para "${team.name}".`);
       renderDashboard();
+      if (typeof loadAvailableUsers === 'function') {
+        loadAvailableUsers().then(() => {
+          renderFilterDrawerUI();
+          populateAssigneeSelect();
+        }).catch(() => {});
+      }
       setTimeout(() => syncWithBackend(true), 150);
     }
 
@@ -6300,7 +6699,7 @@
                   subtasks: Array.isArray(st.subtasks) ? st.subtasks : [],
                   comments: Array.isArray(st.comments) ? st.comments : [],
                   attachments: Array.isArray(st.attachments) ? st.attachments : [],
-                  tags: Array.isArray(st.tags) ? st.tags : [],
+                  tags: Array.isArray(st.tags) ? st.tags.map(t => typeof t === 'string' ? t : (t?.name || t?.title || '')).filter(Boolean) : [],
                   version: st.version || 1,
                   lockedBy: st.lockedBy || null,
                   lockedAt: st.lockedAt || null,
@@ -6340,7 +6739,14 @@
                   }
                   if (st.effortHours) lt.effortHours = st.effortHours;
                   if (Array.isArray(st.subtasks)) lt.subtasks = st.subtasks;
-                  if (Array.isArray(st.tags)) lt.tags = st.tags;
+                  if (Array.isArray(st.tags)) {
+                    const parsedServerTags = st.tags.map(t => typeof t === 'string' ? t : (t?.name || t?.title || '')).filter(Boolean);
+                    if (parsedServerTags.length > 0) {
+                      lt.tags = parsedServerTags;
+                    } else if (!lt.tags || lt.tags.length === 0) {
+                      lt.tags = [];
+                    }
+                  }
                   if (Array.isArray(st.comments)) lt.comments = st.comments;
                   if (Array.isArray(st.attachments)) lt.attachments = st.attachments;
                   lt.lockedBy = st.lockedBy || null;
@@ -6461,6 +6867,470 @@
       });
     }
 
+    // ==========================================================
+    // SPRINT 2 ONDA 3: GESTÃO E DIRETÓRIO DE MEMBROS EM PROJETOS
+    // ==========================================================
+    let activeProjectTab = 'planning';
+    let isMemberPreviewAsRegular = false;
+    let projectMembersCache = [];
+    let memberSearchTerm = '';
+
+    function switchProjectTab(tab) {
+      activeProjectTab = tab;
+      const btnPlan = document.getElementById('tabBtnProjectPlanning');
+      const btnMemb = document.getElementById('tabBtnProjectMembers');
+      const contentPlan = document.getElementById('projectPlanningTabContent');
+      const contentMemb = document.getElementById('projectMembersTabContent');
+
+      if (tab === 'planning') {
+        if (btnPlan) btnPlan.classList.add('active');
+        if (btnMemb) btnMemb.classList.remove('active');
+        if (contentPlan) contentPlan.style.display = 'block';
+        if (contentMemb) contentMemb.style.display = 'none';
+        renderTimeline();
+      } else {
+        if (btnPlan) btnPlan.classList.remove('active');
+        if (btnMemb) btnMemb.classList.add('active');
+        if (contentPlan) contentPlan.style.display = 'none';
+        if (contentMemb) contentMemb.style.display = 'block';
+        renderProjectMembersTab();
+      }
+      updateProjectMembersCountBadge();
+    }
+
+    function toggleMemberViewPreview(mode) {
+      isMemberPreviewAsRegular = (mode === 'regular');
+      const btnAdmin = document.getElementById('btnViewModeAdmin');
+      const btnReg = document.getElementById('btnViewModeRegular');
+
+      if (mode === 'admin') {
+        if (btnAdmin) {
+          btnAdmin.style.background = '#2563EB';
+          btnAdmin.style.color = '#FFFFFF';
+          btnAdmin.style.fontWeight = '700';
+        }
+        if (btnReg) {
+          btnReg.style.background = 'transparent';
+          btnReg.style.color = '#64748B';
+          btnReg.style.fontWeight = '600';
+        }
+      } else {
+        if (btnReg) {
+          btnReg.style.background = '#2563EB';
+          btnReg.style.color = '#FFFFFF';
+          btnReg.style.fontWeight = '700';
+        }
+        if (btnAdmin) {
+          btnAdmin.style.background = 'transparent';
+          btnAdmin.style.color = '#64748B';
+          btnAdmin.style.fontWeight = '600';
+        }
+      }
+      renderProjectMembersTab(false);
+    }
+
+    function getCurrentUserTeamRole() {
+      const db = getDB();
+      const currentUser = db.currentUser;
+      const currentTeam = db.currentTeam || 'Meu Time';
+      const currentTeamId = db.currentTeamId;
+
+      if (!currentUser) return 'ADMIN';
+      if (currentUser.email === 'davi@sinergia.com' || currentUser.name === 'Davi Marinho') return 'ADMIN';
+
+      if (Array.isArray(db.userTeams)) {
+        const teamObj = db.userTeams.find(t => (currentTeamId && t.id === currentTeamId) || (t.name && t.name.toLowerCase() === currentTeam.toLowerCase()));
+        if (teamObj && teamObj.role) {
+          return teamObj.role;
+        }
+      }
+
+      if (projectMembersCache && projectMembersCache.length > 0) {
+        const myMember = projectMembersCache.find(m => m.id === currentUser.id || m.email === currentUser.email || m.name === currentUser.name);
+        if (myMember && myMember.role) {
+          return myMember.role;
+        }
+      }
+
+      return 'ADMIN';
+    }
+
+    function updateProjectMembersCountBadge() {
+      const countEl = document.getElementById('projMembersCountBadge');
+      if (!countEl) return;
+      const count = projectMembersCache.length || 0;
+      countEl.textContent = count;
+    }
+
+    async function loadProjectMembersForActiveTeam() {
+      const db = getDB();
+      const teamName = db.currentTeam || 'Meu Time';
+      const teamId = db.currentTeamId || '';
+
+      try {
+        const res = await apiFetch(`/users?teamName=${encodeURIComponent(teamName)}&teamId=${encodeURIComponent(teamId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+            projectMembersCache = data.data;
+            if (!db.teamMembersByTeam) db.teamMembersByTeam = {};
+            db.teamMembersByTeam[teamName] = projectMembersCache;
+            saveDB(db, false);
+            updateProjectMembersCountBadge();
+            return projectMembersCache;
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar membros do backend, usando dados locais:', err);
+      }
+
+      if (db.teamMembersByTeam && Array.isArray(db.teamMembersByTeam[teamName]) && db.teamMembersByTeam[teamName].length > 0) {
+        projectMembersCache = db.teamMembersByTeam[teamName];
+      } else {
+        projectMembersCache = [
+          {
+            id: 'user-davi-001',
+            name: 'Davi Marinho',
+            email: 'davi@sinergia.com',
+            role: 'ADMIN',
+            avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Davi'
+          },
+          {
+            id: 'user-ana-002',
+            name: 'Ana Silva',
+            email: 'ana@sinergia.com',
+            role: 'EDIT',
+            avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana'
+          },
+          {
+            id: 'user-carlos-003',
+            name: 'Carlos Mendes',
+            email: 'carlos@sinergia.com',
+            role: 'VIEW',
+            avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos'
+          }
+        ];
+        if (!db.teamMembersByTeam) db.teamMembersByTeam = {};
+        db.teamMembersByTeam[teamName] = projectMembersCache;
+        saveDB(db, false);
+      }
+
+      updateProjectMembersCountBadge();
+      return projectMembersCache;
+    }
+
+    async function renderProjectMembersTab(fetchFresh = true) {
+      const db = getDB();
+      const teamName = db.currentTeam || 'Meu Time';
+      const teamNameEl = document.getElementById('membersViewTeamName');
+      if (teamNameEl) teamNameEl.textContent = teamName;
+
+      if (fetchFresh || projectMembersCache.length === 0) {
+        await loadProjectMembersForActiveTeam();
+      }
+
+      const realRole = getCurrentUserTeamRole();
+      const isManager = (realRole === 'ADMIN' || realRole === 'EDIT' || realRole === 'MANAGER');
+
+      const rolePillEl = document.getElementById('currentUserRolePill');
+      if (rolePillEl) {
+        if (realRole === 'ADMIN') {
+          rolePillEl.innerHTML = '<span class="role-badge-admin">👑 Seu Papel: Admin</span>';
+        } else if (realRole === 'EDIT' || realRole === 'MANAGER') {
+          rolePillEl.innerHTML = '<span class="role-badge-manager">⚡ Seu Papel: Gerente</span>';
+        } else {
+          rolePillEl.innerHTML = '<span class="role-badge-member">👤 Seu Papel: Membro</span>';
+        }
+      }
+
+      const toggleContainer = document.getElementById('memberViewToggleContainer');
+      if (toggleContainer) {
+        toggleContainer.style.display = isManager ? 'flex' : 'none';
+      }
+
+      const effectiveMode = (isManager && !isMemberPreviewAsRegular) ? 'manage' : 'readonly';
+
+      const actionsEl = document.getElementById('memberManagerActions');
+      if (actionsEl) {
+        actionsEl.style.display = (effectiveMode === 'manage') ? 'flex' : 'none';
+      }
+
+      const bannerEl = document.getElementById('regularMemberBanner');
+      if (bannerEl) {
+        bannerEl.style.display = (effectiveMode === 'readonly') ? 'flex' : 'none';
+      }
+
+      const listContainer = document.getElementById('projectMembersListContainer');
+      if (!listContainer) return;
+
+      const query = (memberSearchTerm || '').toLowerCase().trim();
+      const filteredMembers = projectMembersCache.filter(m => {
+        if (!query) return true;
+        return (m.name && m.name.toLowerCase().includes(query)) ||
+               (m.email && m.email.toLowerCase().includes(query)) ||
+               (m.role && m.role.toLowerCase().includes(query));
+      });
+
+      if (filteredMembers.length === 0) {
+        listContainer.innerHTML = `
+          <div style="text-align: center; padding: 40px 16px; background: #FFFFFF; border: 1px dashed var(--border); border-radius: 16px; color: #64748B;">
+            <div style="font-size: 32px; margin-bottom: 8px;">👥</div>
+            <strong style="font-size: 13px; color: #1E293B; display: block; margin-bottom: 4px;">Nenhum membro encontrado</strong>
+            <p style="font-size: 11px; margin: 0;">${query ? 'Nenhum integrante corresponde à busca informada.' : 'Nenhum membro cadastrado neste time.'}</p>
+          </div>
+        `;
+        return;
+      }
+
+      const tasks = db.tasks || [];
+      const taskCountByUser = {};
+      tasks.forEach(t => {
+        if (!t.completed && t.assignee) {
+          taskCountByUser[t.assignee] = (taskCountByUser[t.assignee] || 0) + 1;
+        }
+      });
+
+      let html = '';
+
+      filteredMembers.forEach(member => {
+        const avatar = member.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(member.name || 'User')}`;
+        const activeTasks = taskCountByUser[member.name] || 0;
+        const isSelf = (db.currentUser && (db.currentUser.email === member.email || db.currentUser.id === member.id));
+
+        let roleBadge = '';
+        if (member.role === 'ADMIN') {
+          roleBadge = '<span class="role-badge-admin">👑 Administrador</span>';
+        } else if (member.role === 'EDIT' || member.role === 'MANAGER') {
+          roleBadge = '<span class="role-badge-manager">⚡ Gerente</span>';
+        } else {
+          roleBadge = '<span class="role-badge-member">👤 Membro</span>';
+        }
+
+        if (effectiveMode === 'manage') {
+          html += `
+            <div class="member-manage-card">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                  <img src="${avatar}" alt="${member.name}" style="width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--border); flex-shrink: 0; background: #F1F5F9;">
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                      <strong style="font-size: 12.5px; color: #1E293B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${member.name}</strong>
+                      ${isSelf ? '<span style="font-size: 9px; font-weight: 800; background: #EFF6FF; color: #2563EB; padding: 1px 6px; border-radius: 9999px;">Você</span>' : ''}
+                    </div>
+                    <span style="font-size: 10.5px; color: #64748B; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${member.email || 'sem e-mail'}</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                  <select class="role-select-box" onchange="changeMemberRole('${member.id}', '${member.name.replace(/'/g, "\\'")}', this.value)">
+                    <option value="ADMIN" ${member.role === 'ADMIN' ? 'selected' : ''}>👑 Admin</option>
+                    <option value="EDIT" ${(member.role === 'EDIT' || member.role === 'MANAGER') ? 'selected' : ''}>⚡ Gerente</option>
+                    <option value="VIEW" ${(member.role === 'VIEW' || !member.role) ? 'selected' : ''}>👤 Membro</option>
+                  </select>
+
+                  ${!isSelf ? `
+                    <button type="button" class="btn-remove-member" title="Remover membro do time" onclick="confirmRemoveMember('${member.id}', '${member.name.replace(/'/g, "\\'")}')">
+                      <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  ` : `
+                    <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #94A3B8;" title="Você não pode se auto-remover">
+                      🔒
+                    </div>
+                  `}
+                </div>
+              </div>
+
+              <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #F1F5F9; display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: #64748B;">
+                <span>Atribuição: <strong>${activeTasks} tarefa(s) em aberto</strong></span>
+                <span style="display: inline-flex; align-items: center; gap: 3px; color: ${activeTasks > 3 ? '#F59E0B' : '#10B981'}; font-weight: 700;">
+                  <span style="width: 6px; height: 6px; border-radius: 50%; background: ${activeTasks > 3 ? '#F59E0B' : '#10B981'};"></span>
+                  ${activeTasks > 3 ? 'Carga Alta' : 'Capacidade Normal'}
+                </span>
+              </div>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="member-manage-card" style="padding: 12px 14px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                  <img src="${avatar}" alt="${member.name}" style="width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--border); flex-shrink: 0; background: #F1F5F9;">
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                      <strong style="font-size: 13px; color: #1E293B;">${member.name}</strong>
+                      ${isSelf ? '<span style="font-size: 9px; font-weight: 800; background: #EFF6FF; color: #2563EB; padding: 1px 6px; border-radius: 9999px;">Você</span>' : ''}
+                    </div>
+                    <span style="font-size: 11px; color: #64748B; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${member.email || 'sem e-mail'}</span>
+                  </div>
+                </div>
+
+                <div style="flex-shrink: 0; text-align: right;">
+                  ${roleBadge}
+                </div>
+              </div>
+
+              <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #F1F5F9; display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: #64748B;">
+                <span>Disponibilidade:</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; color: #10B981; font-weight: 700;">
+                  <span style="width: 6px; height: 6px; border-radius: 50%; background: #10B981;"></span> Integrante Ativo
+                </span>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      listContainer.innerHTML = html;
+    }
+
+    function filterMembersListUI(term) {
+      memberSearchTerm = term;
+      renderProjectMembersTab(false);
+    }
+
+    async function changeMemberRole(userId, userName, newRole) {
+      const db = getDB();
+      const teamIdOrName = db.currentTeamId || db.currentTeam || 'Meu Time';
+
+      showToast(`Alterando papel de ${userName}...`);
+
+      const member = projectMembersCache.find(m => m.id === userId || m.name === userName);
+      if (member) {
+        member.role = newRole;
+      }
+      if (db.teamMembersByTeam && db.teamMembersByTeam[db.currentTeam]) {
+        const localMem = db.teamMembersByTeam[db.currentTeam].find(m => m.id === userId || m.name === userName);
+        if (localMem) localMem.role = newRole;
+      }
+      saveDB(db, false);
+      renderProjectMembersTab(false);
+
+      try {
+        const res = await apiFetch(`/teams/${encodeURIComponent(teamIdOrName)}/members/${encodeURIComponent(userId)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: newRole })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Papel de ${userName} alterado para ${newRole}!`);
+        } else {
+          showToast(data.message || `Papel atualizado localmente.`);
+        }
+      } catch (err) {
+        console.warn('Erro ao sincronizar papel do membro com o backend:', err);
+        showToast(`Papel atualizado localmente no dispositivo.`);
+      }
+    }
+
+    async function confirmRemoveMember(userId, userName) {
+      if (!confirm(`Deseja realmente remover ${userName} do time? Ele(a) perderá acesso aos projetos e tarefas compartilhadas.`)) {
+        return;
+      }
+
+      const db = getDB();
+      const teamIdOrName = db.currentTeamId || db.currentTeam || 'Meu Time';
+
+      showToast(`Removendo ${userName}...`);
+
+      projectMembersCache = projectMembersCache.filter(m => m.id !== userId && m.name !== userName);
+      if (db.teamMembersByTeam && db.teamMembersByTeam[db.currentTeam]) {
+        db.teamMembersByTeam[db.currentTeam] = db.teamMembersByTeam[db.currentTeam].filter(m => m.id !== userId && m.name !== userName);
+      }
+      saveDB(db, false);
+      updateProjectMembersCountBadge();
+      renderProjectMembersTab(false);
+
+      try {
+        const res = await apiFetch(`/teams/${encodeURIComponent(teamIdOrName)}/members/${encodeURIComponent(userId)}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`${userName} removido(a) do time.`);
+        } else {
+          showToast(`Membro removido do time local.`);
+        }
+      } catch (err) {
+        console.warn('Erro ao remover membro no backend:', err);
+        showToast(`Membro removido do time localmente.`);
+      }
+    }
+
+    function openDirectAddMemberModal() {
+      const modal = document.getElementById('modalDirectAddMember');
+      if (modal) {
+        document.getElementById('directAddMemberName').value = '';
+        document.getElementById('directAddMemberEmail').value = '';
+        document.getElementById('directAddMemberRole').value = 'VIEW';
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeDirectAddMemberModal() {
+      closeModal('modalDirectAddMember');
+    }
+
+    async function handleDirectAddMemberSubmit(e) {
+      e.preventDefault();
+      const nameInput = document.getElementById('directAddMemberName');
+      const emailInput = document.getElementById('directAddMemberEmail');
+      const roleSelect = document.getElementById('directAddMemberRole');
+
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim().toLowerCase();
+      const role = roleSelect.value || 'VIEW';
+
+      if (!name || !email) {
+        showToast('Preencha o nome e o e-mail do membro.');
+        return;
+      }
+
+      closeDirectAddMemberModal();
+      showToast(`Adicionando ${name}...`);
+
+      const db = getDB();
+      const teamIdOrName = db.currentTeamId || db.currentTeam || 'Meu Time';
+
+      const newMemberObj = {
+        id: 'user-' + Date.now().toString(36),
+        name,
+        email,
+        role,
+        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`
+      };
+
+      projectMembersCache.push(newMemberObj);
+      if (!db.teamMembersByTeam) db.teamMembersByTeam = {};
+      if (!Array.isArray(db.teamMembersByTeam[db.currentTeam])) {
+        db.teamMembersByTeam[db.currentTeam] = [];
+      }
+      db.teamMembersByTeam[db.currentTeam].push(newMemberObj);
+      saveDB(db, false);
+      updateProjectMembersCountBadge();
+      renderProjectMembersTab(false);
+
+      try {
+        const res = await apiFetch(`/teams/${encodeURIComponent(teamIdOrName)}/members`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, role })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`${name} adicionado(a) com sucesso!`);
+          if (data.data && data.data.id) {
+            newMemberObj.id = data.data.id;
+          }
+        } else {
+          showToast(`Membro adicionado localmente.`);
+        }
+      } catch (err) {
+        console.warn('Erro ao adicionar membro no backend:', err);
+        showToast(`${name} adicionado(a) localmente ao time.`);
+      }
+    }
+
     // --- FLUXO 1.1: LOGIN REAL COM POSTGRESQL & JWT ---
     async function handleLogin() {
       const loginVal = document.getElementById('loginUsername').value.trim();
@@ -6570,11 +7440,191 @@
       }
     }
 
-    function promptAddTag() {
-      const tag = prompt('Digite o nome da nova tag:');
-      if (tag) {
-        document.getElementById('selectedTagDisplay').innerText = tag;
+    // ==========================================================
+    // GESTÃO AVANÇADA DE TAGS E SELETOR DE TAGS (FÁCIL ALOCAÇÃO)
+    // ==========================================================
+    let createTaskSelectedTags = [];
+    let activeTagSelectorContext = 'create'; // 'create' | 'edit'
+
+    function getAllKnownTags() {
+      const db = getDB();
+      const team = db.currentTeam;
+      const teamId = db.currentTeamId;
+      const teamTasks = (db.tasks || []).filter(t => {
+        if (teamId && t.projectId === teamId) return true;
+        if (team && t.team && t.team.trim().toLowerCase() === team.trim().toLowerCase()) return true;
+        if (!team && !teamId) return true;
+        return false;
+      });
+
+      const set = new Set();
+      teamTasks.forEach(t => {
+        getTaskTagNames(t).forEach(tg => {
+          if (tg && typeof tg === 'string' && tg.trim()) set.add(tg.trim());
+        });
+      });
+
+      if (Array.isArray(db.tags)) {
+        db.tags.forEach(t => {
+          const name = (typeof t === 'string' ? t : (t?.name || '')).trim();
+          if (name) set.add(name);
+        });
       }
+
+      if (Array.isArray(createTaskSelectedTags)) {
+        createTaskSelectedTags.forEach(t => { if (t && t.trim()) set.add(t.trim()); });
+      }
+      if (Array.isArray(editingTaskTags)) {
+        editingTaskTags.forEach(t => { if (t && t.trim()) set.add(t.trim()); });
+      }
+
+      return Array.from(set).sort((a, b) => a.localeCompare(b));
+    }
+
+    function renderCreateTaskTags() {
+      const container = document.getElementById('createTaskTagsContainer');
+      if (!container) return;
+      if (!createTaskSelectedTags || createTaskSelectedTags.length === 0) {
+        container.innerHTML = `<span style="font-size: 11px; color: #94A3B8; font-style: italic;">Nenhuma tag selecionada (toque em "+ Adicionar / Selecionar").</span>`;
+        return;
+      }
+      container.innerHTML = createTaskSelectedTags.map((tag, idx) => `
+        <span style="display: inline-flex; align-items: center; gap: 4px; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 9999px;">
+          🏷️ ${escapeHtml(tag)}
+          <button type="button" onclick="removeCreateTaskTag(${idx})" style="background: none; border: none; font-size: 12px; color: #1D4ED8; cursor: pointer; padding: 0 2px; line-height: 1;">✕</button>
+        </span>
+      `).join('');
+    }
+
+    function removeCreateTaskTag(index) {
+      if (createTaskSelectedTags && createTaskSelectedTags[index]) {
+        createTaskSelectedTags.splice(index, 1);
+        renderCreateTaskTags();
+      }
+    }
+
+    function openTagSelectorModal(context = 'create') {
+      activeTagSelectorContext = context;
+      renderTagSelectorModalUI();
+      const modal = document.getElementById('modalTagSelector');
+      if (modal) modal.style.display = 'flex';
+      setTimeout(() => {
+        const inp = document.getElementById('newCustomTagInput');
+        if (inp) inp.focus();
+      }, 100);
+    }
+
+    function closeTagSelectorModal() {
+      const inp = document.getElementById('newCustomTagInput');
+      if (inp && inp.value && inp.value.trim()) {
+        handleCreateCustomTag();
+      }
+      const modal = document.getElementById('modalTagSelector');
+      if (modal) modal.style.display = 'none';
+      if (activeTagSelectorContext === 'create') {
+        renderCreateTaskTags();
+      } else {
+        renderEditingTags();
+      }
+      renderFilterDrawerUI();
+    }
+
+    function closeTagSelectorOnBackdrop(e) {
+      if (e.target && e.target.id === 'modalTagSelector') {
+        closeTagSelectorModal();
+      }
+    }
+
+    function renderTagSelectorModalUI() {
+      const currentList = activeTagSelectorContext === 'create' ? createTaskSelectedTags : editingTaskTags;
+      const allKnown = getAllKnownTags();
+
+      // 1. Contador e container de selecionadas
+      const countBadge = document.getElementById('tagSelectorSelectedCountBadge');
+      if (countBadge) countBadge.innerText = currentList.length;
+
+      const selContainer = document.getElementById('tagSelectorSelectedContainer');
+      if (selContainer) {
+        if (currentList.length === 0) {
+          selContainer.innerHTML = `<span style="font-size: 11px; color: #94A3B8; font-style: italic;">Nenhuma tag selecionada ainda.</span>`;
+        } else {
+          selContainer.innerHTML = currentList.map((tag, idx) => `
+            <span style="display: inline-flex; align-items: center; gap: 4px; background: #EFF6FF; color: #1D4ED8; border: 1.5px solid #3B82F6; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9999px;">
+              🏷️ ${escapeHtml(tag)}
+              <button type="button" onclick="toggleTagInSelector('${escapeHtml(tag)}')" style="background: none; border: none; font-size: 12px; color: #1D4ED8; cursor: pointer; padding: 0 2px; line-height: 1;">✕</button>
+            </span>
+          `).join('');
+        }
+      }
+
+      // 2. Tags disponíveis no time (existentes em outras tarefas)
+      const availContainer = document.getElementById('tagSelectorAvailableContainer');
+      if (availContainer) {
+        if (allKnown.length === 0) {
+          availContainer.innerHTML = `<span style="font-size: 11.5px; color: #94A3B8; padding: 8px 0;">Nenhuma tag criada no time ainda. Digite o nome no campo acima para criar a primeira!</span>`;
+        } else {
+          availContainer.innerHTML = allKnown.map(tag => {
+            const isSel = currentList.includes(tag);
+            return `
+              <button type="button" onclick="toggleTagInSelector('${escapeHtml(tag)}')" style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 9999px; font-size: 11px; cursor: pointer; transition: all 0.15s; ${
+                isSel
+                  ? 'background: #EFF6FF; border: 1.5px solid #2563EB; color: #1D4ED8; font-weight: 800;'
+                  : 'background: #F8FAFC; border: 1px dashed #CBD5E1; color: #475569; font-weight: 600;'
+              }">
+                <span>🏷️ ${escapeHtml(tag)}</span>
+                <span style="font-size: 11px; font-weight: 800; color: ${isSel ? '#2563EB' : '#94A3B8'};">${isSel ? '✓' : '+'}</span>
+              </button>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function toggleTagInSelector(tagName) {
+      if (!tagName || !tagName.trim()) return;
+      const name = tagName.trim();
+      let targetList = activeTagSelectorContext === 'create' ? createTaskSelectedTags : editingTaskTags;
+
+      const idx = targetList.indexOf(name);
+      if (idx !== -1) {
+        targetList.splice(idx, 1);
+      } else {
+        targetList.push(name);
+      }
+      renderTagSelectorModalUI();
+    }
+
+    function handleCreateCustomTag() {
+      const input = document.getElementById('newCustomTagInput');
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) {
+        showToast('Digite o nome da tag.');
+        return;
+      }
+
+      // Adiciona à lista de tags conhecidas do DB
+      const db = getDB();
+      if (!Array.isArray(db.tags)) db.tags = [];
+      if (!db.tags.some(t => (typeof t === 'string' ? t : t?.name) === val)) {
+        db.tags.push({ id: 'tag-' + Date.now(), name: val, color: '#3B82F6' });
+        saveDB(db, false);
+      }
+
+      // Seleciona na lista atual
+      let targetList = activeTagSelectorContext === 'create' ? createTaskSelectedTags : editingTaskTags;
+      if (!targetList.includes(val)) {
+        targetList.push(val);
+      }
+
+      input.value = '';
+      renderTagSelectorModalUI();
+      showToast(`Tag "${val}" adicionada!`);
+    }
+
+    // Compatibilidade com chamadas legadas
+    function promptAddTag() {
+      openTagSelectorModal('create');
     }
   </script>
 </body>

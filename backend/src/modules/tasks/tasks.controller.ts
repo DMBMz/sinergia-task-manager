@@ -106,6 +106,7 @@ export class TasksController {
       assigneeId,
       assignee,
       subtasks,
+      tags,
       parentTaskId,
       assignmentStatus: assignmentStatus || 'ACCEPTED',
       declinedReason: declinedReason || null,
@@ -118,11 +119,9 @@ export class TasksController {
       currentRotationIndex: currentRotationIndex || 0
     });
 
-    // Se tags foram fornecidas, associa
+    // Se tags foram fornecidas, associa corretamente
     if (Array.isArray(tags)) {
-      for (const tagId of tags) {
-        repository.taskTags.push({ taskId: task.id, tagId });
-      }
+      repository.setTaskTags(task.id, task.projectId, tags);
     }
 
     const created = repository.getTaskWithDetails(task.id);

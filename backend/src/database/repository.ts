@@ -248,8 +248,40 @@ export class AppRepository {
     });
   }
 
+  // --- Tag Operations ---
+  setTaskTags(taskId: string, projectId: string, tags?: any[]) {
+    if (!Array.isArray(tags)) return;
+    this.taskTags = this.taskTags.filter(tt => tt.taskId !== taskId);
+    for (const tNameOrId of tags) {
+      if (!tNameOrId) continue;
+      let tagName = '';
+      if (typeof tNameOrId === 'string') {
+        tagName = tNameOrId.trim();
+      } else if (typeof tNameOrId === 'object' && tNameOrId !== null) {
+        tagName = (tNameOrId.name || tNameOrId.title || tNameOrId.id || '').trim();
+      }
+      if (!tagName || tagName === '[object Object]') continue;
+
+      let foundTag = this.tags.get(tagName);
+      if (!foundTag) {
+        foundTag = Array.from(this.tags.values()).find(t => t.name.toLowerCase() === tagName.toLowerCase());
+      }
+      if (!foundTag) {
+        const newTagId = 'tag-' + uuidv4().slice(0, 8);
+        foundTag = {
+          id: newTagId,
+          name: tagName,
+          color: '#3B82F6',
+          projectId: projectId || 'proj-sinergia-001'
+        };
+        this.tags.set(newTagId, foundTag);
+      }
+      this.taskTags.push({ taskId, tagId: foundTag.id });
+    }
+  }
+
   // --- Task Operations ---
-  createTask(data: Partial<Task> & { team?: string; subtasks?: any[]; assignee?: any }): Task {
+  createTask(data: Partial<Task> & { team?: string; subtasks?: any[]; assignee?: any; tags?: any[] }): Task {
     const id = data.id || uuidv4();
     let projectId = data.projectId;
     if (!projectId && data.team) {
@@ -327,6 +359,9 @@ export class AppRepository {
       (task as any).attachments = (data as any).attachments;
     }
     this.tasks.set(task.id, task);
+    if (data.tags) {
+      this.setTaskTags(task.id, task.projectId, data.tags);
+    }
     this.logChange('tasks', task.id, 'created');
 
     // Sincroniza em segundo plano no PostgreSQL via Prisma
@@ -625,25 +660,7 @@ export class AppRepository {
     const { userId, tags, ...cleanData } = data as any;
 
     if (Array.isArray(tags)) {
-      this.taskTags = this.taskTags.filter(tt => tt.taskId !== id);
-      for (const tNameOrId of tags) {
-        if (!tNameOrId) continue;
-        let foundTag = this.tags.get(tNameOrId);
-        if (!foundTag) {
-          foundTag = Array.from(this.tags.values()).find(t => t.name.toLowerCase() === String(tNameOrId).toLowerCase());
-        }
-        if (!foundTag) {
-          const newTagId = 'tag-' + uuidv4().slice(0, 8);
-          foundTag = {
-            id: newTagId,
-            name: String(tNameOrId),
-            color: '#3B82F6',
-            projectId: existing.projectId
-          };
-          this.tags.set(newTagId, foundTag);
-        }
-        this.taskTags.push({ taskId: id, tagId: foundTag.id });
-      }
+      this.setTaskTags(id, existing.projectId, tags);
     }
 
     let parsedDue: Date | null | undefined = undefined;
@@ -1120,6 +1137,78 @@ export class AppRepository {
       this.logChange('automationRules', id, 'deleted');
     }
     return exists;
+  }
+
+  // US24: Gestão de Membros
+  updateProjectMemberRole(projectId: string, userId: string, newRole: Role): boolean {
+    const member = Array.from(this.projectMembers.values()).find(pm =>
+      (pm.projectId === projectId || this.projects.get(pm.projectId)?.name.toLowerCase() === projectId.toLowerCase()) &&
+      (pm.userId === userId || this.users.get(pm.userId)?.name.toLowerCase() === userId.toLowerCase())
+    );
+    if (member) {
+      member.role = newRole;
+      return true;
+    }
+    const pmId = 'pm-' + uuidv4().slice(0, 8);
+    this.projectMembers.set(pmId, {
+      id: pmId,
+      projectId,
+      userId,
+      role: newRole,
+      createdAt: new Date()
+    });
+    return true;
+  }
+
+  removeProjectMember(projectId: string, userId: string): boolean {
+    const key = Array.from(this.projectMembers.entries()).find(([k, pm]) =>
+      (pm.projectId === projectId || this.projects.get(pm.projectId)?.name.toLowerCase() === projectId.toLowerCase()) &&
+      (pm.userId === userId || this.users.get(pm.userId)?.name.toLowerCase() === userId.toLowerCase())
+    )?.[0];
+    if (key) {
+      this.projectMembers.delete(key);
+      return true;
+    }
+    return false;
+  }
+
+  addProjectMemberDirect(projectId: string, userData: { name: string; email: string; avatarUrl?: string }, role: Role): { user: User; member: ProjectMember } {
+    let user = Array.from(this.users.values()).find(u => u.email.toLowerCase() === userData.email.toLowerCase());
+    if (!user) {
+      user = {
+        id: 'user-' + uuidv4().slice(0, 8),
+        name: userData.name,
+        email: userData.email,
+        avatarUrl: userData.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userData.name)}`,
+        fcmToken: null,
+        quietUntil: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.users.set(user.id, user);
+    }
+
+    let prj = this.projects.get(projectId) || Array.from(this.projects.values()).find(p => p.name.toLowerCase() === projectId.toLowerCase());
+    const targetProjId = prj ? prj.id : projectId;
+
+    let member = Array.from(this.projectMembers.values()).find(pm =>
+      (pm.projectId === targetProjId || this.projects.get(pm.projectId)?.name.toLowerCase() === targetProjId.toLowerCase()) &&
+      pm.userId === user!.id
+    );
+    if (member) {
+      member.role = role;
+    } else {
+      const pmId = 'pm-' + uuidv4().slice(0, 8);
+      member = {
+        id: pmId,
+        projectId: targetProjId,
+        userId: user.id,
+        role,
+        createdAt: new Date()
+      };
+      this.projectMembers.set(pmId, member);
+    }
+    return { user, member };
   }
 }
 

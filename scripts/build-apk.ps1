@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 
 $tempRoot = [System.IO.Path]::GetTempPath()
 $work = Join-Path $tempRoot "sinergia_build_inplace"
-$projectRoot = "c:\Users\Fatec\sn\sinergia-task-manager"
+$projectRoot = if ($PSScriptRoot) { (Resolve-Path "$PSScriptRoot\..").Path } else { Get-Location }
 $signerJar = "$env:USERPROFILE\uber-apk-signer.jar"
 $adbExe = "$env:USERPROFILE\platform-tools\adb.exe"
 
@@ -82,20 +82,34 @@ try {
 
 # Check connected device
 Write-Host ">>> Checking ADB devices..."
-& $adbExe devices
+$deviceLines = & $adbExe devices | Where-Object { $_ -match "\S" -and $_ -notmatch "List of devices attached" -and $_ -notmatch "daemon" }
+Write-Host ($deviceLines -join "`n")
 
-Write-Host ">>> Installing on phone via ADB (adb install -r)..."
+if (-not $deviceLines -or $deviceLines.Count -eq 0) {
+    Write-Warning "Nenhum celular/emulador detectado pelo ADB!"
+    Write-Host "Para instalar automaticamente no celular:"
+    Write-Host " 1. Conecte o cabo USB no computador."
+    Write-Host " 2. No celular, ative as 'Opções do desenvolvedor' e 'Depuração USB'."
+    Write-Host " 3. Se aparecer um aviso na tela do celular, marque 'Sempre permitir deste computador'."
+    Write-Host " 4. Ou se preferir depuração sem fio: & '$adbExe' connect <IP_DO_CELULAR>:5555"
+    Write-Host ""
+    Write-Host ">>> O APK atualizado foi compilado e assinado com sucesso em: $finalApk"
+    Write-Host ">>> Base sincronizada em: $baseApk"
+    return
+}
+
+Write-Host ">>> Dispositivo detectado! Instalando no celular via ADB (adb install -r)..."
 $res = & $adbExe install -r $finalApk 2>&1
 Write-Host $res
 
 if ($res -match "INSTALL_FAILED_UPDATE_INCOMPATIBLE" -or $res -match "signatures do not match") {
-    Write-Host ">>> Signature difference detected. Reinstalling cleanly..."
+    Write-Host ">>> Diferença de assinatura detectada. Reinstalando com limpeza prévia..."
     & $adbExe uninstall com.sinergia.app
     & $adbExe install $finalApk
 }
 
-Write-Host ">>> Launching com.sinergia.app on phone..."
+Write-Host ">>> Iniciando aplicativo com.sinergia.app no celular..."
 & $adbExe shell am force-stop com.sinergia.app
 & $adbExe shell am start -n com.sinergia.app/.MainActivity
 
-Write-Host ">>> SUCCESS! Mobile app updated and launched on device."
+Write-Host ">>> SUCESSO! Aplicativo atualizado e aberto na tela do celular."

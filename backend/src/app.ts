@@ -96,33 +96,84 @@ export function createApp() {
   // Users, Profiles & Auth endpoints com PostgreSQL
   app.get('/api/v1/users', async (req, res) => {
     try {
-      const teamId = req.query?.teamId as string;
+      const teamId = (req.query?.teamId || req.query?.projectId) as string;
+      const teamName = req.query?.team as string;
       let users: any[] = [];
-      if (teamId) {
-        const members = await prisma.projectMember.findMany({
-          where: { projectId: teamId },
-          include: { user: true }
-        });
-        users = members.map((m: any) => ({
-          id: m.user.id,
-          name: m.user.name,
-          email: m.user.email,
-          avatarUrl: m.user.avatarUrl,
-          role: m.role
-        }));
+
+      if (teamId || teamName) {
+        let projectId = teamId;
+        if (!projectId && teamName) {
+          const prj = await prisma.project.findFirst({
+            where: { name: { equals: teamName, mode: 'insensitive' as any } }
+          });
+          if (prj) projectId = prj.id;
+        }
+
+        if (projectId) {
+          const members = await prisma.projectMember.findMany({
+            where: { projectId },
+            include: { user: true }
+          });
+          users = members.map((m: any) => ({
+            id: m.user.id,
+            name: m.user.name,
+            email: m.user.email,
+            avatarUrl: m.user.avatarUrl,
+            role: m.role
+          }));
+        }
+
+        // Se projectId não retornou membros mas temos teamName, tenta encontrar por nome no Prisma
+        if (users.length === 0 && teamName) {
+          const prj = await prisma.project.findFirst({
+            where: { name: { equals: teamName, mode: 'insensitive' as any } }
+          });
+          if (prj) {
+            const members = await prisma.projectMember.findMany({
+              where: { projectId: prj.id },
+              include: { user: true }
+            });
+            users = members.map((m: any) => ({
+              id: m.user.id,
+              name: m.user.name,
+              email: m.user.email,
+              avatarUrl: m.user.avatarUrl,
+              role: m.role
+            }));
+          }
+        }
+
+        // Fallback em memória (para testes e modo offline/dev)
+        if (users.length === 0) {
+          const isDefaultTeam = teamName === 'Meu Time' || teamName === 'Sinergia Mobile App' || teamId === 'proj-sinergia-001';
+          const mems = Array.from(repository.projectMembers.values()).filter(pm =>
+            (projectId && pm.projectId === projectId) ||
+            (teamName && repository.projects.get(pm.projectId)?.name.toLowerCase() === teamName.toLowerCase()) ||
+            (teamId && repository.projects.get(pm.projectId)?.name.toLowerCase() === teamId.toLowerCase()) ||
+            (isDefaultTeam && pm.projectId === 'proj-sinergia-001')
+          );
+          if (mems.length > 0) {
+            users = mems.map(m => {
+              const u = repository.users.get(m.userId);
+              return u ? { id: u.id, name: u.name, email: u.email, avatarUrl: u.avatarUrl, role: m.role } : null;
+            }).filter(Boolean);
+          }
+        }
+
+        // Retorna ESTRITAMENTE os membros pertencentes ao time solicitado
+        return res.json({ success: true, data: users });
       }
-      if (!users || users.length === 0) {
-        users = await prisma.user.findMany({
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-            createdAt: true
-          },
-          orderBy: { name: 'asc' }
-        });
-      }
+
+      users = await prisma.user.findMany({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatarUrl: true,
+          createdAt: true
+        },
+        orderBy: { name: 'asc' }
+      });
       return res.json({ success: true, data: users });
     } catch (err: any) {
       console.error('[Get Users Error]', err);
@@ -138,6 +189,129 @@ export function createApp() {
   app.get('/api/v1/teams', optionalAuthMiddleware, (req: any, res: any) => authController.listUserTeams(req, res));
   app.post('/api/v1/teams', optionalAuthMiddleware, (req: any, res: any) => authController.createTeam(req, res));
   app.post('/api/v1/teams/join', optionalAuthMiddleware, (req: any, res: any) => authController.joinTeam(req, res));
+
+  // US24: Gestão de Membros do Time (Alterar Função e Remover Membro)
+  app.patch('/api/v1/teams/:projectId/members/:userId', async (req, res) => {
+    try {
+      const { projectId, userId } = req.params;
+      const { role } = req.body;
+      if (!role) {
+        return res.status(400).json({ success: false, error: 'O papel (role) é obrigatório.' });
+      }
+
+      repository.updateProjectMemberRole(projectId, userId, role);
+
+      try {
+        await prisma.projectMember.updateMany({
+          where: {
+            OR: [
+              { projectId, userId },
+              { project: { name: projectId }, user: { name: userId } }
+            ]
+          },
+          data: { role: role as any }
+        });
+      } catch (dbErr) {
+        console.warn('[Prisma Update Member Role Warning]', dbErr);
+      }
+
+      return res.json({ success: true, message: `Papel do membro alterado para ${role} com sucesso.` });
+    } catch (err: any) {
+      console.error('[Update Member Role Error]', err);
+      return res.status(500).json({ success: false, error: 'Erro ao atualizar papel do membro.' });
+    }
+  });
+
+  app.delete('/api/v1/teams/:projectId/members/:userId', async (req, res) => {
+    try {
+      const { projectId, userId } = req.params;
+      repository.removeProjectMember(projectId, userId);
+
+      try {
+        await prisma.projectMember.deleteMany({
+          where: {
+            OR: [
+              { projectId, userId },
+              { project: { name: projectId }, user: { name: userId } }
+            ]
+          }
+        });
+      } catch (dbErr) {
+        console.warn('[Prisma Delete Member Warning]', dbErr);
+      }
+
+      return res.json({ success: true, message: 'Membro removido do time com sucesso.' });
+    } catch (err: any) {
+      console.error('[Delete Member Error]', err);
+      return res.status(500).json({ success: false, error: 'Erro ao remover membro do time.' });
+    }
+  });
+
+  app.post('/api/v1/teams/:projectId/members', async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const { name, email, role } = req.body;
+      if (!name || !email) {
+        return res.status(400).json({ success: false, error: 'Nome e e-mail são obrigatórios.' });
+      }
+      const memberRole = (role || 'VIEW') as any;
+      const result = repository.addProjectMemberDirect(projectId, { name, email }, memberRole);
+
+      try {
+        let dbUser = await prisma.user.findUnique({ where: { email } });
+        if (!dbUser) {
+          dbUser = await prisma.user.create({
+            data: {
+              name,
+              email,
+              avatarUrl: result.user.avatarUrl,
+              passwordHash: 'sinergia_direct_member'
+            }
+          });
+        }
+        let dbProj = await prisma.project.findFirst({
+          where: {
+            OR: [
+              { id: projectId },
+              { name: { equals: projectId, mode: 'insensitive' as any } }
+            ]
+          }
+        });
+        if (dbProj && dbUser) {
+          await prisma.projectMember.upsert({
+            where: {
+              projectId_userId: { projectId: dbProj.id, userId: dbUser.id }
+            },
+            create: {
+              projectId: dbProj.id,
+              userId: dbUser.id,
+              role: memberRole
+            },
+            update: {
+              role: memberRole
+            }
+          });
+        }
+      } catch (dbErr) {
+        console.warn('[Prisma Add Direct Member Warning]', dbErr);
+      }
+
+      return res.json({
+        success: true,
+        message: `Membro ${name} adicionado ao time com sucesso!`,
+        data: {
+          id: result.user.id,
+          name: result.user.name,
+          email: result.user.email,
+          avatarUrl: result.user.avatarUrl,
+          role: result.member.role
+        }
+      });
+    } catch (err: any) {
+      console.error('[Add Direct Member Error]', err);
+      return res.status(500).json({ success: false, error: 'Erro ao adicionar membro ao time.' });
+    }
+  });
 
   return app;
 }
