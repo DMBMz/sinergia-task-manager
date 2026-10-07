@@ -62,7 +62,11 @@ export class AiEstimatorService {
     const titleWords = task.title ? task.title.trim().split(/\s+/).length : 1;
     const descChars = task.description ? task.description.trim().length : 0;
     const subtasks = task.subtasksCount || 0;
-    const prioKey = task.priority || 'MEDIUM';
+    const rawPrio = String(task.priority || 'MEDIUM').trim().toUpperCase();
+    const prioKey: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' =
+      (rawPrio === 'LOW' || rawPrio.startsWith('BAIX')) ? 'LOW' :
+      (rawPrio === 'HIGH' || rawPrio.startsWith('ALT')) ? 'HIGH' :
+      (rawPrio === 'URGENT' || rawPrio.startsWith('URG')) ? 'URGENT' : 'MEDIUM';
     const prioWeight = prioKey === 'LOW' ? 1 : prioKey === 'MEDIUM' ? 2 : prioKey === 'HIGH' ? 3 : 4;
     const tags = task.tagsCount || 0;
 
@@ -76,7 +80,11 @@ export class AiEstimatorService {
     const titleWords = task.title ? task.title.trim().split(/\s+/).length : 1;
     const descChars = task.description ? task.description.trim().length : 0;
     const subtasks = task.subtasksCount || 0;
-    const prioKey = task.priority || 'MEDIUM';
+    const rawPrio = String(task.priority || 'MEDIUM').trim().toUpperCase();
+    const prioKey: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' =
+      (rawPrio === 'LOW' || rawPrio.startsWith('BAIX')) ? 'LOW' :
+      (rawPrio === 'HIGH' || rawPrio.startsWith('ALT')) ? 'HIGH' :
+      (rawPrio === 'URGENT' || rawPrio.startsWith('URG')) ? 'URGENT' : 'MEDIUM';
     const tags = task.tagsCount || 0;
 
     const baseHours = MODEL_WEIGHTS.bias;

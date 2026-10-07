@@ -132,10 +132,6 @@
       flex-direction: column;
     }
 
-    .bottom-nav {
-      border-radius: 0 !important;
-    }
-
     /* Ocultar barra simulada pois o Android já possui status bar nativa */
     .status-bar, .camera-notch {
       display: none !important;
@@ -145,28 +141,29 @@
     .screen-view {
       display: none;
       flex: 1;
-      padding-bottom: 70px;
+      padding-bottom: 80px;
     }
 
     .screen-view.active {
       display: block;
     }
 
-    /* Barra de Navegação Inferior */
+    /* Barra de Navegação Inferior Fixa */
     .bottom-nav {
-      position: absolute;
+      position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
+      width: 100%;
       height: 56px;
       background: #FFFFFF;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-around;
       align-items: center;
-      z-index: 50;
-      border-bottom-left-radius: 36px;
-      border-bottom-right-radius: 36px;
+      z-index: 1000;
+      border-radius: 0 !important;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
     }
 
     .nav-item {
@@ -202,7 +199,7 @@
 
     /* Toast de Notificação / Sincronização */
     #toastMessage {
-      position: absolute;
+      position: fixed;
       top: 40px;
       left: 20px;
       right: 20px;
@@ -212,7 +209,7 @@
       border-radius: 12px;
       font-size: 11px;
       font-weight: 600;
-      z-index: 1000;
+      z-index: 2000;
       display: none;
       box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
       animation: slideDown 0.3s ease;
@@ -225,11 +222,11 @@
 
     /* Modal Genérico */
     .modal-overlay {
-      position: absolute;
+      position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(15, 23, 42, 0.7);
       backdrop-filter: blur(2px);
-      z-index: 100;
+      z-index: 1100;
       display: none;
       align-items: center;
       justify-content: center;
@@ -1607,7 +1604,7 @@
 
         <!-- Bottom Nav -->
         <div class="bottom-nav">
-          <button class="nav-item active"><svg class="svg-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 2px;"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</button>
+          <button class="nav-item active" onclick="switchScreen('dashboard', null)"><svg class="svg-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 2px;"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</button>
           <button class="nav-item" onclick="switchScreen('create-task', null)"><div class="nav-plus-icon">+</div>Nova Tarefa</button>
           <button class="nav-item" onclick="switchScreen('project-planning', null)"><svg class="svg-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 2px;"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>Projetos</button>
         </div>
@@ -1903,7 +1900,7 @@
         <div class="bottom-nav">
           <button class="nav-item" onclick="switchScreen('dashboard', null)"><svg class="svg-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 2px;"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</button>
           <button class="nav-item" onclick="switchScreen('create-task', null)"><div class="nav-plus-icon">+</div>Nova Tarefa</button>
-          <button class="nav-item active"><svg class="svg-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 2px;"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>Projetos</button>
+          <button class="nav-item active" onclick="switchScreen('project-planning', null)"><svg class="svg-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 2px;"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>Projetos</button>
         </div>
       </div>
 
@@ -1948,10 +1945,10 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <span style="font-size: 12px; font-weight: 700;">Prioridade</span>
             <select id="createPrioritySelect" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 11px; font-weight: 700;">
-              <option value="Alta">Alta</option>
-              <option value="Média">Média</option>
-              <option value="Baixa">Baixa</option>
-              <option value="Urgente">Urgente</option>
+              <option value="Alta">Alta 🔥</option>
+              <option value="Média" selected>Média ⚡</option>
+              <option value="Baixa">Baixa 🟢</option>
+              <option value="Urgente">Urgente 🚨</option>
             </select>
           </div>
 
@@ -2058,9 +2055,21 @@
 
           <h3 class="auth-title">Sign up</h3>
 
+          <!-- Foto de perfil no cadastro com MinIO -->
+          <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 14px;">
+            <div style="position: relative; width: 68px; height: 68px; cursor: pointer;" onclick="document.getElementById('regAvatarFileInput').click()" title="Escolha sua foto de perfil">
+              <img id="regAvatarPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=NovoUsuario" style="width: 68px; height: 68px; border-radius: 50%; object-fit: cover; background: #F1F5F9; border: 2.5px solid #2563EB; box-shadow: 0 4px 10px rgba(37,99,235,0.18); display: block;">
+              <div style="position: absolute; bottom: 0; right: 0; width: 24px; height: 24px; border-radius: 50%; background: #2563EB; border: 2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; color: #FFFFFF;">
+                <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+            </div>
+            <input type="file" id="regAvatarFileInput" accept="image/*" style="display: none;" onchange="handleSelectRegAvatar(this)">
+            <span style="font-size: 11px; color: #2563EB; font-weight: 600; margin-top: 6px; cursor: pointer;" onclick="document.getElementById('regAvatarFileInput').click()">Adicionar foto de perfil</span>
+          </div>
+
           <div class="auth-input-group">
             <label class="auth-label">Username</label>
-            <input type="text" id="regUser" class="auth-input" placeholder="Ex: Davi Marinho">
+            <input type="text" id="regUser" class="auth-input" placeholder="Ex: Davi Marinho" oninput="updateRegAvatarSeed(this.value)">
           </div>
 
           <div class="auth-input-group">
@@ -2306,7 +2315,20 @@
       <!-- Modal Menu do Usuário / Logout -->
       <div id="modalUserMenu" class="modal-overlay">
         <div class="modal-card" style="text-align: center;">
-          <img id="menuUserAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=User" style="width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 10px auto; background: #E2E8F0; border: 2px solid #2563EB;">
+          <!-- Avatar de Perfil Interativo com Suporte a MinIO -->
+          <div style="position: relative; width: 76px; height: 76px; margin: 0 auto 8px auto; cursor: pointer;" onclick="document.getElementById('avatarFileInput').click()" title="Toque para alterar a foto de perfil no MinIO">
+            <img id="menuUserAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=User" style="width: 76px; height: 76px; border-radius: 50%; object-fit: cover; background: #E2E8F0; border: 3px solid #2563EB; box-shadow: 0 4px 12px rgba(37,99,235,0.25); display: block;">
+            <div style="position: absolute; bottom: 0; right: 0; width: 26px; height: 26px; border-radius: 50%; background: #2563EB; border: 2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; color: #FFFFFF; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="handleSelectAvatarFile(this)">
+          </div>
+          <div style="margin-bottom: 10px;">
+            <button type="button" onclick="document.getElementById('avatarFileInput').click()" style="background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+              <svg class="svg-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Alterar Foto (MinIO)
+            </button>
+          </div>
           <h3 class="modal-title" id="menuUserName">Nome do Usuário</h3>
           <p style="font-size: 11px; color: #64748B; margin-bottom: 8px;" id="menuUserEmail">email@sinergia.com</p>
           <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 8px; font-size: 11px; color: #1E40AF; margin-bottom: 14px;">
@@ -2821,6 +2843,49 @@
     let cachedAvailableUsers = [];
     let currentTeam = 'Sinergia Mobile App';
 
+    // Utilitários Universais de Prioridade (US01 / US02 / US06)
+    function normalizePriorityToEnum(p) {
+      if (!p) return 'MEDIUM';
+      const s = String(p).trim().toUpperCase();
+      if (s === 'LOW' || s.startsWith('BAIX')) return 'LOW';
+      if (s === 'HIGH' || s.startsWith('ALT')) return 'HIGH';
+      if (s === 'URGENT' || s.startsWith('URG')) return 'URGENT';
+      if (s === 'MEDIUM' || s.startsWith('MED')) return 'MEDIUM';
+      return 'MEDIUM';
+    }
+
+    function normalizePriorityToDisplay(p) {
+      if (!p) return 'Média';
+      const s = String(p).trim().toUpperCase();
+      if (s === 'LOW' || s.startsWith('BAIX')) return 'Baixa';
+      if (s === 'HIGH' || s.startsWith('ALT')) return 'Alta';
+      if (s === 'URGENT' || s.startsWith('URG')) return 'Urgente';
+      if (s === 'MEDIUM' || s.startsWith('MED')) return 'Média';
+      return 'Média';
+    }
+
+    function getPriorityColors(p) {
+      const norm = normalizePriorityToDisplay(p);
+      if (norm === 'Urgente') return { bg: '#FEE2E2', col: '#991B1B' };
+      if (norm === 'Alta') return { bg: '#FEE2E2', col: '#DC2626' };
+      if (norm === 'Baixa') return { bg: '#DCFCE7', col: '#16A34A' };
+      return { bg: '#FEF3C7', col: '#D97706' }; // Média
+    }
+
+    function resolveAvatarUrl(url, fallbackSeed = 'User') {
+      if (!url || url === '#' || url === '') {
+        return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(fallbackSeed || 'User')}`;
+      }
+      if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+      }
+      const backendOrigin = apiBaseUrl.replace(/\/api\/v1\/?$/, '');
+      if (url.startsWith('/')) {
+        return `${backendOrigin}${url}`;
+      }
+      return `${backendOrigin}/${url}`;
+    }
+
     // Banco de Dados Local (Persistência Offline em localStorage)
     const DB_KEY = 'sinergia_real_flow_v5';
 
@@ -2837,6 +2902,16 @@
               dndStart: '22:00',
               dndEnd: '08:00'
             };
+          }
+          if (Array.isArray(parsed.tasks)) {
+            parsed.tasks.forEach(t => {
+              if (t.priority) {
+                t.priority = normalizePriorityToDisplay(t.priority);
+                const cols = getPriorityColors(t.priority);
+                t.priorityBg = cols.bg;
+                t.priorityColor = cols.col;
+              }
+            });
           }
           return parsed;
         } catch(e) {}
@@ -3315,10 +3390,10 @@
 
       // Oculta a barra de navegação inferior nas telas de autenticação, formulários e detalhes
       const authScreens = ['cadastro', 'login-page', 'team-onboarding', 'task-detail', 'create-task'];
-      const bottomNav = document.querySelector('.bottom-nav');
-      if (bottomNav) {
-        bottomNav.style.display = authScreens.includes(screenId) ? 'none' : 'flex';
-      }
+      const showNav = !authScreens.includes(screenId);
+      document.querySelectorAll('.bottom-nav').forEach(bn => {
+        bn.style.display = showNav ? 'flex' : 'none';
+      });
 
       if (screenId === 'dashboard') {
         renderDashboard();
@@ -3450,7 +3525,7 @@
       const team = db.currentTeam || 'Meu Time';
 
       document.getElementById('dashGreeting').innerText = `Olá, ${user.name}`;
-      document.getElementById('userAvatarMini').src = user.avatar;
+      document.getElementById('userAvatarMini').src = resolveAvatarUrl(user.avatar || user.avatarUrl, user.name);
 
       const teamBadge = document.getElementById('dashTeamBadgeName');
       if (teamBadge) teamBadge.innerText = team;
@@ -3466,7 +3541,7 @@
 
       const completed = tasks.filter(t => t.status === 'COMPLETED').length;
       const pending = tasks.filter(t => t.status !== 'COMPLETED').length;
-      const late = tasks.filter(t => t.priority === 'Alta' && t.status !== 'COMPLETED').length;
+      const late = tasks.filter(t => (normalizePriorityToEnum(t.priority) === 'HIGH' || normalizePriorityToEnum(t.priority) === 'URGENT') && t.status !== 'COMPLETED').length;
 
       document.getElementById('statCompleted').innerText = completed;
       document.getElementById('statPending').innerText = pending;
@@ -3595,7 +3670,7 @@
       let cpmBadge = '';
       if (task.status === 'BLOCKED') {
         cpmBadge = `<span style="background: #FEE2E2; color: #991B1B; border: 1px solid #F87171; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🔒 Bloqueada</span>`;
-      } else if (task.isCritical || (!isCompleted && (task.priority === 'Alta' || task.priority === 'Urgente'))) {
+      } else if (task.isCritical || (!isCompleted && (normalizePriorityToEnum(task.priority) === 'HIGH' || normalizePriorityToEnum(task.priority) === 'URGENT'))) {
         cpmBadge = `<span style="background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🔥 CPM Crítica</span>`;
       }
 
@@ -3623,9 +3698,11 @@
         ? 'font-size: 13px; color: #64748B; text-decoration: line-through;'
         : 'font-size: 13px; color: #1E293B;';
 
+      const pDisplay = normalizePriorityToDisplay(task.priority);
+      const { bg: cardPBg, col: cardPCol } = getPriorityColors(pDisplay);
       const statusBadge = isCompleted
         ? `<span class="badge" style="background: #DCFCE7; color: #16A34A; font-size: 9px; padding: 1px 6px;">Concluída ✅</span>`
-        : `<span class="badge" style="background: ${task.priorityBg || '#EFF6FF'}; color: ${task.priorityColor || '#2563EB'}; font-size: 9px; padding: 1px 6px;">${task.priority}</span>`;
+        : `<span class="badge" style="background: ${task.priorityBg || cardPBg}; color: ${task.priorityColor || cardPCol}; font-size: 9px; padding: 1px 6px;">${pDisplay}</span>`;
 
       const deadlineHtml = isCompleted
         ? `<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: #16A34A;">${ICONS.checkCircle(12, '#16A34A')} Finalizada</span>`
@@ -4115,12 +4192,9 @@
 
         // 6. Prioridades
         if (filterState.priorities && filterState.priorities.length > 0) {
-          const p = (task.priority || '').toUpperCase();
-          const mappedP = (p === 'ALTA' || p === 'HIGH') ? 'HIGH'
-            : (p === 'URGENTE' || p === 'URGENT') ? 'URGENT'
-            : (p === 'MEDIA' || p === 'MÉDIA' || p === 'MEDIUM') ? 'MEDIUM'
-            : 'LOW';
-          if (!filterState.priorities.includes(mappedP) && !filterState.priorities.includes(task.priority)) return false;
+          const mappedP = normalizePriorityToEnum(task.priority);
+          const dispP = normalizePriorityToDisplay(task.priority);
+          if (!filterState.priorities.includes(mappedP) && !filterState.priorities.includes(task.priority) && !filterState.priorities.includes(dispP)) return false;
         }
 
         // 7. Apenas Atrasadas
@@ -4154,8 +4228,8 @@
           const oneWeek = now + 7 * 86400000;
           if (isNaN(due) || due < now || due > oneWeek) return false;
         } else if (filterState.quickFilter === 'high_urgency') {
-          const p = (task.priority || '').toLowerCase();
-          if (p !== 'alta' && p !== 'urgente' && p !== 'high' && p !== 'urgent') return false;
+          const pEnum = normalizePriorityToEnum(task.priority);
+          if (pEnum !== 'HIGH' && pEnum !== 'URGENT') return false;
         } else if (filterState.quickFilter === 'with_subtasks') {
           if (!task.subtasks || task.subtasks.length === 0) return false;
         }
@@ -4259,8 +4333,10 @@
       if (titleEl) titleEl.innerText = task.title;
       const priorityEl = document.getElementById('detailPriorityBadge');
       if (priorityEl) {
-        priorityEl.innerText = task.priority;
-        priorityEl.style.color = task.priorityColor || '#EF4444';
+        const pDisp = normalizePriorityToDisplay(task.priority);
+        const { col: pCol } = getPriorityColors(pDisp);
+        priorityEl.innerText = pDisp;
+        priorityEl.style.color = task.priorityColor || pCol;
       }
       const dueEl = document.getElementById('detailDueDate');
       if (dueEl) dueEl.innerText = getTaskDueDateDisplay(task, true);
@@ -4571,7 +4647,10 @@
       const descEl = document.getElementById('editFullTaskDesc');
       if (descEl) descEl.value = task.description || '';
 
-      document.getElementById('editFullTaskPriority').value = task.priority || 'Alta';
+      const editPrioritySelect = document.getElementById('editFullTaskPriority');
+      if (editPrioritySelect) {
+        editPrioritySelect.value = normalizePriorityToDisplay(task.priority);
+      }
       const statusEl = document.getElementById('editFullTaskStatus');
       if (statusEl) statusEl.value = task.status || 'PENDING';
 
@@ -4631,7 +4710,8 @@
       const descEl = document.getElementById('editFullTaskDesc');
       const newDesc = descEl ? descEl.value.trim() : (task.description || '');
 
-      const newPriority = document.getElementById('editFullTaskPriority').value;
+      const newPriority = normalizePriorityToDisplay(document.getElementById('editFullTaskPriority')?.value);
+      const { bg: editBg, col: editCol } = getPriorityColors(newPriority);
       const statusEl = document.getElementById('editFullTaskStatus');
       const newStatus = statusEl ? statusEl.value : (task.status || 'PENDING');
 
@@ -4645,6 +4725,8 @@
       task.title = newTitle;
       task.description = newDesc;
       task.priority = newPriority;
+      task.priorityColor = editCol;
+      task.priorityBg = editBg;
       task.status = newStatus;
       task.assignee = newAssignee;
       task.effortHours = newEffort;
@@ -4658,20 +4740,6 @@
         task.avatar = assigneeObj.avatarUrl;
       } else {
         task.avatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(newAssignee);
-      }
-
-      if (newPriority === 'Alta') {
-        task.priorityColor = '#EF4444';
-        task.priorityBg = '#FEE2E2';
-      } else if (newPriority === 'Urgente') {
-        task.priorityColor = '#991B1B';
-        task.priorityBg = '#FEE2E2';
-      } else if (newPriority === 'Média') {
-        task.priorityColor = '#2563EB';
-        task.priorityBg = '#EFF6FF';
-      } else {
-        task.priorityColor = '#10B981';
-        task.priorityBg = '#ECFDF5';
       }
 
       if (dateVal) {
@@ -4695,7 +4763,7 @@
         body: JSON.stringify({
           title: task.title,
           description: task.description,
-          priority: task.priority === 'Alta' ? 'HIGH' : (task.priority === 'Baixa' ? 'LOW' : (task.priority === 'Urgente' ? 'URGENT' : 'MEDIUM')),
+          priority: normalizePriorityToEnum(task.priority),
           status: task.status,
           assignee: task.assignee,
           assigneeName: task.assignee,
@@ -5419,6 +5487,8 @@
       createTaskSelectedTags = [];
       renderCreateTaskTags();
       initCreateTaskDeadline();
+      const prioritySelect = document.getElementById('createPrioritySelect');
+      if (prioritySelect) prioritySelect.value = 'Média';
     }
 
     // Inicialização e Controle de Prazo de Entrega (US01 / Alertas Progressivos)
@@ -5708,7 +5778,7 @@
 
         const title = titleInput ? titleInput.value.trim() : '';
         const desc = descInput ? descInput.value.trim() : '';
-        const priority = prioritySelect ? prioritySelect.value : 'Média';
+        const priority = normalizePriorityToDisplay(prioritySelect ? prioritySelect.value : 'Média');
         const effort = effortInput ? (parseFloat(effortInput.value) || 2) : 2;
 
         if (!title) {
@@ -5731,11 +5801,7 @@
           selectedAssignee = user.name || 'Davi';
         }
 
-        let pBg = '#EFF6FF', pCol = '#2563EB';
-        if (priority === 'Alta') { pBg = '#FEE2E2'; pCol = '#DC2626'; }
-        else if (priority === 'Média') { pBg = '#FEF3C7'; pCol = '#D97706'; }
-        else if (priority === 'Urgente') { pBg = '#FEE2E2'; pCol = '#991B1B'; }
-        else if (priority === 'Baixa') { pBg = '#DCFCE7'; pCol = '#16A34A'; }
+        const { bg: pBg, col: pCol } = getPriorityColors(priority);
 
         // Avatar seguro sem ReferenceError
         const allUsers = (db.allUsers && Array.isArray(db.allUsers) && db.allUsers.length > 0) 
@@ -5800,7 +5866,7 @@
             team: currentTeam,
             title: newTask.title,
             description: newTask.description,
-            priority: newTask.priority === 'Alta' ? 'HIGH' : (newTask.priority === 'Baixa' ? 'LOW' : (newTask.priority === 'Urgente' ? 'URGENT' : 'MEDIUM')),
+            priority: normalizePriorityToEnum(newTask.priority),
             effortHours: newTask.effortHours,
             dueDate: newTask.dueDateIso,
             projectId: newTask.projectId,
@@ -5828,6 +5894,7 @@
         // Reseta form, tags e rascunhos
         if (titleInput) titleInput.value = '';
         if (descInput) descInput.value = '';
+        if (prioritySelect) prioritySelect.value = 'Média';
         createTaskSelectedTags = [];
         renderCreateTaskTags();
         if (typeof draftSubtasks !== 'undefined') draftSubtasks = [];
@@ -6555,7 +6622,8 @@
 
       document.getElementById('menuUserName').innerText = user.name;
       document.getElementById('menuUserEmail').innerText = user.email;
-      document.getElementById('menuUserAvatar').src = user.avatar || user.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User';
+      const avatarSrc = resolveAvatarUrl(user.avatar || user.avatarUrl, user.name);
+      document.getElementById('menuUserAvatar').src = avatarSrc;
       document.getElementById('menuCurrentTeam').innerText = team;
 
       // Atualiza perfil dinamicamente via backend PostgreSQL se tiver token de sessão
@@ -6569,8 +6637,16 @@
             if (data.user) {
               document.getElementById('menuUserName').innerText = data.user.name;
               document.getElementById('menuUserEmail').innerText = data.user.email;
-              if (data.user.avatar) {
-                document.getElementById('menuUserAvatar').src = data.user.avatar;
+              if (data.user.avatar || data.user.avatarUrl) {
+                const freshAvatar = resolveAvatarUrl(data.user.avatar || data.user.avatarUrl, data.user.name);
+                document.getElementById('menuUserAvatar').src = freshAvatar;
+                if (document.getElementById('userAvatarMini')) {
+                  document.getElementById('userAvatarMini').src = freshAvatar;
+                }
+                user.avatar = freshAvatar;
+                user.avatarUrl = freshAvatar;
+                db.currentUser = user;
+                saveDB(db, false);
               }
             }
           }
@@ -6578,6 +6654,78 @@
       }
 
       document.getElementById('modalUserMenu').style.display = 'flex';
+    }
+
+    async function handleSelectAvatarFile(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+
+      const db = getDB();
+      if (!db.currentUser) {
+        db.currentUser = { id: 'user-temp', name: 'Usuário', email: 'user@sinergia.com' };
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const previewDataUrl = e.target.result;
+        const menuAvatarEl = document.getElementById('menuUserAvatar');
+        const miniAvatarEl = document.getElementById('userAvatarMini');
+        if (menuAvatarEl) menuAvatarEl.src = previewDataUrl;
+        if (miniAvatarEl) miniAvatarEl.src = previewDataUrl;
+
+        // Salva preview imediato localmente
+        db.currentUser.avatar = previewDataUrl;
+        db.currentUser.avatarUrl = previewDataUrl;
+        saveDB(db, false);
+        showToast('Enviando foto para o MinIO...');
+
+        try {
+          const formData = new FormData();
+          formData.append('avatar', file);
+          if (db.currentUser.id) formData.append('userId', db.currentUser.id);
+          if (db.currentUser.email) formData.append('email', db.currentUser.email);
+          if (db.currentUser.name) formData.append('name', db.currentUser.name);
+
+          const headers = {};
+          if (db.authToken) headers['Authorization'] = `Bearer ${db.authToken}`;
+
+          const res = await apiFetch('/users/avatar', {
+            method: 'POST',
+            headers,
+            body: formData
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.avatarUrl) {
+              const fullAvatarUrl = resolveAvatarUrl(data.avatarUrl, db.currentUser.name);
+              db.currentUser.avatar = fullAvatarUrl;
+              db.currentUser.avatarUrl = fullAvatarUrl;
+              if (menuAvatarEl) menuAvatarEl.src = fullAvatarUrl;
+              if (miniAvatarEl) miniAvatarEl.src = fullAvatarUrl;
+
+              // Atualiza o avatar das tarefas deste usuário
+              if (Array.isArray(db.tasks)) {
+                db.tasks.forEach(t => {
+                  if (t.assignee === db.currentUser.name || t.assigneeId === db.currentUser.id) {
+                    t.avatar = fullAvatarUrl;
+                  }
+                });
+              }
+
+              saveDB(db, true);
+              showToast('Foto de perfil salva com sucesso no MinIO!');
+              if (typeof renderDashboard === 'function') renderDashboard();
+              return;
+            }
+          }
+          showToast('Foto de perfil atualizada localmente.');
+        } catch (uploadErr) {
+          console.warn('[Avatar Upload MinIO Warning]', uploadErr);
+          showToast('Foto salva localmente no dispositivo (offline).');
+        }
+      };
+      reader.readAsDataURL(file);
     }
 
     function logoutUser() {
@@ -6614,6 +6762,7 @@
         if (pendingPush.length > 0 || pendingDeleted.length > 0) {
           const sanitizeTaskForPush = (t) => ({
             ...t,
+            priority: normalizePriorityToEnum(t.priority),
             dueDate: t.dueDateIso || t.dueDate,
             dueDateIso: t.dueDateIso || t.dueDate
           });
@@ -6669,9 +6818,8 @@
 
               if (!belongsToTeam) continue;
 
-              const priorityText = st.priority === 'HIGH' ? 'Alta' : (st.priority === 'LOW' ? 'Baixa' : (st.priority === 'URGENT' ? 'Urgente' : 'Média'));
-              const pBg = (priorityText === 'Alta' || priorityText === 'Urgente') ? '#FEE2E2' : (priorityText === 'Baixa' ? '#ECFDF5' : '#FEF3C7');
-              const pCol = (priorityText === 'Alta' || priorityText === 'Urgente') ? '#EF4444' : (priorityText === 'Baixa' ? '#10B981' : '#D97706');
+              const priorityText = normalizePriorityToDisplay(st.priority);
+              const { bg: pBg, col: pCol } = getPriorityColors(priorityText);
               const assignee = st.assigneeName || st.assignee || 'Equipe';
               const avatar = st.avatar || ('https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(assignee));
 
@@ -6715,7 +6863,7 @@
                 const isUpdated = lt.title !== st.title ||
                                   lt.description !== (st.description || '') ||
                                   lt.status !== st.status ||
-                                  lt.priority !== priorityText ||
+                                  normalizePriorityToDisplay(lt.priority) !== priorityText ||
                                   lt.assignee !== assignee ||
                                   lt.effortHours !== (st.effortHours || lt.effortHours) ||
                                   commentsDiffer ||
@@ -7386,6 +7534,29 @@
       }
     }
 
+    let regAvatarSelectedDataUrl = null;
+
+    function updateRegAvatarSeed(val) {
+      if (regAvatarSelectedDataUrl) return;
+      const preview = document.getElementById('regAvatarPreview');
+      if (preview) {
+        preview.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(val.trim() || 'NovoUsuario')}`;
+      }
+    }
+
+    function handleSelectRegAvatar(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        regAvatarSelectedDataUrl = e.target.result;
+        const preview = document.getElementById('regAvatarPreview');
+        if (preview) preview.src = regAvatarSelectedDataUrl;
+        showToast('Foto de perfil selecionada para o cadastro!');
+      };
+      reader.readAsDataURL(file);
+    }
+
     // --- FLUXO 1: CADASTRO REAL COM POSTGRESQL & BCRYPT ---
     async function handleRegister() {
       const name = document.getElementById('regUser').value.trim();
@@ -7413,10 +7584,38 @@
       showToast('Cadastrando perfil no PostgreSQL...');
 
       try {
+        let avatarToSend = undefined;
+        const regFileInput = document.getElementById('regAvatarFileInput');
+        if (regFileInput && regFileInput.files && regFileInput.files[0]) {
+          try {
+            const formData = new FormData();
+            formData.append('avatar', regFileInput.files[0]);
+            formData.append('name', name);
+            formData.append('email', email);
+            const uploadRes = await apiFetch('/users/avatar', {
+              method: 'POST',
+              body: formData
+            });
+            if (uploadRes.ok) {
+              const uploadData = await uploadRes.json();
+              if (uploadData.success && uploadData.avatarUrl) {
+                avatarToSend = uploadData.avatarUrl;
+              }
+            }
+          } catch (e) {
+            console.warn('[Reg Avatar Upload Warning]', e);
+          }
+        }
+
         const res = await apiFetch('/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password: pass })
+          body: JSON.stringify({
+            name,
+            email,
+            password: pass,
+            avatarUrl: avatarToSend || regAvatarSelectedDataUrl || undefined
+          })
         });
         const data = await res.json();
 
@@ -7428,6 +7627,13 @@
         const db = getDB();
         db.authToken = data.token;
         db.currentUser = data.user;
+        if (avatarToSend) {
+          db.currentUser.avatar = resolveAvatarUrl(avatarToSend, name);
+          db.currentUser.avatarUrl = resolveAvatarUrl(avatarToSend, name);
+        } else if (regAvatarSelectedDataUrl) {
+          db.currentUser.avatar = regAvatarSelectedDataUrl;
+          db.currentUser.avatarUrl = regAvatarSelectedDataUrl;
+        }
         db.currentTeam = null;
         db.currentTeamId = null;
         saveDB(db, false);

@@ -1,5 +1,15 @@
 import { LocalTask, LocalComment, LocalTag } from '../database/schema';
 
+function normalizePriority(p?: any): 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' {
+  if (!p) return 'MEDIUM';
+  const s = String(p).trim().toUpperCase();
+  if (s === 'LOW' || s.startsWith('BAIX')) return 'LOW';
+  if (s === 'HIGH' || s.startsWith('ALT')) return 'HIGH';
+  if (s === 'URGENT' || s.startsWith('URG')) return 'URGENT';
+  if (s === 'MEDIUM' || s.startsWith('MED')) return 'MEDIUM';
+  return 'MEDIUM';
+}
+
 export class SyncService {
   private apiUrl: string;
   private lastPulledAt: number = 0;
@@ -96,7 +106,7 @@ export class SyncService {
       id,
       title: data.title || '',
       description: data.description || '',
-      priority: data.priority || 'MEDIUM',
+      priority: normalizePriority(data.priority),
       status: data.status || 'PENDING',
       effortHours: data.effortHours || 0,
       startDate: data.startDate || null,
@@ -125,6 +135,7 @@ export class SyncService {
     const updated: LocalTask = {
       ...existing,
       ...data,
+      priority: data.priority !== undefined ? normalizePriority(data.priority) : existing.priority,
       _status: existing._status === 'created' ? 'created' : 'updated',
       updatedAt: new Date().toISOString()
     };
@@ -174,14 +185,14 @@ export class SyncService {
             // Mescla tarefas criadas e atualizadas no servidor
             for (const t of pullData.changes.tasks.created || []) {
               if (!this.tasks.has(t.id) || this.tasks.get(t.id)?._status === 'synced') {
-                this.tasks.set(t.id, { ...t, _status: 'synced' });
+                this.tasks.set(t.id, { ...t, priority: normalizePriority(t.priority), _status: 'synced' });
                 pulledCount++;
               }
             }
             for (const t of pullData.changes.tasks.updated || []) {
               const current = this.tasks.get(t.id);
               if (!current || current._status === 'synced') {
-                this.tasks.set(t.id, { ...t, _status: 'synced' });
+                this.tasks.set(t.id, { ...t, priority: normalizePriority(t.priority), _status: 'synced' });
                 pulledCount++;
               }
             }
@@ -196,8 +207,8 @@ export class SyncService {
       }
 
       // 2. PUSH: Envia alterações locais acumuladas
-      const createdTasks = Array.from(this.tasks.values()).filter(t => t._status === 'created');
-      const updatedTasks = Array.from(this.tasks.values()).filter(t => t._status === 'updated');
+      const createdTasks = Array.from(this.tasks.values()).filter(t => t._status === 'created').map(t => ({ ...t, priority: normalizePriority(t.priority) }));
+      const updatedTasks = Array.from(this.tasks.values()).filter(t => t._status === 'updated').map(t => ({ ...t, priority: normalizePriority(t.priority) }));
       const deletedTasks = Array.from(this.tasks.values()).filter(t => t._status === 'deleted').map(t => t.id);
 
       if (createdTasks.length > 0 || updatedTasks.length > 0 || deletedTasks.length > 0) {

@@ -7,6 +7,16 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from './prisma';
 
+export function normalizePriority(p?: any): Priority {
+  if (!p) return 'MEDIUM';
+  const s = String(p).trim().toUpperCase();
+  if (s === 'LOW' || s.startsWith('BAIX')) return 'LOW';
+  if (s === 'HIGH' || s.startsWith('ALT')) return 'HIGH';
+  if (s === 'URGENT' || s.startsWith('URG')) return 'URGENT';
+  if (s === 'MEDIUM' || s.startsWith('MED')) return 'MEDIUM';
+  return 'MEDIUM';
+}
+
 export class AppRepository {
   users: Map<string, User> = new Map();
   projects: Map<string, Project> = new Map();
@@ -325,7 +335,7 @@ export class AppRepository {
       id,
       title: data.title || 'Nova Tarefa',
       description: data.description || '',
-      priority: data.priority || 'MEDIUM',
+      priority: normalizePriority(data.priority),
       status: data.status || 'PENDING',
       effortHours: data.effortHours || 0,
       startDate: data.startDate ? new Date(data.startDate) : null,
@@ -697,6 +707,7 @@ export class AppRepository {
     const updated: Task = {
       ...existing,
       ...cleanData,
+      priority: (cleanData as any).priority !== undefined ? normalizePriority((cleanData as any).priority) : existing.priority,
       dueDate: parsedDue !== undefined ? parsedDue : existing.dueDate,
       team: (data as any).team || existing.team,
       subtasks: (data as any).subtasks !== undefined ? (data as any).subtasks : existing.subtasks,
@@ -1209,6 +1220,29 @@ export class AppRepository {
       this.projectMembers.set(pmId, member);
     }
     return { user, member };
+  }
+
+  updateUserAvatar(identifier: string, avatarUrl: string): User | undefined {
+    let user = this.users.get(identifier);
+    if (!user) {
+      user = Array.from(this.users.values()).find(u =>
+        u.id === identifier ||
+        u.email.toLowerCase() === identifier.toLowerCase() ||
+        u.name.toLowerCase() === identifier.toLowerCase()
+      );
+    }
+    if (user) {
+      user.avatarUrl = avatarUrl;
+      user.updatedAt = new Date();
+      this.changeLogs.push({
+        table: 'users',
+        recordId: user.id,
+        action: 'updated',
+        timestamp: new Date()
+      });
+      return user;
+    }
+    return undefined;
   }
 }
 

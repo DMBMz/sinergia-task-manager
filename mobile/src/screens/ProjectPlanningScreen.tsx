@@ -507,7 +507,7 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 40
   },
   bottomNav: {
-    position: 'absolute',
+    position: 'fixed',
     bottom: 0,
     left: 0,
     right: 0,
@@ -517,7 +517,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
-    zIndex: 50
+    zIndex: 1000
   },
   navItem: {
     background: 'none',

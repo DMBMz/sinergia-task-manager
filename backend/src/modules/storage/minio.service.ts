@@ -46,13 +46,13 @@ export class MinioService {
     }
   }
 
-  async uploadFile(file: Express.Multer.File, storageKey: string): Promise<{ storageKey: string; url: string }> {
+  async uploadBuffer(buffer: Buffer, storageKey: string, mimetype: string = 'image/png'): Promise<{ storageKey: string; url: string }> {
     if (this.isConnected && this.client) {
       try {
-        await this.client.putObject(this.bucket, storageKey, file.buffer, file.size, {
-          'Content-Type': file.mimetype
+        await this.client.putObject(this.bucket, storageKey, buffer, buffer.length, {
+          'Content-Type': mimetype
         });
-        const url = `http://${config.minio.endPoint}:${config.minio.port}/${this.bucket}/${storageKey}`;
+        const url = `/api/v1/attachments/file/${storageKey}`;
         return { storageKey, url };
       } catch (err) {
         console.warn('[MinioService] Erro no upload MinIO, salvando localmente:', (err as Error).message);
@@ -65,9 +65,13 @@ export class MinioService {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(filePath, file.buffer);
+    fs.writeFileSync(filePath, buffer);
     const url = `/api/v1/attachments/file/${storageKey}`;
     return { storageKey, url };
+  }
+
+  async uploadFile(file: Express.Multer.File, storageKey: string): Promise<{ storageKey: string; url: string }> {
+    return this.uploadBuffer(file.buffer, storageKey, file.mimetype);
   }
 
   async getFileStream(storageKey: string) {

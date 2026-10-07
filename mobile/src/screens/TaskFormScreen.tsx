@@ -16,9 +16,18 @@ export const TaskFormScreen: React.FC<TaskFormScreenProps> = ({
   onSave,
   onBack
 }) => {
+  const normalizePriority = (p?: any): LocalTask['priority'] => {
+    if (!p) return 'MEDIUM';
+    const s = String(p).trim().toUpperCase();
+    if (s === 'LOW' || s.startsWith('BAIX')) return 'LOW';
+    if (s === 'HIGH' || s.startsWith('ALT')) return 'HIGH';
+    if (s === 'URGENT' || s.startsWith('URG')) return 'URGENT';
+    return 'MEDIUM';
+  };
+
   const [title, setTitle] = useState(initialTask?.title || '');
   const [description, setDescription] = useState(initialTask?.description || '');
-  const [priority, setPriority] = useState<LocalTask['priority']>(initialTask?.priority || 'MEDIUM');
+  const [priority, setPriority] = useState<LocalTask['priority']>(normalizePriority(initialTask?.priority));
   const [status, setStatus] = useState<LocalTask['status']>(initialTask?.status || 'PENDING');
   const [effortHours, setEffortHours] = useState(initialTask?.effortHours || 4);
   const [dueDate, setDueDate] = useState(initialTask?.dueDate ? initialTask.dueDate.substring(0, 10) : '');
@@ -188,7 +197,7 @@ export const TaskFormScreen: React.FC<TaskFormScreenProps> = ({
           onAcceptServer={() => {
             setTitle(conflictedServerTask.title);
             setDescription(conflictedServerTask.description || '');
-            setPriority(conflictedServerTask.priority);
+            setPriority(normalizePriority(conflictedServerTask.priority));
             setStatus(conflictedServerTask.status);
             setShowConflictModal(false);
           }}

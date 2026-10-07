@@ -85,9 +85,13 @@ export function createApp() {
   app.get('/api/v1/tasks/:id/comments', (req, res) => commentsController.list(req, res));
   app.post('/api/v1/tasks/:id/comments', (req, res) => commentsController.create(req, res));
 
-  // US04: MinIO Attachments
+  // US04: MinIO Attachments & Profile Avatars
   app.post('/api/v1/tasks/:id/attachments', upload.single('file'), (req, res) => storageController.uploadAttachment(req, res));
   app.get('/api/v1/attachments/file/:key(*)', (req, res) => storageController.getFile(req, res));
+  app.get('/api/v1/storage/file/:key(*)', (req, res) => storageController.getFile(req, res));
+  app.post('/api/v1/users/avatar', optionalAuthMiddleware, upload.single('avatar'), (req, res) => storageController.uploadAvatar(req, res));
+  app.post('/api/v1/users/:id/avatar', optionalAuthMiddleware, upload.single('avatar'), (req, res) => storageController.uploadAvatar(req, res));
+  app.post('/api/v1/profile/avatar', optionalAuthMiddleware, upload.single('avatar'), (req, res) => storageController.uploadAvatar(req, res));
 
   // US07: Firebase Progressive Deadlines
   app.get('/api/v1/notifications/deadlines', (req, res) => notificationsController.checkDeadlines(req, res));

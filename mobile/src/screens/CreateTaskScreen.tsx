@@ -104,14 +104,14 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ onBack, onSa
           <div style={styles.splitRow}>
             <label style={styles.label}>Prioridade</label>
             <div style={styles.prioritySelector}>
-              {(['Alta', 'Média', 'Baixa'] as const).map(p => (
+              {(['Alta', 'Média', 'Baixa', 'Urgente'] as const).map(p => (
                 <button
                   key={p}
                   type="button"
                   onClick={() => setPriority(p)}
                   style={{
                     ...styles.priorityPill,
-                    backgroundColor: priority === p ? (p === 'Alta' ? '#EF4444' : p === 'Média' ? '#F59E0B' : '#64748B') : '#F1F5F9',
+                    backgroundColor: priority === p ? (p === 'Urgente' ? '#991B1B' : p === 'Alta' ? '#EF4444' : p === 'Média' ? '#F59E0B' : '#16A34A') : '#F1F5F9',
                     color: priority === p ? '#FFFFFF' : '#475569'
                   }}
                 >

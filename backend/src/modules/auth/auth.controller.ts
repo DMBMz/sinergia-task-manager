@@ -38,7 +38,9 @@ export class AuthController {
 
       // Hash seguro da senha com bcrypt
       const passwordHash = await bcrypt.hash(password, 10);
-      const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name.trim())}`;
+      const avatarUrl = (req.body.avatarUrl && typeof req.body.avatarUrl === 'string')
+        ? req.body.avatarUrl
+        : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name.trim())}`;
 
       // Criação do usuário no PostgreSQL
       const user = await prisma.user.create({
