@@ -1660,12 +1660,31 @@
             <strong style="font-size: 15px; color: #1E3A8A;" id="detailEffortHours">~4,5 horas</strong>
           </div>
 
-          <!-- Atribuído a -->
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 11px;">
-            <span style="color: #64748B;">Atribuído a</span>
-            <div style="display: flex; align-items: center; gap: 6px; background: #FFFFFF; border: 1px solid var(--border); padding: 2px 8px; border-radius: 9999px;">
-              <img id="detailAssigneeAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Membro" style="width: 16px; height: 16px; border-radius: 50%;">
-              <strong id="detailAssigneeName">Membro</strong>
+          <!-- Atribuição e Criador da Tarefa (Exibição apenas nos Detalhes da Tarefa) -->
+          <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;">
+            <!-- Criada por (Registro Fixo e Imutável) -->
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+              <span style="color: #64748B; display: inline-flex; align-items: center; gap: 6px;">
+                <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                Criada por:
+              </span>
+              <div style="display: flex; align-items: center; gap: 6px; background: #F8FAFC; border: 1px solid #E2E8F0; padding: 2px 8px; border-radius: 9999px;">
+                <img id="detailCreatorAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Criador" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1px solid #CBD5E1;">
+                <strong id="detailCreatorName" style="color: #334155; font-size: 11px;">Criador</strong>
+                <span style="font-size: 8.5px; color: #64748B; font-weight: 700; background: #E2E8F0; padding: 1px 4px; border-radius: 4px;" title="Registro fixo original da criação">Fixo</span>
+              </div>
+            </div>
+
+            <!-- Atribuído a -->
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; padding-top: 6px; border-top: 1px dashed #F1F5F9;">
+              <span style="color: #64748B; display: inline-flex; align-items: center; gap: 6px;">
+                <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Atribuído a:
+              </span>
+              <div style="display: flex; align-items: center; gap: 6px; background: #EFF6FF; border: 1px solid #BFDBFE; padding: 2px 8px; border-radius: 9999px;">
+                <img id="detailAssigneeAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Membro" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1.5px solid #3B82F6;">
+                <strong id="detailAssigneeName" style="color: #1D4ED8; font-size: 11px;">Membro</strong>
+              </div>
             </div>
           </div>
 
@@ -2886,6 +2905,92 @@
       return `${backendOrigin}/${url}`;
     }
 
+    function resolveUserPhoto(userNameOrId, explicitAvatar) {
+      const targetStr = String(userNameOrId || '').trim();
+      const targetLower = targetStr.toLowerCase();
+
+      let db = null;
+      try {
+        if (typeof getDB === 'function') db = getDB();
+      } catch (e) {
+        db = null;
+      }
+
+      // 1. Prioridade máxima: Usuário logado atual (currentUser)
+      if (db && db.currentUser) {
+        const myName = String(db.currentUser.name || '').trim().toLowerCase();
+        const myId = String(db.currentUser.id || '').trim().toLowerCase();
+        const myEmail = String(db.currentUser.email || '').trim().toLowerCase();
+
+        const isMe = (
+          targetLower === myName ||
+          targetLower === myId ||
+          targetLower === myEmail ||
+          (targetLower === 'davi' && myName.includes('davi')) ||
+          targetLower === 'você' ||
+          targetLower === 'voce'
+        );
+
+        if (isMe) {
+          const myAvatar = db.currentUser.avatar || db.currentUser.avatarUrl;
+          if (myAvatar && typeof myAvatar === 'string' && myAvatar.trim() !== '') {
+            return resolveAvatarUrl(myAvatar, db.currentUser.name || 'Davi');
+          }
+        }
+      }
+
+      // 2. Se explicitAvatar for uma foto real personalizada (Base64 data:, blob:, ou MinIO / storage)
+      if (explicitAvatar && typeof explicitAvatar === 'string' && explicitAvatar.trim() !== '') {
+        const isCustomPhoto = (
+          explicitAvatar.startsWith('data:') ||
+          explicitAvatar.startsWith('blob:') ||
+          explicitAvatar.includes('/avatars/') ||
+          explicitAvatar.includes('/storage/') ||
+          (!explicitAvatar.includes('api.dicebear.com/7.x/avataaars') && (explicitAvatar.startsWith('http://') || explicitAvatar.startsWith('https://')))
+        );
+        if (isCustomPhoto) {
+          return resolveAvatarUrl(explicitAvatar, targetStr || 'Membro');
+        }
+      }
+
+      // 3. Cache dinâmico de fotos salvas por nome de usuário (db.userAvatars)
+      if (db && db.userAvatars && typeof db.userAvatars === 'object') {
+        const cached = db.userAvatars[targetLower];
+        if (cached && typeof cached === 'string' && cached.trim() !== '') {
+          return resolveAvatarUrl(cached, targetStr || 'Membro');
+        }
+      }
+
+      // 4. Membros registrados na equipe / projeto (teamUsers, allUsers, projectMembersCache)
+      const userPool = [];
+      if (db && Array.isArray(db.teamUsers)) userPool.push(...db.teamUsers);
+      if (db && Array.isArray(db.allUsers)) userPool.push(...db.allUsers);
+      if (typeof projectMembersCache !== 'undefined' && Array.isArray(projectMembersCache)) userPool.push(...projectMembersCache);
+
+      if (targetLower) {
+        const found = userPool.find(u => u && (
+          (u.name && String(u.name).trim().toLowerCase() === targetLower) ||
+          (u.id && String(u.id).trim().toLowerCase() === targetLower) ||
+          (u.email && String(u.email).trim().toLowerCase() === targetLower)
+        ));
+
+        if (found) {
+          const foundPic = found.avatarUrl || found.avatar;
+          if (foundPic && typeof foundPic === 'string' && foundPic.trim() !== '') {
+            return resolveAvatarUrl(foundPic, targetStr);
+          }
+        }
+      }
+
+      // 5. Se o explicitAvatar existir mesmo sendo remoto/fallback
+      if (explicitAvatar && typeof explicitAvatar === 'string' && explicitAvatar.trim() !== '') {
+        return resolveAvatarUrl(explicitAvatar, targetStr || 'Membro');
+      }
+
+      // 6. Se for vazio ou sem foto, fallback determinístico com o nome
+      return resolveAvatarUrl(null, targetStr || 'Membro');
+    }
+
     // Banco de Dados Local (Persistência Offline em localStorage)
     const DB_KEY = 'sinergia_real_flow_v5';
 
@@ -3524,6 +3629,24 @@
       const user = db.currentUser || { name: 'Davi', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Davi' };
       const team = db.currentTeam || 'Meu Time';
 
+      // Sincroniza fotos reais dos membros nas tarefas locais
+      if (db.currentUser && (db.currentUser.avatar || db.currentUser.avatarUrl)) {
+        const myPhoto = resolveUserPhoto(db.currentUser.name);
+        const myName = (db.currentUser.name || '').trim().toLowerCase();
+        (db.tasks || []).forEach(t => {
+          if ((t.assignee && t.assignee.trim().toLowerCase() === myName) || t.assigneeId === db.currentUser.id) {
+            t.avatar = myPhoto;
+          }
+          if (!t.creatorName) {
+            t.creatorName = db.currentUser.name || 'Davi';
+            t.createdById = db.currentUser.id || 'user-davi-001';
+            t.creatorAvatar = myPhoto;
+          } else if ((t.creatorName && t.creatorName.trim().toLowerCase() === myName) || t.createdById === db.currentUser.id) {
+            t.creatorAvatar = myPhoto;
+          }
+        });
+      }
+
       document.getElementById('dashGreeting').innerText = `Olá, ${user.name}`;
       document.getElementById('userAvatarMini').src = resolveAvatarUrl(user.avatar || user.avatarUrl, user.name);
 
@@ -3541,7 +3664,11 @@
 
       const completed = tasks.filter(t => t.status === 'COMPLETED').length;
       const pending = tasks.filter(t => t.status !== 'COMPLETED').length;
-      const late = tasks.filter(t => (normalizePriorityToEnum(t.priority) === 'HIGH' || normalizePriorityToEnum(t.priority) === 'URGENT') && t.status !== 'COMPLETED').length;
+      const late = tasks.filter(t => {
+        if (t.status === 'COMPLETED') return false;
+        const due = getTaskDueTimestamp(t);
+        return due !== null && due < Date.now();
+      }).length;
 
       document.getElementById('statCompleted').innerText = completed;
       document.getElementById('statPending').innerText = pending;
@@ -3563,7 +3690,7 @@
         }
       }
 
-      renderTaskList(false);
+      renderTaskList();
     }
 
     let showAllPendingTasks = false;
@@ -3587,13 +3714,14 @@
 
       const wasCompleted = task.status === 'COMPLETED';
       task.status = wasCompleted ? 'PENDING' : 'COMPLETED';
+      task.version = (task.version || 1) + 1;
       task._status = (task._status === 'created') ? 'created' : 'updated';
 
       if (!wasCompleted && Array.isArray(task.subtasks) && task.subtasks.length > 0) {
         task.subtasks.forEach(s => s.completed = true);
       }
 
-      saveDB(db, true);
+      saveDB(db, false);
       renderDashboard();
 
       if (task.status === 'COMPLETED') {
@@ -3608,6 +3736,34 @@
       } else {
         showToast('Tarefa reaberta como pendente.');
       }
+
+      // Sincroniza imediatamente com a nuvem via PUT dedicado para garantir persistência no banco
+      if (isOnline) {
+        apiFetch(`/tasks/${task.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: task.status,
+            version: task.version - 1,
+            subtasks: task.subtasks,
+            userId: db.currentUser?.id || 'me'
+          })
+        }).then(res => {
+          if (res.ok) {
+            const curDb = getDB();
+            const curTask = (curDb.tasks || []).find(t => t.id === taskId);
+            if (curTask) {
+              curTask._status = 'synced';
+              saveDB(curDb, false);
+            }
+          }
+        }).catch(err => {
+          console.warn('[Sync] Falha no PUT rápido, sincronizará no próximo sync:', err);
+        });
+      }
+
+      // Agenda sincronização bidirecional completa em background
+      setTimeout(() => syncWithBackend(true), 300);
     }
 
     // Constrói elemento HTML do Card de Tarefa (Pendente ou Concluída)
@@ -3623,11 +3779,7 @@
       const totalSubs = (task.subtasks || []).length;
       const subBadge = totalSubs > 0 ? `<span style="font-size: 10px; color: #64748B; margin-left: 6px;">[${completedSubs}/${totalSubs} subs]</span>` : '';
 
-      let dueTimestamp = null;
-      if (task.dueDateIso) {
-        dueTimestamp = new Date(task.dueDateIso).getTime();
-      }
-
+      const dueTimestamp = getTaskDueTimestamp(task);
       const isOverdue = dueTimestamp && dueTimestamp < Date.now() && !isCompleted;
       const diffHours = dueTimestamp ? (dueTimestamp - Date.now()) / (1000 * 3600) : null;
 
@@ -3670,7 +3822,7 @@
       let cpmBadge = '';
       if (task.status === 'BLOCKED') {
         cpmBadge = `<span style="background: #FEE2E2; color: #991B1B; border: 1px solid #F87171; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🔒 Bloqueada</span>`;
-      } else if (task.isCritical || (!isCompleted && (normalizePriorityToEnum(task.priority) === 'HIGH' || normalizePriorityToEnum(task.priority) === 'URGENT'))) {
+      } else if (task.isCritical) {
         cpmBadge = `<span style="background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 9999px;">🔥 CPM Crítica</span>`;
       }
 
@@ -3726,7 +3878,7 @@
             </div>
           </div>
         </div>
-        <img src="${task.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(task.assignee || 'Membro')}" style="width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; margin-left: 8px;">
+        <img src="${resolveUserPhoto(task.assignee || task.assigneeName, task.avatar)}" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-left: 8px; border: 1.5px solid #E2E8F0;" alt="${escapeHtml(task.assignee || 'Membro')}">
       `;
       return item;
     }
@@ -4024,7 +4176,7 @@
           const uName = u.name.trim();
           memberMap.set(uName, {
             name: uName,
-            avatar: u.avatarUrl || u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(uName)}`
+            avatar: resolveUserPhoto(uName, u.avatarUrl || u.avatar)
           });
         }
       });
@@ -4035,7 +4187,7 @@
         if (!memberMap.has(myName)) {
           memberMap.set(myName, {
             name: myName,
-            avatar: db.currentUser.avatar || db.currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(myName)}`
+            avatar: resolveUserPhoto(myName, db.currentUser.avatar || db.currentUser.avatarUrl)
           });
         }
       }
@@ -4058,7 +4210,7 @@
         } else {
           memberList.forEach(m => {
             const isSel = filterState.assignee === m.name;
-            const avatarUrl = m.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(m.name)}`;
+            const avatarUrl = resolveUserPhoto(m.name, m.avatar);
             html += `
               <button type="button" class="filter-member-chip ${isSel ? 'active' : ''}" onclick="setDrawerAssignee('${escapeHtml(m.name)}')">
                 <img src="${avatarUrl}" class="filter-member-avatar" alt="${escapeHtml(m.name)}">
@@ -4199,18 +4351,18 @@
 
         // 7. Apenas Atrasadas
         if (filterState.overdueOnly) {
-          if (task.status === 'COMPLETED' || !task.dueDate) return false;
-          const due = new Date(task.dueDate).getTime();
-          if (isNaN(due) || due >= Date.now()) return false;
+          if (task.status === 'COMPLETED') return false;
+          const due = getTaskDueTimestamp(task);
+          if (!due || due >= Date.now()) return false;
         }
 
         // 8. Vence esta semana
         if (filterState.thisWeekOnly) {
-          if (!task.dueDate) return false;
-          const due = new Date(task.dueDate).getTime();
+          const due = getTaskDueTimestamp(task);
+          if (!due) return false;
           const now = Date.now();
           const oneWeek = now + 7 * 86400000;
-          if (isNaN(due) || due < now || due > oneWeek) return false;
+          if (due < now || due > oneWeek) return false;
         }
 
         // 9. Filtro Rápido (Chips)
@@ -4218,15 +4370,15 @@
           const curUser = db.currentUser ? db.currentUser.name : 'Davi';
           if (task.assignee !== curUser) return false;
         } else if (filterState.quickFilter === 'overdue') {
-          if (task.status === 'COMPLETED' || !task.dueDate) return false;
-          const due = new Date(task.dueDate).getTime();
-          if (isNaN(due) || due >= Date.now()) return false;
+          if (task.status === 'COMPLETED') return false;
+          const due = getTaskDueTimestamp(task);
+          if (!due || due >= Date.now()) return false;
         } else if (filterState.quickFilter === 'this_week') {
-          if (!task.dueDate) return false;
-          const due = new Date(task.dueDate).getTime();
+          const due = getTaskDueTimestamp(task);
+          if (!due) return false;
           const now = Date.now();
           const oneWeek = now + 7 * 86400000;
-          if (isNaN(due) || due < now || due > oneWeek) return false;
+          if (due < now || due > oneWeek) return false;
         } else if (filterState.quickFilter === 'high_urgency') {
           const pEnum = normalizePriorityToEnum(task.priority);
           if (pEnum !== 'HIGH' && pEnum !== 'URGENT') return false;
@@ -4342,10 +4494,22 @@
       if (dueEl) dueEl.innerText = getTaskDueDateDisplay(task, true);
       const effortEl = document.getElementById('detailEffortHours');
       if (effortEl) effortEl.innerText = `~${task.effortHours || 4} horas`;
+      // Atribuído a (com foto real resolvida)
+      const assigneeName = task.assignee || task.assigneeName || 'Membro';
       const assigneeEl = document.getElementById('detailAssigneeName');
-      if (assigneeEl) assigneeEl.innerText = task.assignee || 'Membro';
+      if (assigneeEl) assigneeEl.innerText = assigneeName;
       const avatarEl = document.getElementById('detailAssigneeAvatar');
-      if (avatarEl) avatarEl.src = task.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(task.assignee || 'Membro');
+      if (avatarEl) avatarEl.src = resolveUserPhoto(assigneeName, task.avatar || task.assigneeAvatar);
+
+      // Criador da Tarefa (Fixo e Imutável - exibição apenas nos detalhes da tarefa)
+      const currentUserName = db.currentUser ? (db.currentUser.name || 'Davi') : 'Davi';
+      const creatorName = task.creatorName || (task.creator ? task.creator.name : null) || (task.createdById === db.currentUser?.id ? currentUserName : (task.assignee || currentUserName));
+      const creatorAvatar = resolveUserPhoto(creatorName, task.creatorAvatar || (task.creator ? task.creator.avatarUrl : null));
+
+      const creatorNameEl = document.getElementById('detailCreatorName');
+      if (creatorNameEl) creatorNameEl.innerText = creatorName;
+      const creatorAvatarEl = document.getElementById('detailCreatorAvatar');
+      if (creatorAvatarEl) creatorAvatarEl.src = creatorAvatar;
 
       // 1. Tags da Tarefa
       const tagsContainer = document.getElementById('detailTaskTagsContainer');
@@ -4733,13 +4897,14 @@
       task.tags = [...editingTaskTags];
       task.subtasks = [...editingTaskSubtasks];
 
-      // Avatar
-      const allUsers = (db.allUsers && Array.isArray(db.allUsers) && db.allUsers.length > 0) ? db.allUsers : [];
-      const assigneeObj = allUsers.find(u => u && u.name === newAssignee);
-      if (assigneeObj && assigneeObj.avatarUrl) {
-        task.avatar = assigneeObj.avatarUrl;
-      } else {
-        task.avatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(newAssignee);
+      // Avatar do Responsável com Foto Real Resolvida
+      task.avatar = resolveUserPhoto(newAssignee);
+
+      // Preservar Imutabilidade do Criador da Tarefa
+      if (!task.creatorName) {
+        task.creatorName = db.currentUser ? (db.currentUser.name || 'Davi') : 'Davi';
+        task.createdById = db.currentUser ? (db.currentUser.id || 'user-davi-001') : 'user-davi-001';
+        task.creatorAvatar = resolveUserPhoto(task.creatorName);
       }
 
       if (dateVal) {
@@ -5593,6 +5758,55 @@
       return `${y}-${m}-${day}`;
     }
 
+    function getTaskDueTimestamp(task) {
+      if (!task) return null;
+      if (task.dueDateIso) {
+        const d = new Date(task.dueDateIso).getTime();
+        if (!isNaN(d)) return d;
+      }
+      if (task.dueDate) {
+        if (task.dueDate.includes('T')) {
+          const d = new Date(task.dueDate).getTime();
+          if (!isNaN(d)) return d;
+        }
+        const today = new Date();
+        if (task.dueDate.startsWith('Hoje')) {
+          const match = task.dueDate.match(/(\d{1,2}):(\d{2})/);
+          const h = match ? parseInt(match[1], 10) : 18;
+          const m = match ? parseInt(match[2], 10) : 0;
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m, 0).getTime();
+        }
+        if (task.dueDate.startsWith('Amanh')) {
+          const match = task.dueDate.match(/(\d{1,2}):(\d{2})/);
+          const h = match ? parseInt(match[1], 10) : 18;
+          const m = match ? parseInt(match[2], 10) : 0;
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, h, m, 0).getTime();
+        }
+        if (task.dueDate.startsWith('Ontem')) {
+          const match = task.dueDate.match(/(\d{1,2}):(\d{2})/);
+          const h = match ? parseInt(match[1], 10) : 18;
+          const m = match ? parseInt(match[2], 10) : 0;
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, h, m, 0).getTime();
+        }
+        const monthsMap = {
+          jan: 0, fev: 1, mar: 2, abr: 3, mai: 4, jun: 5,
+          jul: 6, ago: 7, set: 8, out: 9, nov: 10, dez: 11
+        };
+        const match = task.dueDate.match(/(\d{1,2})\s+de\s+([a-zA-Z]{3})(?:\s+às\s+(\d{1,2}):(\d{2}))?/i);
+        if (match) {
+          const day = parseInt(match[1], 10);
+          const mStr = match[2].toLowerCase();
+          const month = monthsMap[mStr] !== undefined ? monthsMap[mStr] : today.getMonth();
+          const h = match[3] ? parseInt(match[3], 10) : 18;
+          const m = match[4] ? parseInt(match[4], 10) : 0;
+          return new Date(today.getFullYear(), month, day, h, m, 0).getTime();
+        }
+        const parsed = new Date(task.dueDate).getTime();
+        if (!isNaN(parsed)) return parsed;
+      }
+      return null;
+    }
+
     function getTaskDueDateDisplay(task, includeStatus = false) {
       if (!task) return 'Sem prazo';
       let targetDate = null;
@@ -5600,6 +5814,9 @@
         targetDate = new Date(task.dueDateIso);
       } else if (task.dueDate && task.dueDate.includes('T')) {
         targetDate = new Date(task.dueDate);
+      } else {
+        const ts = getTaskDueTimestamp(task);
+        if (ts) targetDate = new Date(ts);
       }
       
       if (!targetDate || isNaN(targetDate.getTime())) {
@@ -5803,18 +6020,18 @@
 
         const { bg: pBg, col: pCol } = getPriorityColors(priority);
 
-        // Avatar seguro sem ReferenceError
+        // Foto real resolvida do responsável
         const allUsers = (db.allUsers && Array.isArray(db.allUsers) && db.allUsers.length > 0) 
           ? db.allUsers 
           : (typeof cachedAvailableUsers !== 'undefined' ? cachedAvailableUsers : []);
         
         const assigneeObj = allUsers.find(u => u && u.name === selectedAssignee);
-        let assigneeAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(selectedAssignee);
-        if (assigneeObj && assigneeObj.avatarUrl) {
-          assigneeAvatar = assigneeObj.avatarUrl;
-        } else if (selectedAssignee === user.name && user.avatar) {
-          assigneeAvatar = user.avatar;
-        }
+        const assigneeAvatar = resolveUserPhoto(selectedAssignee);
+
+        // Criador fixo da tarefa (imutável - quem a criou)
+        const creatorId = user.id || 'user-davi-001';
+        const creatorName = user.name || 'Davi';
+        const creatorAvatar = resolveUserPhoto(creatorName, user.avatar || user.avatarUrl);
 
         const newTask = {
           id: 'task-' + Date.now(),
@@ -5830,6 +6047,11 @@
           dueDate: dueDateFormatted,
           dueDateIso: dueDateIso,
           effortHours: effort,
+          // Criador imutável
+          createdById: creatorId,
+          creatorName: creatorName,
+          creatorAvatar: creatorAvatar,
+          // Atribuído com foto real
           assignee: selectedAssignee,
           assigneeName: selectedAssignee,
           avatar: assigneeAvatar,
@@ -5870,9 +6092,13 @@
             effortHours: newTask.effortHours,
             dueDate: newTask.dueDateIso,
             projectId: newTask.projectId,
-            assigneeId: assigneeObj?.id || user.id || 'user-davi-001',
+            createdById: newTask.createdById,
+            creatorName: newTask.creatorName,
+            creatorAvatar: newTask.creatorAvatar,
+            assigneeId: assigneeObj?.id || (selectedAssignee === user.name ? creatorId : null),
             assignee: selectedAssignee,
             assigneeName: selectedAssignee,
+            avatar: newTask.avatar,
             tags: newTask.tags,
             subtasks: newTask.subtasks
           })
@@ -6646,6 +6872,16 @@
                 user.avatar = freshAvatar;
                 user.avatarUrl = freshAvatar;
                 db.currentUser = user;
+                if (!db.userAvatars) db.userAvatars = {};
+                db.userAvatars[data.user.name.toLowerCase()] = freshAvatar;
+                (db.tasks || []).forEach(t => {
+                  if ((t.assignee && t.assignee.toLowerCase() === data.user.name.toLowerCase()) || t.assigneeId === data.user.id) {
+                    t.avatar = freshAvatar;
+                  }
+                  if ((t.creatorName && t.creatorName.toLowerCase() === data.user.name.toLowerCase()) || t.createdById === data.user.id) {
+                    t.creatorAvatar = freshAvatar;
+                  }
+                });
                 saveDB(db, false);
               }
             }
@@ -6676,7 +6912,22 @@
         // Salva preview imediato localmente
         db.currentUser.avatar = previewDataUrl;
         db.currentUser.avatarUrl = previewDataUrl;
+        if (!db.userAvatars) db.userAvatars = {};
+        if (db.currentUser.name) db.userAvatars[db.currentUser.name.toLowerCase()] = previewDataUrl;
+
+        // Atualiza imediatamente todas as tarefas vinculadas a este usuário
+        if (Array.isArray(db.tasks)) {
+          db.tasks.forEach(t => {
+            if (t.assignee === db.currentUser.name || t.assigneeId === db.currentUser.id) {
+              t.avatar = previewDataUrl;
+            }
+            if (t.creatorName === db.currentUser.name || t.createdById === db.currentUser.id) {
+              t.creatorAvatar = previewDataUrl;
+            }
+          });
+        }
         saveDB(db, false);
+        if (typeof renderDashboard === 'function') renderDashboard();
         showToast('Enviando foto para o MinIO...');
 
         try {
@@ -6704,11 +6955,17 @@
               if (menuAvatarEl) menuAvatarEl.src = fullAvatarUrl;
               if (miniAvatarEl) miniAvatarEl.src = fullAvatarUrl;
 
-              // Atualiza o avatar das tarefas deste usuário
+              if (!db.userAvatars) db.userAvatars = {};
+              if (db.currentUser.name) db.userAvatars[db.currentUser.name.toLowerCase()] = fullAvatarUrl;
+
+              // Atualiza o avatar das tarefas deste usuário (atribuídas e criadas)
               if (Array.isArray(db.tasks)) {
                 db.tasks.forEach(t => {
                   if (t.assignee === db.currentUser.name || t.assigneeId === db.currentUser.id) {
                     t.avatar = fullAvatarUrl;
+                  }
+                  if (t.creatorName === db.currentUser.name || t.createdById === db.currentUser.id) {
+                    t.creatorAvatar = fullAvatarUrl;
                   }
                 });
               }
@@ -6743,12 +7000,17 @@
     // Sincronização Delta com Backend (US02, US06 - Tempo Real & Colaboração Simultânea)
     let isSyncInProgress = false;
 
+    let hasPendingSyncRequest = false;
+
     async function syncWithBackend(silent = false) {
       if (!isOnline) {
         if (!silent) showToast('Você está offline. Alterações salvas no banco local.');
         return;
       }
-      if (isSyncInProgress) return;
+      if (isSyncInProgress) {
+        hasPendingSyncRequest = true;
+        return;
+      }
       isSyncInProgress = true;
 
       if (!silent) showToast('Sincronizando com o servidor...');
@@ -6820,8 +7082,11 @@
 
               const priorityText = normalizePriorityToDisplay(st.priority);
               const { bg: pBg, col: pCol } = getPriorityColors(priorityText);
-              const assignee = st.assigneeName || st.assignee || 'Equipe';
-              const avatar = st.avatar || ('https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(assignee));
+              const assignee = st.assigneeName || (typeof st.assignee === 'string' ? st.assignee : st.assignee?.name) || 'Equipe';
+              const avatar = resolveUserPhoto(assignee, st.avatar || st.assigneeAvatar || (st.assignee && typeof st.assignee === 'object' ? st.assignee.avatarUrl : null));
+              const creatorName = st.creatorName || (st.creator ? st.creator.name : null) || (st.createdById === db.currentUser?.id ? db.currentUser.name : (assignee || 'Davi'));
+              const creatorAvatar = resolveUserPhoto(creatorName, st.creatorAvatar || (st.creator ? st.creator.avatarUrl : null));
+              const createdById = st.createdById || (st.creator ? st.creator.id : null) || db.currentUser?.id || 'user-davi-001';
 
               if (localIndex === -1) {
                 // Nova tarefa criada por outro usuário no time!
@@ -6842,7 +7107,13 @@
                   dueDate: formattedDue,
                   dueDateIso: effectiveDue,
                   effortHours: st.effortHours || 1,
+                  // Criador imutável
+                  createdById,
+                  creatorName,
+                  creatorAvatar,
+                  // Atribuído
                   assignee: assignee,
+                  assigneeName: assignee,
                   avatar: avatar,
                   subtasks: Array.isArray(st.subtasks) ? st.subtasks : [],
                   comments: Array.isArray(st.comments) ? st.comments : [],
@@ -6856,7 +7127,7 @@
                 });
                 hasChanges = true;
               } else {
-                // Tarefa existente: mescla atualizações do servidor
+                // Tarefa existente: mescla atualizações do servidor protegendo alterações locais pendentes
                 const lt = db.tasks[localIndex];
                 const commentsDiffer = JSON.stringify(lt.comments || []) !== JSON.stringify(st.comments || []);
                 const attachmentsDiffer = JSON.stringify(lt.attachments || []) !== JSON.stringify(st.attachments || []);
@@ -6871,7 +7142,8 @@
                                   JSON.stringify(lt.lockedBy) !== JSON.stringify(st.lockedBy) ||
                                   JSON.stringify(lt.subtasks) !== JSON.stringify(st.subtasks);
 
-                if (isUpdated && lt._status !== 'created') {
+                // Nunca sobrescreve tarefas que foram editadas/criadas localmente e ainda não foram sincronizadas
+                if (isUpdated && lt._status !== 'created' && lt._status !== 'updated') {
                   lt.title = st.title;
                   lt.description = st.description || '';
                   lt.priority = priorityText;
@@ -6879,7 +7151,13 @@
                   lt.priorityColor = pCol;
                   lt.status = st.status || lt.status;
                   lt.assignee = assignee;
+                  lt.assigneeName = assignee;
                   lt.avatar = avatar;
+                  if (!lt.creatorName) {
+                    lt.createdById = createdById;
+                    lt.creatorName = creatorName;
+                    lt.creatorAvatar = creatorAvatar;
+                  }
                   if (st.dueDate || st.dueDateIso) {
                     const effectiveDue = st.dueDateIso || st.dueDate;
                     lt.dueDateIso = effectiveDue;
@@ -6970,18 +7248,20 @@
         if (!silent) showToast('Banco local mantido com sucesso.');
       } finally {
         isSyncInProgress = false;
+        if (hasPendingSyncRequest) {
+          hasPendingSyncRequest = false;
+          setTimeout(() => syncWithBackend(true), 250);
+        }
       }
-
-      renderDashboard();
     }
 
-    // Polling em background a cada 2.5s para sincronização em tempo real entre todos os celulares do time
+    // Polling em background a cada 8s para sincronização em tempo real entre todos os celulares do time
     setInterval(() => {
       const db = getDB();
       if (isOnline && db.currentUser && db.currentTeam) {
         syncWithBackend(true);
       }
-    }, 2500);
+    }, 8000);
 
     // Renderizar Linha do Tempo de Planejamento do Time Ativo
     function renderTimeline() {
@@ -7003,13 +7283,21 @@
 
       tasks.forEach((t, idx) => {
         const card = document.createElement('div');
-        card.style.cssText = 'background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin: 0 16px 8px 16px;';
+        card.style.cssText = 'background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin: 0 16px 8px 16px; cursor: pointer;';
+        card.onclick = () => openTaskDetail(t.id);
+        const respPhoto = resolveUserPhoto(t.assignee, t.avatar);
         card.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong style="font-size: 12px; color: #1E293B;">${t.title}</strong>
+            <strong style="font-size: 12px; color: #1E293B;">${escapeHtml(t.title)}</strong>
             <span style="font-size: 9px; font-weight: 700; background: #DCFCE7; color: #16A34A; padding: 2px 6px; border-radius: 4px;">Ativo</span>
           </div>
-          <span style="font-size: 10px; color: #64748B;">Prazo: ${t.dueDate || 'Hoje'} • Resp: ${t.assignee} (${t.effortHours}h)</span>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <img src="${respPhoto}" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1px solid #CBD5E1;">
+              <span style="font-size: 10px; color: #64748B;">Resp: <strong style="color: #334155;">${escapeHtml(t.assignee || 'Membro')}</strong> (${t.effortHours || 0}h)</span>
+            </div>
+            <span style="font-size: 10px; color: #64748B;">Prazo: ${t.dueDate || 'Hoje'}</span>
+          </div>
         `;
         container.appendChild(card);
       });

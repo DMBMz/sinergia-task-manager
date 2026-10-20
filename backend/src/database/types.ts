@@ -110,6 +110,11 @@ export interface Task {
   version: number; // US06 Lock Otimista
   lockedBy?: { id: string; name: string; avatarUrl?: string } | null;
   lockedAt?: Date | null;
+  createdById?: string | null;
+  creatorName?: string | null;
+  creatorAvatar?: string | null;
+  creator?: { id: string; name: string; avatarUrl?: string } | null;
+  assigneeAvatar?: string | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date | null;

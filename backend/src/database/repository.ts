@@ -156,6 +156,10 @@ export class AppRepository {
       dueDate: new Date(Date.now() + 86400000 * 2), // 2 dias
       projectId: project1.id,
       assigneeId: user1.id,
+      assigneeName: user1.name,
+      createdById: user1.id,
+      creatorName: user1.name,
+      creatorAvatar: user1.avatarUrl,
       parentTaskId: null,
       version: 1,
       createdAt: new Date(),
@@ -178,6 +182,10 @@ export class AppRepository {
       dueDate: new Date(Date.now() + 86400000 * 1), // 1 dia
       projectId: project1.id,
       assigneeId: user2.id,
+      assigneeName: user2.name,
+      createdById: user1.id,
+      creatorName: user1.name,
+      creatorAvatar: user1.avatarUrl,
       parentTaskId: task1.id,
       version: 1,
       createdAt: new Date(),
@@ -344,6 +352,10 @@ export class AppRepository {
       team: data.team || this.projects.get(projectId)?.name || 'Meu Time',
       assigneeId: data.assigneeId || null,
       assigneeName: data.assigneeName || (typeof (data as any).assignee === 'string' ? (data as any).assignee : null),
+      createdById: (data as any).createdById || ((data as any).creator ? (data as any).creator.id : null) || 'user-davi-001',
+      creatorName: (data as any).creatorName || ((data as any).creator ? (data as any).creator.name : null) || 'Davi Marinho',
+      creatorAvatar: (data as any).creatorAvatar || ((data as any).creator ? (data as any).creator.avatarUrl : null) || null,
+      assigneeAvatar: (data as any).assigneeAvatar || (data as any).avatar || null,
       parentTaskId: data.parentTaskId || null,
       subtasks: Array.isArray(data.subtasks) ? data.subtasks : [],
       assignmentStatus: data.assignmentStatus || 'ACCEPTED',
@@ -472,7 +484,12 @@ export class AppRepository {
     const taskAttachments = (task as any).attachments || [];
     const combinedAttachments = [...taskAttachments, ...repoAttachments];
 
-    const assignee = task.assigneeId ? this.users.get(task.assigneeId) : null;
+    const assignee = task.assigneeId ? this.users.get(task.assigneeId) : (task.assigneeName ? Array.from(this.users.values()).find(u => u.name.toLowerCase() === task.assigneeName!.toLowerCase()) : null);
+    const creatorUser = (task as any).createdById ? this.users.get((task as any).createdById) : null;
+    const creatorName = (task as any).creatorName || creatorUser?.name || 'Davi Marinho';
+    const creatorAvatar = (task as any).creatorAvatar || creatorUser?.avatarUrl || null;
+    const creator = creatorUser ? { id: creatorUser.id, name: creatorUser.name, avatarUrl: creatorUser.avatarUrl } : { id: (task as any).createdById || 'user-davi-001', name: creatorName, avatarUrl: creatorAvatar };
+
     const project = this.projects.get(task.projectId);
     const team = task.team || project?.name || 'Meu Time';
 
@@ -483,7 +500,13 @@ export class AppRepository {
       dueDate: isoDue || (task as any).dueDate || null,
       dueDateIso: isoDue || (task as any).dueDateIso || null,
       team,
-      assignee: assignee || (task.assigneeName ? { id: task.assigneeId || 'assigned', name: task.assigneeName } : null),
+      createdById: (task as any).createdById || (creatorUser ? creatorUser.id : 'user-davi-001'),
+      creatorName,
+      creatorAvatar,
+      creator,
+      avatar: (task as any).avatar || (task as any).assigneeAvatar || assignee?.avatarUrl || null,
+      assigneeAvatar: assignee?.avatarUrl || (task as any).assigneeAvatar || (task as any).avatar || null,
+      assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email, avatarUrl: assignee.avatarUrl } : (task.assigneeName ? { id: task.assigneeId || 'assigned', name: task.assigneeName, avatarUrl: (task as any).avatar || null } : null),
       subTasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
       subtasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
       tags,
@@ -707,13 +730,17 @@ export class AppRepository {
     const updated: Task = {
       ...existing,
       ...cleanData,
+      createdById: existing.createdById,
+      creatorName: existing.creatorName,
+      creatorAvatar: existing.creatorAvatar,
+      creator: existing.creator,
       priority: (cleanData as any).priority !== undefined ? normalizePriority((cleanData as any).priority) : existing.priority,
       dueDate: parsedDue !== undefined ? parsedDue : existing.dueDate,
       team: (data as any).team || existing.team,
       subtasks: (data as any).subtasks !== undefined ? (data as any).subtasks : existing.subtasks,
       lockedBy: (data as any).lockedBy !== undefined ? (data as any).lockedBy : null, // Libera o lock após conclusão da edição se não informado
       lockedAt: (data as any).lockedAt !== undefined ? (data as any).lockedAt : null,
-      version: (data as any).version !== undefined ? Number((data as any).version) : existing.version + 1,
+      version: (data as any).version !== undefined ? Math.max(Number((data as any).version) + 1, existing.version + 1) : existing.version + 1,
       updatedAt: new Date()
     };
     if (Array.isArray(tags)) {

@@ -85,7 +85,10 @@ export class TasksController {
       maxOccurrences,
       currentOccurrence,
       rotationUserIds,
-      currentRotationIndex
+      currentRotationIndex,
+      createdById,
+      creatorName,
+      creatorAvatar
     } = req.body;
 
     if (!title) {
@@ -105,6 +108,9 @@ export class TasksController {
       team,
       assigneeId,
       assignee,
+      createdById: createdById || (req as any).user?.id || 'user-davi-001',
+      creatorName: creatorName || (req as any).user?.name || 'Davi Marinho',
+      creatorAvatar: creatorAvatar || (req as any).user?.avatarUrl || null,
       subtasks,
       tags,
       parentTaskId,
@@ -130,7 +136,7 @@ export class TasksController {
 
   async update(req: Request, res: Response) {
     const { id } = req.params;
-    const { version, ...updateData } = req.body;
+    const { version, createdById, creatorName, creatorAvatar, ...updateData } = req.body;
 
     if (version === undefined) {
       return res.status(400).json({

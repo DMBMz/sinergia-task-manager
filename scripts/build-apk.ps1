@@ -6,6 +6,8 @@ $work = Join-Path $tempRoot "sinergia_build_inplace"
 $projectRoot = if ($PSScriptRoot) { (Resolve-Path "$PSScriptRoot\..").Path } else { Get-Location }
 $signerJar = "$env:USERPROFILE\uber-apk-signer.jar"
 $adbExe = "$env:USERPROFILE\platform-tools\adb.exe"
+$foundJre = Get-ChildItem -Path $env:USERPROFILE -Filter "java.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+$javaExe = if (Get-Command java -ErrorAction SilentlyContinue) { "java" } elseif ($foundJre) { $foundJre.FullName } else { "java" }
 
 Write-Host ">>> Cleaning temp directory: $work"
 if (Test-Path $work) {
@@ -62,7 +64,7 @@ if ($recApk) { $recApk.Delete() }
 $zip.Dispose()
 
 Write-Host ">>> Signing with uber-apk-signer (v1, v2, v3 + zipalign)..."
-& java -jar $signerJar -a $targetApk --out $work --allowResign --verbose
+& $javaExe -jar $signerJar -a $targetApk --out $work --allowResign --verbose
 
 $signedApks = Get-ChildItem -Path $work -Filter "*-aligned-debugSigned.apk"
 if ($signedApks.Count -eq 0) {
