@@ -16,7 +16,7 @@ export async function seedDatabase() {
           name: 'Davi Marinho',
           email: 'davi@sinergia.com',
           passwordHash,
-          avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Davi%20Marinho'
+          avatarUrl: null
         }
       });
 
@@ -26,7 +26,7 @@ export async function seedDatabase() {
           name: 'Ana Silva',
           email: 'ana@sinergia.com',
           passwordHash,
-          avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana%20Silva'
+          avatarUrl: null
         }
       });
 

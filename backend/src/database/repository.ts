@@ -95,7 +95,7 @@ export class AppRepository {
       id: 'user-davi-001',
       name: 'Davi Marinho',
       email: 'davi@sinergia.com',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Davi',
+      avatarUrl: null,
       fcmToken: 'fcm-token-davi',
       quietUntil: null,
       createdAt: new Date(),
@@ -105,7 +105,7 @@ export class AppRepository {
       id: 'user-ana-002',
       name: 'Ana Silva',
       email: 'ana@sinergia.com',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana',
+      avatarUrl: null,
       fcmToken: 'fcm-token-ana',
       quietUntil: null,
       createdAt: new Date(),
@@ -356,6 +356,7 @@ export class AppRepository {
       creatorName: (data as any).creatorName || ((data as any).creator ? (data as any).creator.name : null) || 'Davi Marinho',
       creatorAvatar: (data as any).creatorAvatar || ((data as any).creator ? (data as any).creator.avatarUrl : null) || null,
       assigneeAvatar: (data as any).assigneeAvatar || (data as any).avatar || null,
+      avatar: (data as any).avatar || (data as any).assigneeAvatar || null,
       parentTaskId: data.parentTaskId || null,
       subtasks: Array.isArray(data.subtasks) ? data.subtasks : [],
       assignmentStatus: data.assignmentStatus || 'ACCEPTED',
@@ -504,9 +505,13 @@ export class AppRepository {
       creatorName,
       creatorAvatar,
       creator,
-      avatar: (task as any).avatar || (task as any).assigneeAvatar || assignee?.avatarUrl || null,
-      assigneeAvatar: assignee?.avatarUrl || (task as any).assigneeAvatar || (task as any).avatar || null,
-      assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email, avatarUrl: assignee.avatarUrl } : (task.assigneeName ? { id: task.assigneeId || 'assigned', name: task.assigneeName, avatarUrl: (task as any).avatar || null } : null),
+      avatar: (((task as any).avatar && !(task as any).avatar.includes('api.dicebear.com/7.x/avataaars')) || (task.assigneeAvatar && !task.assigneeAvatar.includes('api.dicebear.com/7.x/avataaars')))
+        ? ((task as any).avatar || task.assigneeAvatar)
+        : ((assignee?.avatarUrl && !assignee.avatarUrl.includes('api.dicebear.com/7.x/avataaars')) ? assignee.avatarUrl : ((task as any).avatar || task.assigneeAvatar || assignee?.avatarUrl || null)),
+      assigneeAvatar: (((task as any).avatar && !(task as any).avatar.includes('api.dicebear.com/7.x/avataaars')) || (task.assigneeAvatar && !task.assigneeAvatar.includes('api.dicebear.com/7.x/avataaars')))
+        ? ((task as any).avatar || task.assigneeAvatar)
+        : ((assignee?.avatarUrl && !assignee.avatarUrl.includes('api.dicebear.com/7.x/avataaars')) ? assignee.avatarUrl : (task.assigneeAvatar || (task as any).avatar || assignee?.avatarUrl || null)),
+      assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email, avatarUrl: ((task as any).avatar || task.assigneeAvatar || assignee.avatarUrl) } : (task.assigneeName ? { id: task.assigneeId || 'assigned', name: task.assigneeName, avatarUrl: ((task as any).avatar || task.assigneeAvatar || null) } : null),
       subTasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
       subtasks: (task.subtasks && task.subtasks.length > 0) ? task.subtasks : subTasks,
       tags,
@@ -727,9 +732,14 @@ export class AppRepository {
       }
     }
 
+    const cleanAvatar = (cleanData as any).avatar || (cleanData as any).assigneeAvatar || (cleanData.assigneeName && cleanData.assigneeName !== existing.assigneeName ? null : ((existing as any).avatar || existing.assigneeAvatar)) || null;
+    const cleanAssigneeAvatar = (cleanData as any).assigneeAvatar || (cleanData as any).avatar || (cleanData.assigneeName && cleanData.assigneeName !== existing.assigneeName ? null : (existing.assigneeAvatar || (existing as any).avatar)) || null;
+
     const updated: Task = {
       ...existing,
       ...cleanData,
+      avatar: cleanAvatar,
+      assigneeAvatar: cleanAssigneeAvatar,
       createdById: existing.createdById,
       creatorName: existing.creatorName,
       creatorAvatar: existing.creatorAvatar,
@@ -1217,7 +1227,7 @@ export class AppRepository {
         id: 'user-' + uuidv4().slice(0, 8),
         name: userData.name,
         email: userData.email,
-        avatarUrl: userData.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userData.name)}`,
+        avatarUrl: (userData.avatarUrl && !userData.avatarUrl.includes('api.dicebear.com')) ? userData.avatarUrl : null,
         fcmToken: null,
         quietUntil: null,
         createdAt: new Date(),

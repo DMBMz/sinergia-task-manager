@@ -88,7 +88,9 @@ export class TasksController {
       currentRotationIndex,
       createdById,
       creatorName,
-      creatorAvatar
+      creatorAvatar,
+      avatar,
+      assigneeAvatar
     } = req.body;
 
     if (!title) {
@@ -108,6 +110,8 @@ export class TasksController {
       team,
       assigneeId,
       assignee,
+      avatar: avatar || assigneeAvatar || null,
+      assigneeAvatar: assigneeAvatar || avatar || null,
       createdById: createdById || (req as any).user?.id || 'user-davi-001',
       creatorName: creatorName || (req as any).user?.name || 'Davi Marinho',
       creatorAvatar: creatorAvatar || (req as any).user?.avatarUrl || null,
