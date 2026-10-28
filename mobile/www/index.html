@@ -221,6 +221,7 @@
     }
 
     /* Modal Genérico */
+    .modal-overlay.active { display: flex !important; }
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -1897,6 +1898,8 @@
               <div>
                 <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; color: #64748B;">Time Ativo:</span>
                 <h3 id="membersViewTeamName" style="font-size: 14px; font-weight: 800; color: #0F172A; margin: 1px 0 0 0;">Meu Time</h3>
+                <div id="membersViewTeamSettingsSummary" style="font-size: 10px; color: #2563EB; font-weight: 600; margin-top: 2px;">⚡ 40h/sem por membro • Sprint Quinzenal • ACL: EDIT</div>
+                <button type="button" onclick="openEditCurrentTeamSettings()" style="margin-top: 5px; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 6px; padding: 3px 8px; font-size: 10px; font-weight: 700; cursor: pointer;">⚙️ Configurar Equipe</button>
               </div>
               <div id="currentUserRolePill">
                 <!-- Preenchido dinamicamente via JS -->
@@ -2214,10 +2217,66 @@
       <!-- Modal Criar Time -->
       <div id="modalCreateTeam" class="modal-overlay">
         <div class="modal-card">
-          <h3 class="modal-title">Criar Novo Time</h3>
-          <p style="font-size: 11px; color: #64748B; margin-bottom: 12px;">Defina o nome do seu projeto ou equipe</p>
-          <input type="text" id="newTeamNameInput" placeholder="Ex: Equipe Mobile Alpha" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; margin-bottom: 12px;">
-          <button class="btn-primary" onclick="submitCreateTeam()">Criar e Começar</button>
+          <h3 class="modal-title" id="createTeamModalTitle">Criar & Configurar Novo Time</h3>
+          <p id="createTeamModalSubtitle" style="font-size: 11px; color: #64748B; margin-bottom: 10px;">Defina o nome e as configurações base do seu time ou projeto:</p>
+          <div style="text-align: left; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+            <div>
+              <label style="font-size: 10.5px; font-weight: 700; color: #1E293B;">Nome do Time / Projeto *</label>
+              <input type="text" id="newTeamNameInput" placeholder="Ex: Equipe Mobile Alpha" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; margin-top: 3px; background: #FFFFFF;">
+            </div>
+            <div>
+              <label style="font-size: 10.5px; font-weight: 700; color: #1E293B;">Descrição / Objetivo da Equipe</label>
+              <input type="text" id="newTeamDescInput" placeholder="Ex: Desenvolvimento do App Android e API" style="width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; margin-top: 3px; background: #F8FAFC;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div>
+                <label style="font-size: 10px; font-weight: 700; color: #334155;">⏱️ Capacidade / Membro (US09)</label>
+                <select id="newTeamWeeklyHoursSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 600; margin-top: 3px; background: #FFFFFF;">
+                  <option value="40" selected>40h / semana (Integral)</option>
+                  <option value="30">30h / semana (Parcial)</option>
+                  <option value="20">20h / semana (Meio Período)</option>
+                  <option value="15">15h / semana (Acadêmico)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 10px; font-weight: 700; color: #334155;">🔄 Ciclo da Sprint (US13)</label>
+                <select id="newTeamSprintCycleSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 600; margin-top: 3px; background: #FFFFFF;">
+                  <option value="WEEKLY">Semanal (7 dias)</option>
+                  <option value="BIWEEKLY" selected>Quinzenal (14 dias)</option>
+                  <option value="MONTHLY">Mensal (30 dias)</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 10px; font-weight: 700; color: #334155;">🛡️ Permissão Padrão em Novos Convites (ACL US03)</label>
+              <select id="newTeamDefaultRoleSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 600; margin-top: 3px; background: #FFFFFF;">
+                <option value="EDIT" selected>⚡ EDIT — Criar e Editar Tarefas (Padrão)</option>
+                <option value="DELEGATE">🎯 DELEGATE — Pode Delegar e Redistribuir</option>
+                <option value="VIEW">👁️ VIEW — Somente Leitura / Visualizador</option>
+                <option value="ADMIN">👑 ADMIN — Gestão Completa da Equipe</option>
+              </select>
+            </div>
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-size: 10px; font-weight: 800; color: #1E40AF; text-transform: uppercase;">⚙️ Políticas & Automações da Equipe:</span>
+              <label style="display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; color: #1E293B; cursor: pointer;">
+                <span>🧠 Auto-Alocação IA & Estimativa TFLite (US08/US09)</span>
+                <input type="checkbox" id="newTeamPolicyAiToggle" checked style="accent-color: #2563EB;">
+              </label>
+              <label style="display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; color: #1E293B; cursor: pointer;">
+                <span>🤝 Exigir Aceite/Recusa ao Delegar Tarefa (US22)</span>
+                <input type="checkbox" id="newTeamPolicyAcceptToggle" checked style="accent-color: #2563EB;">
+              </label>
+              <label style="display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; color: #1E293B; cursor: pointer;">
+                <span>🔒 Bloquear Tarefas com Dependências Pendentes (US10)</span>
+                <input type="checkbox" id="newTeamPolicyDagBlockToggle" checked style="accent-color: #2563EB;">
+              </label>
+              <label style="display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; color: #1E293B; cursor: pointer;">
+                <span>⚡ Regra "Se Urgente ➔ Notificar Gestor" (US15)</span>
+                <input type="checkbox" id="newTeamPolicyAutoUrgentToggle" checked style="accent-color: #7C3AED;">
+              </label>
+            </div>
+          </div>
+          <button class="btn-primary" id="btnSubmitCreateTeamModal" onclick="submitCreateTeam()">Criar e Começar</button>
           <button class="btn-secondary" onclick="closeModal('modalCreateTeam')">Cancelar</button>
         </div>
       </div>
@@ -6944,7 +7003,95 @@
     });
 
     // --- FLUXO 2: CRIAR TIME REAL ---
+    let editingTeamSettingsMode = false;
+
+    function getTeamSettings(db, teamName) {
+      const tName = teamName || db?.currentTeam || 'Meu Time';
+      if (!db.teamSettingsByTeam) db.teamSettingsByTeam = {};
+      if (!db.teamSettingsByTeam[tName]) {
+        db.teamSettingsByTeam[tName] = {
+          description: 'Desenvolvimento colaborativo Sinergia',
+          weeklyCapacityHours: 40,
+          sprintCycle: 'BIWEEKLY',
+          defaultInviteRole: 'EDIT',
+          aiAutoAssign: true,
+          requireAssignmentAccept: true,
+          blockPendingDependencies: true,
+          autoUrgentNotify: true
+        };
+      }
+      return db.teamSettingsByTeam[tName];
+    }
+
+    function readTeamSettingsFromModalUI() {
+      return {
+        description: (document.getElementById('newTeamDescInput')?.value || '').trim() || 'Projeto Sinergia',
+        weeklyCapacityHours: parseInt(document.getElementById('newTeamWeeklyHoursSelect')?.value || '40', 10) || 40,
+        sprintCycle: document.getElementById('newTeamSprintCycleSelect')?.value || 'BIWEEKLY',
+        defaultInviteRole: document.getElementById('newTeamDefaultRoleSelect')?.value || 'EDIT',
+        aiAutoAssign: document.getElementById('newTeamPolicyAiToggle')?.checked !== false,
+        requireAssignmentAccept: document.getElementById('newTeamPolicyAcceptToggle')?.checked !== false,
+        blockPendingDependencies: document.getElementById('newTeamPolicyDagBlockToggle')?.checked !== false,
+        autoUrgentNotify: document.getElementById('newTeamPolicyAutoUrgentToggle')?.checked !== false
+      };
+    }
+
+    function openEditCurrentTeamSettings() {
+      const db = getDB();
+      const teamName = db.currentTeam || 'Meu Time';
+      const settings = getTeamSettings(db, teamName);
+      editingTeamSettingsMode = true;
+
+      const titleEl = document.getElementById('createTeamModalTitle');
+      const subEl = document.getElementById('createTeamModalSubtitle');
+      const btnEl = document.getElementById('btnSubmitCreateTeamModal');
+      if (titleEl) titleEl.innerText = `⚙️ Configurações: ${teamName}`;
+      if (subEl) subEl.innerText = 'Ajuste a capacidade semanal, ciclo de Sprint e políticas da equipe:';
+      if (btnEl) btnEl.innerText = 'Salvar Configurações da Equipe';
+
+      const nameIn = document.getElementById('newTeamNameInput');
+      if (nameIn) nameIn.value = teamName;
+      const descIn = document.getElementById('newTeamDescInput');
+      if (descIn) descIn.value = settings.description || '';
+      const whSel = document.getElementById('newTeamWeeklyHoursSelect');
+      if (whSel) whSel.value = String(settings.weeklyCapacityHours || 40);
+      const scSel = document.getElementById('newTeamSprintCycleSelect');
+      if (scSel) scSel.value = settings.sprintCycle || 'BIWEEKLY';
+      const drSel = document.getElementById('newTeamDefaultRoleSelect');
+      if (drSel) drSel.value = settings.defaultInviteRole || 'EDIT';
+
+      const aiCb = document.getElementById('newTeamPolicyAiToggle');
+      if (aiCb) aiCb.checked = settings.aiAutoAssign !== false;
+      const accCb = document.getElementById('newTeamPolicyAcceptToggle');
+      if (accCb) accCb.checked = settings.requireAssignmentAccept !== false;
+      const dagCb = document.getElementById('newTeamPolicyDagBlockToggle');
+      if (dagCb) dagCb.checked = settings.blockPendingDependencies !== false;
+      const autoCb = document.getElementById('newTeamPolicyAutoUrgentToggle');
+      if (autoCb) autoCb.checked = settings.autoUrgentNotify !== false;
+
+      document.getElementById('modalCreateTeam').style.display = 'flex';
+    }
+
     function openCreateTeamModal() {
+      editingTeamSettingsMode = false;
+      const titleEl = document.getElementById('createTeamModalTitle');
+      const subEl = document.getElementById('createTeamModalSubtitle');
+      const btnEl = document.getElementById('btnSubmitCreateTeamModal');
+      if (titleEl) titleEl.innerText = 'Criar & Configurar Novo Time';
+      if (subEl) subEl.innerText = 'Defina o nome e as configurações base do seu time ou projeto:';
+      if (btnEl) btnEl.innerText = 'Criar e Começar';
+      const descIn = document.getElementById('newTeamDescInput');
+      if (descIn) descIn.value = '';
+      const whSel = document.getElementById('newTeamWeeklyHoursSelect');
+      if (whSel) whSel.value = '40';
+      const scSel = document.getElementById('newTeamSprintCycleSelect');
+      if (scSel) scSel.value = 'BIWEEKLY';
+      const drSel = document.getElementById('newTeamDefaultRoleSelect');
+      if (drSel) drSel.value = 'EDIT';
+      ['newTeamPolicyAiToggle', 'newTeamPolicyAcceptToggle', 'newTeamPolicyDagBlockToggle', 'newTeamPolicyAutoUrgentToggle'].forEach(id => {
+        const cb = document.getElementById(id);
+        if (cb) cb.checked = true;
+      });
       document.getElementById('modalCreateTeam').style.display = 'flex';
       const input = document.getElementById('newTeamNameInput');
       if (input) input.focus();
@@ -6963,6 +7110,20 @@
         headers['Authorization'] = `Bearer ${db.authToken}`;
       }
 
+      const teamSettings = readTeamSettingsFromModalUI();
+      if (editingTeamSettingsMode) {
+        const curTeam = db.currentTeam || name;
+        if (!db.teamSettingsByTeam) db.teamSettingsByTeam = {};
+        db.teamSettingsByTeam[curTeam] = teamSettings;
+        db.teamSettingsByTeam[name] = teamSettings;
+        currentInviteRole = teamSettings.defaultInviteRole || 'EDIT';
+        saveDB(db, false);
+        closeModal('modalCreateTeam');
+        renderProjectMembersTab(false);
+        renderTimeline();
+        showToast(`⚙️ Configurações da equipe "${curTeam}" (${teamSettings.weeklyCapacityHours}h/sem) salvas!`);
+        return;
+      }
       showToast('Criando time no PostgreSQL...');
 
       try {
@@ -6991,7 +7152,14 @@
         saveDB(db, false);
 
         closeModal('modalCreateTeam');
-        showToast(`Time "${data.team.name}" criado com sucesso no PostgreSQL!`);
+        if (!db.teamSettingsByTeam) db.teamSettingsByTeam = {};
+        db.teamSettingsByTeam[data.team.name] = teamSettings;
+        currentInviteRole = teamSettings.defaultInviteRole || 'EDIT';
+        if (teamSettings.autoUrgentNotify && typeof ensureDefaultAutomationRules === 'function') {
+          ensureDefaultAutomationRules(db);
+        }
+        saveDB(db, false);
+        showToast(`Time "${data.team.name}" criado com sucesso (${teamSettings.weeklyCapacityHours}h/sem)!`);
         switchScreen('dashboard', null);
         setTimeout(() => syncWithBackend(true), 200);
       } catch (e) {
@@ -7440,6 +7608,8 @@
     });
 
     function closeModal(id) {
+      const e2 = document.getElementById(id);
+      if (e2) e2.classList.remove('active');
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     }
@@ -8314,6 +8484,12 @@
       const teamId = db.currentTeamId || '';
       const teamNameEl = document.getElementById('membersViewTeamName');
       if (teamNameEl) teamNameEl.textContent = teamName;
+      const summaryEl = document.getElementById('membersViewTeamSettingsSummary');
+      if (summaryEl && typeof getTeamSettings === 'function') {
+        const ts = getTeamSettings(db, teamName);
+        const cycleLabels = { WEEKLY: 'Semanal (7d)', BIWEEKLY: 'Quinzenal (14d)', MONTHLY: 'Mensal (30d)' };
+        summaryEl.textContent = `⏱️ ${ts.weeklyCapacityHours || 40}h/sem por membro • Sprint ${cycleLabels[ts.sprintCycle] || 'Quinzenal'} • Convite: ${ts.defaultInviteRole || 'EDIT'}`;
+      }
 
       if (projectMembersCache.length === 0) {
         loadProjectMembersLocal(db);
@@ -9693,7 +9869,7 @@
       return members.map(name => {
         const memberTasks = tasks.filter(t => (t.assignee || '').trim().toLowerCase() === name.trim().toLowerCase());
         const allocatedHours = memberTasks.reduce((acc, t) => acc + (Number(t.effortHours) || 4), 0);
-        const maxHours = 40;
+        const maxHours = (typeof getTeamSettings === 'function') ? (getTeamSettings(db, team).weeklyCapacityHours || 40) : 40;
         const percent = Math.min(100, Math.round((allocatedHours / maxHours) * 100));
         const absence = isMemberOnLeaveLocal(name, db);
         return {
@@ -9730,7 +9906,7 @@
                     <div style="width: ${s.percent}%; height: 100%; background: ${barColor};"></div>
                   </div>
                   <span style="min-width: 68px; text-align: right; font-weight: 700; color: ${barColor};">
-                    ${s.absence ? '🏖️ Férias' : `${s.allocatedHours}h/40h (${s.percent}%)`}
+                    ${s.absence ? '🏖️ Férias' : `${s.allocatedHours}h/${s.maxHours}h (${s.percent}%)`}
                   </span>
                 </div>
               `;
