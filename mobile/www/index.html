@@ -4156,6 +4156,18 @@
     setInterval(checkBackendConnectivity, 10000);
     setTimeout(checkBackendConnectivity, 1200);
 
+    function isTaskInCurrentTeam(t, db) {
+      if (!t) return false;
+      const curTeam = String(db?.currentTeam || 'Meu Time').trim().toLowerCase();
+      const tTeam = String(t.team || '').trim().toLowerCase();
+      if (!tTeam || !curTeam || tTeam === curTeam || tTeam === 'meu time') return true;
+      const curTeamId = String(db?.currentTeamId || '').trim().toLowerCase();
+      const tProjId = String(t.projectId || '').trim().toLowerCase();
+      if (curTeamId && tProjId && curTeamId !== 'proj-sinergia-001' && tProjId === curTeamId) return true;
+      return false;
+    }
+    window.isTaskInCurrentTeam = isTaskInCurrentTeam;
+
     // Renderizar Dashboard Dinâmico do Time Ativo
     function renderDashboard() {
       const db = getDB();
@@ -4198,20 +4210,6 @@
 
       const insightTeam = document.getElementById('insightTeamName');
       if (insightTeam) insightTeam.innerText = `${team} • Time Ativo`;
-
-    function isTaskInCurrentTeam(t, db) {
-      if (!t) return false;
-      const curTeam = (db?.currentTeam || 'Meu Time').trim().toLowerCase();
-      const curTeamId = (db?.currentTeamId || '').trim().toLowerCase();
-      const tTeam = (t.team || '').trim().toLowerCase();
-      const tProjId = (t.projectId || '').trim().toLowerCase();
-      if (tTeam) return tTeam === curTeam;
-      if (curTeamId && tProjId) return tProjId === curTeamId;
-      if (!curTeam && !curTeamId) return true;
-      if (tTeam && curTeam && tTeam === curTeam) return true;
-      if (curTeamId && tProjId && tProjId === curTeamId && (!tTeam || tTeam === 'meu time')) return true;
-      return !tTeam && (curTeam === 'meu time' || curTeam === 'sinergia mobile app');
-    }
 
     // Filtra tarefas pertencentes ao time ativo
       const tasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
@@ -8231,19 +8229,12 @@
       const totalHoursByMember = {};
       const activeTasksByMember = {};
       tasks.forEach(t => {
-        if (!t.completed && t.assignee) {
-          const hours = Number(t.effortHours) || 4;
-          const aName = t.assignee.trim();
         const isOpenTask = t.status !== 'COMPLETED' && !t.completed;
         const aKey = String(t.assignee || t.assigneeName || '').trim().toLowerCase();
         if (isOpenTask && aKey && isTaskInCurrentTeam(t, db)) {
           const hours = Number(t.effortHours) || 4;
           totalHoursByMember[aKey] = (totalHoursByMember[aKey] || 0) + hours;
           activeTasksByMember[aKey] = (activeTasksByMember[aKey] || 0) + 1;
-        }
-        } else if (false) {
-          totalHoursByMember[aName] = (totalHoursByMember[aName] || 0) + hours;
-          activeTasksByMember[aName] = (activeTasksByMember[aName] || 0) + 1;
         }
       });
 
@@ -8579,14 +8570,10 @@
       const tasks = db.tasks || [];
       const taskCountByUser = {};
       tasks.forEach(t => {
-        if (!t.completed && t.assignee) {
         const isOpen = t.status !== 'COMPLETED' && !t.completed;
         const aKey = String(t.assignee || t.assigneeName || '').trim().toLowerCase();
         if (isOpen && aKey && isTaskInCurrentTeam(t, db)) {
           taskCountByUser[aKey] = (taskCountByUser[aKey] || 0) + 1;
-        }
-        } else if (false) {
-          taskCountByUser[t.assignee] = (taskCountByUser[t.assignee] || 0) + 1;
         }
       });
 
