@@ -1558,6 +1558,7 @@
             <button type="button" class="quick-chip" id="qchip-this_week" onclick="setQuickFilter('this_week')">📅 Esta Semana</button>
             <button type="button" class="quick-chip" id="qchip-high_urgency" onclick="setQuickFilter('high_urgency')">🔥 Alta / Urgente</button>
             <button type="button" class="quick-chip" id="qchip-with_subtasks" onclick="setQuickFilter('with_subtasks')">📑 Subtarefas</button>
+            <button type="button" class="quick-chip" id="qchip-topological" onclick="toggleTopologicalOrderList()" title="Ordenar pela sequência lógica de dependências (Kahn/DAG)">🔀 Ordem DAG</button>
           </div>
         </div>
 
@@ -1657,7 +1658,13 @@
               <span style="font-size: 11px; color: #1E40AF; font-weight: 700;">Estimativa de Tempo IA:</span>
               <span style="font-size: 9px; background: #DBEAFE; color: #1D4ED8; padding: 2px 6px; border-radius: 4px;">baseado em histórico</span>
             </div>
-            <strong style="font-size: 15px; color: #1E3A8A;" id="detailEffortHours">~4,5 horas</strong>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <strong style="font-size: 15px; color: #1E3A8A;" id="detailEffortHours">~4,5 horas</strong>
+              <button type="button" onclick="openPlanningPokerModal()" style="background: #1D4ED8; color: #FFFFFF; border: none; border-radius: 8px; padding: 4px 10px; font-size: 10.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(29,78,216,0.25);">
+                <span>🃏 Planning Poker / PERT</span>
+              </button>
+            </div>
+            <div id="detailPertSummaryBadge" style="display: none; margin-top: 6px; font-size: 10px; color: #1E40AF; background: #DBEAFE; padding: 4px 8px; border-radius: 6px; font-weight: 600;"></div>
           </div>
 
           <!-- Atribuição e Criador da Tarefa (Exibição apenas nos Detalhes da Tarefa) -->
@@ -1688,6 +1695,10 @@
             </div>
           </div>
 
+          <!-- Sprint 2 Onda 3 (#23 FE-22.3 & #32 FE-13.3): Aceite/Recusa de Atribuição e Status de Recorrência/Rodízio -->
+          <div id="detailAssignmentActionBox" style="margin-bottom: 12px;"></div>
+          <div id="detailRecurrenceInfoBox" style="display: none; margin-bottom: 12px;"></div>
+
           <!-- Sub-tarefas (US01) -->
           <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
@@ -1702,6 +1713,29 @@
             <div style="display: flex; gap: 6px; margin-top: 10px;">
               <input type="text" id="inlineSubtaskInput" placeholder="+ Digite uma sub-tarefa..." onkeydown="if(event.key==='Enter'){event.preventDefault(); handleAddSubtaskInline();}" style="flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px;">
               <button type="button" onclick="handleAddSubtaskInline()" style="padding: 6px 12px; background: #2563EB; color: #FFFFFF; font-size: 11px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer;">Adicionar</button>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 10.5px; color: #64748B;">
+              <span>Co-responsável do item (US21):</span>
+              <select id="inlineSubtaskAssigneeSelect" style="padding: 3px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 10.5px; background: #F8FAFC; color: #1E293B; max-width: 175px;">
+                <option value="">Mesmo da tarefa</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: contents;"><!-- Sprint 2 Onda 3 (#21 FE-10.3): Dependências & Pré-requisitos (Bloqueio de Transição e Grafo DAG) -->
+          <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
+              <strong style="display: inline-flex; align-items: center; gap: 5px;">🔗 Dependências (Pré-requisitos)</strong>
+              <span id="detailDepsStatusBadge" style="font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px; background: #DCFCE7; color: #15803D;">Livre</span>
+            </div>
+            <div id="detailDependenciesBanner" style="display: none; margin-bottom: 8px;"></div>
+            <div id="detailDependenciesList" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;"></div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <select id="detailAddDepSelect" style="flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; background: #F8FAFC; color: #1E293B; min-width: 0;">
+                <option value="">+ Selecionar tarefa pré-requisito...</option>
+              </select>
+              <button type="button" onclick="handleAddTaskDependencyUI()" style="padding: 6px 10px; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; font-size: 10.5px; font-weight: 700; border-radius: 8px; cursor: pointer; white-space: nowrap;">+ Vincular</button>
+            </div>
             </div>
           </div>
 
@@ -1757,6 +1791,15 @@
               <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 5px;"><polyline points="20 6 9 17 4 12"/></svg>Concluir Tarefa
             </button>
           </div>
+          <!-- Sprint 2 Onda 3 (#22 FE-21.3): Duplicar / Clonar Tarefa com Offset de Datas -->
+          <div style="margin-bottom: 8px; display: flex; gap: 6px;">
+            <button type="button" onclick="handleCloneActiveTaskUI(0)" style="flex: 1; padding: 9px 10px; border-radius: 10px; font-weight: 700; font-size: 11.5px; border: 1px solid #BFDBFE; cursor: pointer; background: #EFF6FF; color: #1D4ED8; display: flex; align-items: center; justify-content: center; gap: 5px;">
+              <span>📋 Duplicar Tarefa (Hoje)</span>
+            </button>
+            <button type="button" onclick="handleCloneActiveTaskUI(7)" style="padding: 9px 10px; border-radius: 10px; font-weight: 700; font-size: 11.5px; border: 1px solid #BFDBFE; cursor: pointer; background: #F8FAFC; color: #2563EB; white-space: nowrap;" title="Duplicar tarefa deslocando o prazo em +7 dias">
+              +7 dias
+            </button>
+          </div>
           <!-- Botão de Exclusão da Tarefa (US01 / US02 Sincronizado) -->
           <div style="margin-bottom: 24px;">
             <button id="btnDeleteTaskDetail" onclick="handleDeleteTaskPrompt()" style="width: 100%; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 12px; border: 1px solid #FECACA; cursor: pointer; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -1802,7 +1845,11 @@
         <div id="projectPlanningTabContent">
           <div style="padding: 0 16px 8px 16px; display: flex; justify-content: space-between; align-items: center;">
             <strong style="font-size: 14px; color: #1E293B;">Entregas & Marcos</strong>
-            <span style="background: #EFF6FF; color: #2563EB; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px;">Visão Diária</span>
+            <div style="display: inline-flex; background: #F1F5F9; border-radius: 8px; padding: 2px; gap: 2px; border: 1px solid var(--border);">
+              <button type="button" id="btnPlanViewDag" onclick="switchPlanningViewMode('dag')" style="padding: 3px 7px; border: none; border-radius: 6px; font-size: 9.5px; font-weight: 700; cursor: pointer; background: #2563EB; color: #FFFFFF;">📋 Topológica</button>
+              <button type="button" id="btnPlanViewGantt" onclick="switchPlanningViewMode('gantt')" style="padding: 3px 7px; border: none; border-radius: 6px; font-size: 9.5px; font-weight: 700; cursor: pointer; background: transparent; color: #64748B;">📅 Gantt CPM</button>
+              <button type="button" id="btnPlanViewMindmap" onclick="switchPlanningViewMode('mindmap')" style="padding: 3px 7px; border: none; border-radius: 6px; font-size: 9.5px; font-weight: 700; cursor: pointer; background: transparent; color: #64748B;">🕸️ Mapa Mental</button>
+            </div>
           </div>
 
           <!-- 3 Stats -->
@@ -1832,7 +1879,10 @@
           <!-- Capacidade de Carga de Trabalho -->
           <div style="padding: 10px 16px 6px 16px; display: flex; justify-content: space-between;">
             <strong style="font-size: 12px;">Capacidade de Carga de Trabalho</strong>
-            <span style="font-size: 10px; color: #64748B;">Esta Sprint</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button type="button" onclick="openAbsencesModal()" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;">🏖️ Férias / Ausências</button>
+              <button type="button" onclick="autoRedistributeOverloadUI()" style="background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;">⚡ Equilibrar Carga</button>
+            </div>
           </div>
 
           <div id="projectWorkloadCapacityContainer" style="margin: 0 16px 12px 16px; background: #FFF; border: 1px solid var(--border); border-radius: 12px; padding: 10px;"></div>
@@ -1919,12 +1969,12 @@
         <form onsubmit="handleCreateTaskSubmit(event)" style="margin: 0 16px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 16px; padding: 16px;">
           <div style="margin-bottom: 12px;">
             <label style="font-size: 12px; font-weight: 700; color: #1E293B;">Tema / Título da Tarefa *</label>
-            <input type="text" id="createThemeInput" placeholder="Ex: Desenvolver fluxo de login" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; margin-top: 4px;">
+            <input type="text" id="createThemeInput" oninput="updateCreateTaskAiEstimate()" placeholder="Ex: Desenvolver fluxo de login" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; margin-top: 4px;">
           </div>
 
           <div style="margin-bottom: 12px;">
             <label style="font-size: 12px; font-weight: 700; color: #1E293B;">Descrição:</label>
-            <textarea id="createDescInput" rows="3" placeholder="Descreva o escopo e requisitos..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; margin-top: 4px;"></textarea>
+            <textarea id="createDescInput" oninput="updateCreateTaskAiEstimate()" rows="3" placeholder="Descreva o escopo e requisitos..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; margin-top: 4px;"></textarea>
           </div>
 
           <div style="margin-bottom: 12px;">
@@ -1941,7 +1991,7 @@
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <span style="font-size: 12px; font-weight: 700;">Prioridade</span>
-            <select id="createPrioritySelect" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 11px; font-weight: 700;">
+            <select id="createPrioritySelect" onchange="updateCreateTaskAiEstimate()" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 11px; font-weight: 700;">
               <option value="Alta">Alta 🔥</option>
               <option value="Média" selected>Média ⚡</option>
               <option value="Baixa">Baixa 🟢</option>
@@ -1950,14 +2000,25 @@
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <span style="font-size: 12px; font-weight: 700;">Responsável</span>
-            <select id="createAssigneeSelect" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 11.5px; background: #FFFFFF; font-weight: 600; color: #1E293B; max-width: 190px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 700;">Responsável</span>
+              <button type="button" onclick="autoSuggestAssigneeUI()" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugerir automaticamente o membro com menor carga e sem férias (US09)">✨ Auto-Alocar IA</button>
+            </div>
+            <select id="createAssigneeSelect" onchange="renderCreateAssigneeCapacityPreview()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 11.5px; background: #FFFFFF; font-weight: 600; color: #1E293B; max-width: 170px;">
               <option value="">Carregando usuários...</option>
             </select>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 12px; font-weight: 700;">Esforço (horas)</span>
+          </div>
+          <!-- Sprint 2 Onda 3 (#25 FE-09.3): Barra Visual de Capacidade/Ocupação por Membro no Seletor -->
+          <div id="createAssigneeCapacityBar" style="margin-top: -6px; margin-bottom: 12px;"></div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 700;">Esforço (horas)</span>
+              <button type="button" id="btnAiEffortSuggest" onclick="applyAiEffortSuggestion()" style="background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugestão preditiva TensorFlow Lite baseada no escopo (US08)">🧠 IA TFLite: ~4.0h (Aplicar)</button>
+            </div>
             <input type="number" id="createEffortInput" value="4" min="0.5" step="0.5" style="width: 60px; padding: 4px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px;">
           </div>
 
@@ -1994,6 +2055,30 @@
             <div id="deadlinePreviewHint" style="margin-top: 8px; font-size: 10px; color: #2563EB; font-weight: 600; display: flex; align-items: center; gap: 4px;">
               <span>ℹ️</span> Alertas progressivos programados conforme aproximação do prazo.
             </div>
+          </div>
+
+            <div style="display: contents;">
+          <!-- Sprint 2 Onda 3 (#32 FE-13.3): Controles de Recorrência & Fila de Rodízio (Round-Robin) -->
+          <div style="margin-top: 12px; margin-bottom: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="font-size: 11.5px; font-weight: 700; color: #1E293B;">🔄 Recorrência & Rodízio (US13):</label>
+              <select id="createRecurrenceSelect" onchange="toggleCreateRecurrenceOptions()" style="padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-weight: 600; background: #FFFFFF; color: #0F172A;">
+                <option value="NONE" selected>Não repetir</option>
+                <option value="DAILY">Diária (Rodízio)</option>
+                <option value="WEEKLY">Semanal (Rodízio)</option>
+                <option value="BIWEEKLY">Quinzenal (Rodízio)</option>
+                <option value="MONTHLY">Mensal (Rodízio)</option>
+                <option value="SPRINT">A cada Sprint</option>
+              </select>
+            </div>
+            <div id="createRecurrenceOptionsBox" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #CBD5E1; font-size: 10.5px; color: #475569;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span>Limite de ocorrências:</span>
+                <input type="number" id="createMaxOccurrencesInput" value="4" min="1" max="52" style="width: 55px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 10.5px; background: #FFFFFF;">
+              </div>
+              <div id="createRotationQueuePreview" style="font-size: 10px; color: #2563EB; font-weight: 600;">Fila Round-Robin: alternância automática entre os membros do time.</div>
+            </div>
+          </div>
           </div>
 
           <!-- Sub-tarefas Iniciais (Opcional) -->
@@ -2333,8 +2418,86 @@
           </div>
           <button class="btn-primary" style="margin-bottom: 8px; background: #2563EB;" onclick="closeModal('modalUserMenu'); openInviteModal();"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Convidar Membros para o Time</button>
           <button class="btn-primary" style="margin-bottom: 8px;" onclick="closeModal('modalUserMenu'); switchScreen('team-onboarding', null);"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>Trocar ou Criar Outro Time</button>
+          <button class="btn-primary" style="margin-bottom: 8px; background: #0D9488;" onclick="closeModal('modalUserMenu'); openAbsencesModal();">🏖️ Férias & Ausências da Equipe (US22)</button>
           <button class="btn-secondary" style="color: #DC2626; border-color: #FCA5A5; margin-bottom: 8px;" onclick="logoutUser()"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair da Conta (Logout)</button>
           <button class="btn-secondary" onclick="closeModal('modalUserMenu')">Fechar</button>
+        </div>
+      </div>
+
+      <!-- Sprint 2 Onda 3 (#23 FE-22.3): Modal de Gestão de Férias & Ausências (US22) -->
+      <div id="modalUserAbsences" class="modal-overlay">
+        <div class="modal-card" style="max-height: 85vh; display: flex; flex-direction: column; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 class="modal-title" style="margin: 0; font-size: 15px;">🏖️ Férias & Ausências (US22)</h3>
+            <button type="button" onclick="closeModal('modalUserAbsences')" style="background: none; border: none; font-size: 16px; color: #64748B; cursor: pointer;">✕</button>
+          </div>
+          <p style="font-size: 11px; color: #64748B; margin-bottom: 10px;">
+            Membros em período de ausência ficam bloqueados para auto-alocação inteligente de novas tarefas.
+          </p>
+          <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 12px;">
+            <div style="margin-bottom: 8px;">
+              <label style="font-size: 10.5px; font-weight: 700; color: #334155;">Membro da Equipe:</label>
+              <select id="absenceMemberSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; margin-top: 3px; background: #FFFFFF;"></select>
+            </div>
+            <div style="margin-bottom: 8px;">
+              <label style="font-size: 10.5px; font-weight: 700; color: #334155;">Tipo de Ausência:</label>
+              <select id="absenceTypeSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; margin-top: 3px; background: #FFFFFF;">
+                <option value="VACATION">🏖️ Férias (VACATION)</option>
+                <option value="MEDICAL">🏥 Licença Médica (MEDICAL)</option>
+                <option value="UNAVAILABLE">⏳ Indisponibilidade Temporária (UNAVAILABLE)</option>
+              </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+              <div>
+                <label style="font-size: 10px; font-weight: 600; color: #64748B;">Início</label>
+                <input type="date" id="absenceStartInput" style="width: 100%; padding: 5px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; background: #FFFFFF;">
+              </div>
+              <div>
+                <label style="font-size: 10px; font-weight: 600; color: #64748B;">Término</label>
+                <input type="date" id="absenceEndInput" style="width: 100%; padding: 5px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; background: #FFFFFF;">
+              </div>
+            </div>
+            <div style="margin-bottom: 8px;">
+              <input type="text" id="absenceReasonInput" placeholder="Motivo / observação (ex: Férias de Verão)" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; background: #FFFFFF;">
+            </div>
+            <button type="button" onclick="handleSaveUserAbsence()" class="btn-primary" style="padding: 8px; font-size: 11.5px;">+ Registrar Período de Ausência</button>
+          </div>
+          <strong style="font-size: 11.5px; color: #0F172A; margin-bottom: 6px;">Ausências Ativas Registradas:</strong>
+          <div id="absencesListContainer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; max-height: 160px; margin-bottom: 10px;"></div>
+          <button type="button" class="btn-secondary" onclick="closeModal('modalUserAbsences')">Fechar</button>
+        </div>
+      </div>
+
+      <!-- Sprint 2 Onda 3 (#33 FE-14.2 & #34 FE-14.3): Modal de Planning Poker & Estimativa PERT Consensual (US14) -->
+      <div id="modalPlanningPoker" class="modal-overlay">
+        <div class="modal-card" style="max-height: 88vh; display: flex; flex-direction: column; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 class="modal-title" style="margin: 0; font-size: 15px;">🃏 Planning Poker & PERT (US14)</h3>
+            <button type="button" onclick="closeModal('modalPlanningPoker')" style="background: none; border: none; font-size: 16px; color: #64748B; cursor: pointer;">✕</button>
+          </div>
+          <p id="pokerTaskTitleLabel" style="font-size: 11.5px; font-weight: 700; color: #1E40AF; margin-bottom: 8px;"></p>
+          <div style="margin-bottom: 8px;">
+            <label style="font-size: 10.5px; font-weight: 700; color: #475569;">Votando como membro:</label>
+            <select id="pokerVoterSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; margin-top: 3px; background: #F8FAFC;"></select>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <span style="font-size: 10.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Escolha sua carta de esforço (horas Fibonacci):</span>
+            <div id="pokerCardsRow" style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;">
+              <button type="button" onclick="castPokerVoteUI(1)" class="poker-card-btn" style="width: 38px; height: 48px; border-radius: 8px; border: 1.5px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 13px; cursor: pointer;">1h</button>
+              <button type="button" onclick="castPokerVoteUI(2)" class="poker-card-btn" style="width: 38px; height: 48px; border-radius: 8px; border: 1.5px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 13px; cursor: pointer;">2h</button>
+              <button type="button" onclick="castPokerVoteUI(3)" class="poker-card-btn" style="width: 38px; height: 48px; border-radius: 8px; border: 1.5px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 13px; cursor: pointer;">3h</button>
+              <button type="button" onclick="castPokerVoteUI(5)" class="poker-card-btn" style="width: 38px; height: 48px; border-radius: 8px; border: 1.5px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 13px; cursor: pointer;">5h</button>
+              <button type="button" onclick="castPokerVoteUI(8)" class="poker-card-btn" style="width: 38px; height: 48px; border-radius: 8px; border: 1.5px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 13px; cursor: pointer;">8h</button>
+              <button type="button" onclick="castPokerVoteUI(13)" class="poker-card-btn" style="width: 38px; height: 48px; border-radius: 8px; border: 1.5px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 13px; cursor: pointer;">13h</button>
+              <button type="button" onclick="castPokerVoteUI(21)" class="poker-card-btn" style="width: 38px; height: 48px; border-radius: 8px; border: 1.5px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 13px; cursor: pointer;">21h</button>
+            </div>
+          </div>
+          <div id="pokerVotesListContainer" style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 10px; font-size: 11px; max-height: 130px; overflow-y: auto;"></div>
+          <div id="pokerPertResultBox" style="background: #EFF6FF; border: 1px solid #93C5FD; border-radius: 10px; padding: 10px; margin-bottom: 10px; font-size: 11px;"></div>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" onclick="revealPokerVotesUI()" style="flex: 1; padding: 9px; border-radius: 8px; border: 1px solid #BFDBFE; background: #FFFFFF; color: #1D4ED8; font-size: 11.5px; font-weight: 700; cursor: pointer;">👁️ Revelar Cartas</button>
+            <button type="button" onclick="applyPokerPertConsensusUI()" style="flex: 1.3; padding: 9px; border-radius: 8px; border: none; background: #10B981; color: #FFFFFF; font-size: 11.5px; font-weight: 700; cursor: pointer;">✅ Aplicar PERT na Tarefa</button>
+          </div>
         </div>
       </div>
 
@@ -3936,6 +4099,7 @@
       if (!task) return;
 
       const wasCompleted = task.status === 'COMPLETED';
+      if (!wasCompleted && typeof checkTaskBlockedByDependencies === 'function' && checkTaskBlockedByDependencies(task, db)) return;
       task.status = wasCompleted ? 'PENDING' : 'COMPLETED';
       task.version = (task.version || 1) + 1;
       task._status = (task._status === 'created') ? 'created' : 'updated';
@@ -3949,6 +4113,7 @@
 
       if (task.status === 'COMPLETED') {
         showToast('🎉 Tarefa marcada como concluída!');
+        if (typeof handleTaskCompletedOnda3Hooks === 'function') handleTaskCompletedOnda3Hooks(task, db);
         createNotification({
           title: 'Tarefa Concluída!',
           message: `"${task.title}" foi concluída e movida para a seção Concluídas.`,
@@ -4619,7 +4784,7 @@
         return true;
       });
 
-      const pendingTasks = filteredTasks.filter(t => t.status !== 'COMPLETED');
+      const pendingTasks = (typeof sortTasksTopologicallyIfEnabled === 'function') ? sortTasksTopologicallyIfEnabled(filteredTasks.filter(t => t.status !== 'COMPLETED'), allTeamTasks) : filteredTasks.filter(t => t.status !== 'COMPLETED');
       const completedTasks = filteredTasks.filter(t => t.status === 'COMPLETED');
 
       // Atualiza badges de contagem nos títulos das seções
@@ -4804,6 +4969,7 @@
       renderUnifiedComments(task);
       updateTaskCompleteButton(task);
       renderTaskLockUI(task);
+      if (typeof renderTaskOnda3Details === 'function') renderTaskOnda3Details(task);
     }
 
     // Abrir Detalhes da Tarefa com Verificação de Bloqueio Simultâneo (US06)
@@ -4934,6 +5100,7 @@
         task.lockedAt = null;
         saveDB(db, false);
         renderTaskLockUI(task);
+      if (typeof renderTaskOnda3Details === 'function') renderTaskOnda3Details(task);
         apiFetch(`/tasks/${task.id}/unlock`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -5060,6 +5227,7 @@
       if (task.lockedBy && !isLockedByMe && !isLockExpired) {
         showToast(`🔒 Tarefa em edição por ${task.lockedBy.name}. Clique em "Liberar" no detalhe se desejar editar.`);
         renderTaskLockUI(task);
+      if (typeof renderTaskOnda3Details === 'function') renderTaskOnda3Details(task);
         return;
       }
 
@@ -5068,6 +5236,7 @@
       task.lockedAt = new Date().toISOString();
       saveDB(db, false);
       renderTaskLockUI(task);
+      if (typeof renderTaskOnda3Details === 'function') renderTaskOnda3Details(task);
 
       apiFetch(`/tasks/${task.id}/lock`, {
         method: 'POST',
@@ -5289,6 +5458,7 @@
         task.lockedAt = null;
         saveDB(db, false);
         renderTaskLockUI(task);
+      if (typeof renderTaskOnda3Details === 'function') renderTaskOnda3Details(task);
 
         apiFetch(`/tasks/${task.id}/unlock`, {
           method: 'POST',
@@ -5357,6 +5527,7 @@
       }).catch(() => {});
 
       renderTaskLockUI(task);
+      if (typeof renderTaskOnda3Details === 'function') renderTaskOnda3Details(task);
       renderTaskList(false);
       showToast('🔒 Ana Silva começou a editar! A tarefa foi bloqueada para edição.');
     }
@@ -5378,6 +5549,7 @@
       }).catch(() => {});
 
       renderTaskLockUI(task);
+      if (typeof renderTaskOnda3Details === 'function') renderTaskOnda3Details(task);
       renderTaskList(false);
       showToast('🔓 Ana Silva concluiu a edição! A tarefa está liberada para edição.');
     }
@@ -5403,7 +5575,7 @@
         row.innerHTML = `
           <input type="checkbox" ${s.completed ? 'checked' : ''} style="cursor: pointer;">
           <span style="flex: 1; text-decoration: ${s.completed ? 'line-through' : 'none'}; color: ${s.completed ? '#94A3B8' : '#1E293B'};">
-            ${s.title}
+            ${escapeHtml(s.title)} ${s.assigneeName ? `<span style="font-size: 9px; font-weight: 700; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 1px 5px; border-radius: 9999px; margin-left: 4px;">👤 ${escapeHtml(s.assigneeName)}</span>` : ''}
           </span>
         `;
         container.appendChild(row);
@@ -5450,6 +5622,7 @@
       if (!task.subtasks) task.subtasks = [];
       task.subtasks.push({
         id: 'sub-' + Date.now(),
+        assigneeName: (document.getElementById('inlineSubtaskAssigneeSelect') && document.getElementById('inlineSubtaskAssigneeSelect').value) ? document.getElementById('inlineSubtaskAssigneeSelect').value : null,
         title,
         completed: false
       });
@@ -5480,6 +5653,7 @@
       const task = db.tasks.find(t => t.id === activeTaskId);
       if (!task) return;
       const wasCompleted = task.status === 'COMPLETED';
+      if (!wasCompleted && typeof checkTaskBlockedByDependencies === 'function' && checkTaskBlockedByDependencies(task, db)) return;
       task.status = wasCompleted ? 'PENDING' : 'COMPLETED';
       task._status = (task._status === 'created') ? 'created' : 'updated';
       if (!wasCompleted && Array.isArray(task.subtasks) && task.subtasks.length > 0) {
@@ -5492,6 +5666,7 @@
 
       if (task.status === 'COMPLETED') {
         showToast('Parabéns! Tarefa concluída com sucesso!');
+        if (typeof handleTaskCompletedOnda3Hooks === 'function') handleTaskCompletedOnda3Hooks(task, db);
         createNotification({
           title: 'Conclusão Antecipada!',
           message: `Você concluiu a tarefa "${task.title}"! Que tal puxar novas tarefas do backlog ou apoiar um colega?`,
@@ -5967,6 +6142,7 @@
       initCreateTaskDeadline();
       const prioritySelect = document.getElementById('createPrioritySelect');
       if (prioritySelect) prioritySelect.value = 'Média';
+      if (typeof initCreateTaskOnda3 === 'function') initCreateTaskOnda3();
     }
 
     // Inicialização e Controle de Prazo de Entrega (US01 / Alertas Progressivos)
@@ -6266,6 +6442,7 @@
       if (!title) return;
       draftSubtasks.push({
         id: 'sub-' + Date.now(),
+        assigneeName: (document.getElementById('inlineSubtaskAssigneeSelect') && document.getElementById('inlineSubtaskAssigneeSelect').value) ? document.getElementById('inlineSubtaskAssigneeSelect').value : null,
         title,
         completed: false
       });
@@ -6379,6 +6556,7 @@
           comments: [],
           attachments: [],
           version: 1,
+          ...((typeof buildCreateTaskOnda3Fields === 'function') ? buildCreateTaskOnda3Fields(selectedAssignee, user) : {}),
           _status: 'created',
           _alertsSent: []
         };
@@ -6446,6 +6624,7 @@
         if (titleInput) titleInput.value = '';
         if (descInput) descInput.value = '';
         if (prioritySelect) prioritySelect.value = 'Média';
+      if (typeof initCreateTaskOnda3 === 'function') initCreateTaskOnda3();
         createTaskSelectedTags = [];
         renderCreateTaskTags();
         if (typeof draftSubtasks !== 'undefined') draftSubtasks = [];
@@ -7729,6 +7908,7 @@
         container.appendChild(card);
       });
 
+      if (typeof renderOnda3PlanningView === 'function') renderOnda3PlanningView();
       renderProjectWorkload();
     }
 
@@ -7812,6 +7992,7 @@
       });
 
       container.innerHTML = html;
+      if (typeof enhanceOnda3WorkloadView === 'function') enhanceOnda3WorkloadView(container);
     }
 
     // ==========================================================
@@ -7835,7 +8016,8 @@
         if (contentPlan) contentPlan.style.display = 'block';
         if (contentMemb) contentMemb.style.display = 'none';
         renderTimeline();
-        renderProjectWorkload();
+        if (typeof renderOnda3PlanningView === 'function') renderOnda3PlanningView();
+      renderProjectWorkload();
       } else {
         if (btnPlan) btnPlan.classList.remove('active');
         if (btnMemb) btnMemb.classList.add('active');
@@ -8726,6 +8908,1246 @@
       input.value = '';
       renderTagSelectorModalUI();
       showToast(`Tag "${val}" adicionada!`);
+    }
+
+    // =========================================================================
+    // SPRINT 2 ONDA 3 (#21 A #34): TELAS OPERACIONAIS, GRÁFICOS E INTERFACES
+    // =========================================================================
+
+    let topologicalSortListEnabled = false;
+    let activePlanningViewMode = 'dag'; // 'dag' | 'gantt' | 'mindmap'
+
+    // --- #28 (FE-11.3) & #27 (FE-11.2): Algoritmo Topológico de Kahn (DAG) Local ---
+    function computeLocalDagAndCpm(tasks) {
+      const taskMap = new Map();
+      (tasks || []).forEach(t => taskMap.set(String(t.id), t));
+
+      const adj = new Map();
+      const inDegree = new Map();
+      const prereqsMap = new Map();
+      (tasks || []).forEach(t => {
+        const id = String(t.id);
+        adj.set(id, []);
+        inDegree.set(id, 0);
+        prereqsMap.set(id, []);
+      });
+
+      (tasks || []).forEach(t => {
+        const succId = String(t.id);
+        const deps = Array.isArray(t.dependencies) ? t.dependencies : [];
+        deps.forEach(d => {
+          const predId = String(typeof d === 'string' ? d : (d.dependsOnTaskId || d.id || ''));
+          if (predId && taskMap.has(predId) && predId !== succId) {
+            if (!adj.get(predId).includes(succId)) {
+              adj.get(predId).push(succId);
+              inDegree.set(succId, (inDegree.get(succId) || 0) + 1);
+              prereqsMap.get(succId).push(predId);
+            }
+          }
+        });
+      });
+
+      // Ordenação Topológica (Kahn) com níveis
+      const queue = [];
+      const levelMap = new Map();
+      inDegree.forEach((deg, id) => {
+        if (deg === 0) {
+          queue.push(id);
+          levelMap.set(id, 1);
+        }
+      });
+
+      const orderedIds = [];
+      while (queue.length > 0) {
+        const u = queue.shift();
+        orderedIds.push(u);
+        const uLevel = levelMap.get(u) || 1;
+        (adj.get(u) || []).forEach(v => {
+          inDegree.set(v, inDegree.get(v) - 1);
+          levelMap.set(v, Math.max(levelMap.get(v) || 1, uLevel + 1));
+          if (inDegree.get(v) === 0) {
+            queue.push(v);
+          }
+        });
+      }
+
+      const hasCycle = orderedIds.length < (tasks || []).length;
+      if (hasCycle) {
+        (tasks || []).forEach(t => {
+          const id = String(t.id);
+          if (!orderedIds.includes(id)) {
+            orderedIds.push(id);
+            levelMap.set(id, 1);
+          }
+        });
+      }
+
+      // --- #29 (FE-23.3): Cálculo do Caminho Crítico (CPM: ES, EF, LS, LF, Slack) ---
+      const es = new Map();
+      const ef = new Map();
+      orderedIds.forEach(id => {
+        const t = taskMap.get(id);
+        const dur = Math.max(Number(t?.effortHours) || 4, 1);
+        const preds = prereqsMap.get(id) || [];
+        let maxPredEf = 0;
+        preds.forEach(pId => {
+          if ((ef.get(pId) || 0) > maxPredEf) maxPredEf = ef.get(pId) || 0;
+        });
+        es.set(id, maxPredEf);
+        ef.set(id, maxPredEf + dur);
+      });
+
+      let projectDuration = 0;
+      ef.forEach(val => {
+        if (val > projectDuration) projectDuration = val;
+      });
+
+      const lf = new Map();
+      const ls = new Map();
+      const slack = new Map();
+      const isCritical = new Map();
+
+      for (let i = orderedIds.length - 1; i >= 0; i--) {
+        const id = orderedIds[i];
+        const t = taskMap.get(id);
+        const dur = Math.max(Number(t?.effortHours) || 4, 1);
+        const succs = adj.get(id) || [];
+        let minSuccLs = projectDuration;
+        if (succs.length > 0) {
+          minSuccLs = Math.min(...succs.map(sId => ls.get(sId) ?? projectDuration));
+        }
+        lf.set(id, minSuccLs);
+        ls.set(id, minSuccLs - dur);
+        const totalSlack = Math.max(0, Math.round(((ls.get(id) || 0) - (es.get(id) || 0)) * 10) / 10);
+        slack.set(id, totalSlack);
+        const hasAnyEdge = (prereqsMap.get(id)?.length > 0) || (succs.length > 0);
+        isCritical.set(id, totalSlack === 0 && (hasAnyEdge || dur >= 8 || normalizePriorityToEnum(t?.priority) === 'URGENT' || normalizePriorityToEnum(t?.priority) === 'HIGH'));
+      }
+
+      return {
+        orderedIds,
+        hasCycle,
+        projectDuration,
+        levelMap,
+        prereqsMap,
+        es,
+        ef,
+        ls,
+        lf,
+        slack,
+        isCritical
+      };
+    }
+
+    function wouldAddingDependencyCreateCycleLocal(tasks, taskId, dependsOnTaskId) {
+      if (String(taskId) === String(dependsOnTaskId)) return true;
+      const cloned = (tasks || []).map(t => ({
+        ...t,
+        dependencies: Array.isArray(t.dependencies) ? [...t.dependencies] : []
+      }));
+      const target = cloned.find(t => String(t.id) === String(taskId));
+      if (target) {
+        target.dependencies.push({ id: 'temp', taskId, dependsOnTaskId, dependencyType: 'FINISH_TO_START' });
+      }
+      const res = computeLocalDagAndCpm(cloned);
+      return res.hasCycle;
+    }
+
+    function toggleTopologicalOrderList() {
+      topologicalSortListEnabled = !topologicalSortListEnabled;
+      const chip = document.getElementById('qchip-topological');
+      if (chip) {
+        if (topologicalSortListEnabled) chip.classList.add('active');
+        else chip.classList.remove('active');
+      }
+      renderTaskList();
+      showToast(topologicalSortListEnabled ? '🔀 Lista ordenada pela sequência topológica (Kahn/DAG)!' : 'Ordenação padrão restaurada.');
+    }
+
+    function sortTasksTopologicallyIfEnabled(pendingTasks, allTeamTasks) {
+      const dag = computeLocalDagAndCpm(allTeamTasks || pendingTasks);
+      // Atualiza flag isCritical em tempo real para exibir badge CPM
+      (pendingTasks || []).forEach(t => {
+        const preds = dag.prereqsMap.get(String(t.id)) || [];
+        const hasUnfinishedPred = preds.some(pId => {
+          const pTask = (allTeamTasks || []).find(x => String(x.id) === String(pId));
+          return pTask && pTask.status !== 'COMPLETED';
+        });
+        if (hasUnfinishedPred && t.status !== 'COMPLETED') {
+          t.status = 'BLOCKED';
+        } else if (t.status === 'BLOCKED' && !hasUnfinishedPred) {
+          t.status = 'PENDING';
+        }
+        t.isCritical = Boolean(dag.isCritical.get(String(t.id)));
+      });
+
+      if (!topologicalSortListEnabled) return pendingTasks;
+
+      const orderIndex = new Map();
+      dag.orderedIds.forEach((id, idx) => orderIndex.set(String(id), idx));
+      return [...pendingTasks].sort((a, b) => {
+        const ia = orderIndex.has(String(a.id)) ? orderIndex.get(String(a.id)) : 9999;
+        const ib = orderIndex.has(String(b.id)) ? orderIndex.get(String(b.id)) : 9999;
+        return ia - ib;
+      });
+    }
+
+    // --- #21 (FE-10.3): Bloqueio de Transição e Gestão de Dependências ---
+    function checkTaskBlockedByDependencies(task, db) {
+      if (!task) return false;
+      const deps = Array.isArray(task.dependencies) ? task.dependencies : [];
+      if (deps.length === 0) return false;
+
+      const blockingNames = [];
+      deps.forEach(d => {
+        const predId = String(typeof d === 'string' ? d : (d.dependsOnTaskId || d.id || ''));
+        const predTask = (db.tasks || []).find(t => String(t.id) === predId);
+        if (predTask && predTask.status !== 'COMPLETED') {
+          blockingNames.push(predTask.title);
+        }
+      });
+
+      if (blockingNames.length > 0) {
+        task.status = 'BLOCKED';
+        saveDB(db, false);
+        showToast(`🔒 Ação bloqueada! Conclua primeiro o pré-requisito: "${blockingNames.join(', ')}"`);
+        return true;
+      }
+      return false;
+    }
+
+    function handleAddTaskDependencyUI() {
+      const select = document.getElementById('detailAddDepSelect');
+      const dependsOnTaskId = select ? select.value : '';
+      if (!dependsOnTaskId) {
+        showToast('Selecione uma tarefa pré-requisito.');
+        return;
+      }
+
+      const db = getDB();
+      const task = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
+      if (!task) return;
+
+      if (!Array.isArray(task.dependencies)) task.dependencies = [];
+      if (task.dependencies.some(d => String(d.dependsOnTaskId || d) === String(dependsOnTaskId))) {
+        showToast('Esta tarefa já está vinculada como pré-requisito.');
+        return;
+      }
+
+      // Validação preventiva de ciclo (Kahn / DAG)
+      if (wouldAddingDependencyCreateCycleLocal(db.tasks, task.id, dependsOnTaskId)) {
+        showToast('⚠️ Operação bloqueada (DAG): adicionar esta dependência criaria um ciclo circular (Deadlock)!');
+        return;
+      }
+
+      const depObj = {
+        id: 'dep-' + Date.now(),
+        taskId: task.id,
+        dependsOnTaskId,
+        dependencyType: 'FINISH_TO_START'
+      };
+      task.dependencies.push(depObj);
+
+      const predTask = (db.tasks || []).find(t => String(t.id) === String(dependsOnTaskId));
+      if (predTask && predTask.status !== 'COMPLETED' && task.status !== 'COMPLETED') {
+        task.status = 'BLOCKED';
+      }
+
+      task._status = (task._status === 'created') ? 'created' : 'updated';
+      saveDB(db, true);
+
+      apiFetch(`/tasks/${task.id}/dependencies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dependsOnTaskId, dependencyType: 'FINISH_TO_START' })
+      }).catch(() => {});
+
+      refreshOpenTaskDetail(task);
+      renderDashboard();
+      showToast(`🔗 Pré-requisito "${predTask ? predTask.title : dependsOnTaskId}" vinculado!`);
+    }
+
+    function handleRemoveTaskDependencyUI(depIdOrPredId) {
+      const db = getDB();
+      const task = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
+      if (!task || !Array.isArray(task.dependencies)) return;
+
+      task.dependencies = task.dependencies.filter(d => String(d.id) !== String(depIdOrPredId) && String(d.dependsOnTaskId) !== String(depIdOrPredId));
+
+      // Verifica se ainda resta algum bloqueio
+      const stillBlocked = task.dependencies.some(d => {
+        const p = (db.tasks || []).find(t => String(t.id) === String(d.dependsOnTaskId || d));
+        return p && p.status !== 'COMPLETED';
+      });
+      if (!stillBlocked && task.status === 'BLOCKED') {
+        task.status = 'PENDING';
+      }
+
+      task._status = (task._status === 'created') ? 'created' : 'updated';
+      saveDB(db, true);
+
+      apiFetch(`/tasks/${task.id}/dependencies/${depIdOrPredId}`, { method: 'DELETE' }).catch(() => {});
+
+      refreshOpenTaskDetail(task);
+      renderDashboard();
+      showToast('Pré-requisito removido.');
+    }
+
+    // --- #21 (Desbloqueio Automático) & #32 (FE-13.3 Round-Robin Recorrência na Conclusão) ---
+    function handleTaskCompletedOnda3Hooks(completedTask, db) {
+      if (!completedTask || !db) return;
+
+      // 1. Desbloqueia tarefas dependentes desta
+      let unblockedCount = 0;
+      (db.tasks || []).forEach(t => {
+        if (Array.isArray(t.dependencies) && t.dependencies.some(d => String(d.dependsOnTaskId || d) === String(completedTask.id))) {
+          const allPrereqsDone = t.dependencies.every(d => {
+            const p = (db.tasks || []).find(x => String(x.id) === String(d.dependsOnTaskId || d));
+            return !p || p.status === 'COMPLETED';
+          });
+          if (allPrereqsDone && t.status === 'BLOCKED') {
+            t.status = 'PENDING';
+            unblockedCount++;
+            createNotification({
+              title: '🔓 Tarefa Desbloqueada!',
+              message: `O pré-requisito "${completedTask.title}" foi concluído. A tarefa "${t.title}" já pode ser iniciada!`,
+              type: 'task',
+              color: '#10B981',
+              taskId: t.id
+            });
+          }
+        }
+      });
+      if (unblockedCount > 0) {
+        showToast(`🔓 ${unblockedCount} tarefa(s) dependente(s) desbloqueada(s)!`);
+      }
+
+      // 2. Rodízio Automático Round-Robin para tarefas recorrentes (#32 FE-13.3 / US13)
+      const interval = completedTask.recurrenceInterval;
+      if (completedTask.isRecurring && interval && interval !== 'NONE') {
+        const currentOcc = Number(completedTask.currentOccurrence) || 1;
+        const maxOcc = Number(completedTask.maxOccurrences) || 12;
+        if (currentOcc < maxOcc) {
+          const rotationQueue = (Array.isArray(completedTask.rotationUserIds) && completedTask.rotationUserIds.length > 0)
+            ? completedTask.rotationUserIds
+            : getTeamMemberNamesList(db);
+          const nextRotIndex = ((Number(completedTask.currentRotationIndex) || 0) + 1) % Math.max(rotationQueue.length, 1);
+          const nextAssignee = rotationQueue[nextRotIndex] || completedTask.assignee || 'Membro';
+
+          const daysMap = { DAILY: 1, WEEKLY: 7, BIWEEKLY: 14, MONTHLY: 30, SPRINT: 14 };
+          const addDays = daysMap[interval] || 7;
+          const baseDate = completedTask.dueDateIso ? new Date(completedTask.dueDateIso) : new Date();
+          const nextDate = new Date(baseDate.getTime() + addDays * 86400000);
+          const nextDateStr = getLocalDateString(nextDate);
+          const nextDueFormatted = formatDueDateDisplay(nextDateStr, '18:00');
+          const nextAvatar = resolveUserPhoto(nextAssignee, null);
+
+          const nextTask = {
+            ...completedTask,
+            id: 'task-rec-' + Date.now(),
+            status: 'PENDING',
+            completed: false,
+            assignee: nextAssignee,
+            assigneeName: nextAssignee,
+            avatar: nextAvatar,
+            assigneeAvatar: nextAvatar,
+            dueDate: nextDueFormatted,
+            dueDateIso: `${nextDateStr}T18:00:00`,
+            currentOccurrence: currentOcc + 1,
+            currentRotationIndex: nextRotIndex,
+            rotationUserIds: rotationQueue,
+            subtasks: (completedTask.subtasks || []).map(s => ({ ...s, id: 'sub-' + Date.now() + Math.random(), completed: false })),
+            comments: [],
+            version: 1,
+            _status: 'created'
+          };
+          db.tasks.unshift(nextTask);
+          saveDB(db, true);
+          createNotification({
+            title: '🔄 Rodízio Round-Robin (US13)',
+            message: `Nova ocorrência (#${nextTask.currentOccurrence}/${maxOcc}) de "${nextTask.title}" gerada e rotacionada para ${nextAssignee}!`,
+            type: 'assignment',
+            color: '#2563EB',
+            taskId: nextTask.id
+          });
+          showToast(`🔄 Próxima ocorrência atribuída em rodízio para ${nextAssignee}!`);
+        }
+      }
+      saveDB(db, false);
+    }
+
+    function getTeamMemberNamesList(db) {
+      const team = db.currentTeam || 'Meu Time';
+      const set = new Set();
+      if (db.currentUser?.name) set.add(db.currentUser.name);
+      if (typeof projectMembersCache !== 'undefined' && Array.isArray(projectMembersCache)) {
+        projectMembersCache.forEach(m => { if (m?.name) set.add(m.name); });
+      }
+      if (db.teamMembersByTeam && Array.isArray(db.teamMembersByTeam[team])) {
+        db.teamMembersByTeam[team].forEach(m => { if (m?.name) set.add(m.name); });
+      }
+      (db.tasks || []).forEach(t => {
+        if ((!t.team || t.team === team) && t.assignee) set.add(t.assignee);
+      });
+      return Array.from(set);
+    }
+
+    // --- #22 (FE-21.3): Duplicar / Clonar Tarefa com Offset de Datas ---
+    function handleCloneActiveTaskUI(offsetDays = 0) {
+      const db = getDB();
+      const orig = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
+      if (!orig) return;
+
+      const baseDate = orig.dueDateIso ? new Date(orig.dueDateIso) : new Date();
+      const targetDate = new Date(baseDate.getTime() + Number(offsetDays) * 86400000);
+      const dateStr = getLocalDateString(targetDate);
+      const formattedDue = formatDueDateDisplay(dateStr, '18:00');
+
+      const cloned = {
+        ...JSON.parse(JSON.stringify(orig)),
+        id: 'task-clone-' + Date.now(),
+        title: `${orig.title} (Cópia)`,
+        status: 'PENDING',
+        completed: false,
+        dueDate: formattedDue,
+        dueDateIso: `${dateStr}T18:00:00`,
+        subtasks: (orig.subtasks || []).map((s, idx) => ({
+          ...s,
+          id: `sub-clone-${Date.now()}-${idx}`,
+          completed: false
+        })),
+        lockedBy: null,
+        lockedAt: null,
+        version: 1,
+        _status: 'created'
+      };
+
+      db.tasks.unshift(cloned);
+      saveDB(db, true);
+
+      apiFetch(`/tasks/${orig.id}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dateOffsetDays: offsetDays })
+      }).catch(() => {});
+
+      showToast(`📋 Tarefa duplicada com sucesso (${offsetDays > 0 ? '+' + offsetDays + ' dias' : 'mesma data'})!`);
+      openTaskDetail(cloned.id);
+      renderDashboard();
+    }
+
+    // --- #23 (FE-22.3): Aceite / Recusa de Atribuição de Tarefa (US22) ---
+    function respondTaskAssignmentUI(status) {
+      const db = getDB();
+      const task = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
+      if (!task) return;
+
+      let declinedReason = null;
+      if (status === 'DECLINED') {
+        declinedReason = prompt('Informe o motivo da recusa ou solicitação de redistribuição:', 'Conflito de agenda / sobrecarga na Sprint');
+        if (declinedReason === null) return;
+      }
+
+      task.assignmentStatus = status;
+      task.declinedReason = declinedReason;
+      task._status = (task._status === 'created') ? 'created' : 'updated';
+      saveDB(db, true);
+
+      apiFetch(`/tasks/${task.id}/assignment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, declinedReason })
+      }).catch(() => {});
+
+      createNotification({
+        title: status === 'ACCEPTED' ? '✅ Atribuição Aceita' : '⚠️ Atribuição Recusada',
+        message: status === 'ACCEPTED'
+          ? `${task.assignee || 'O responsável'} confirmou o aceite da tarefa "${task.title}".`
+          : `${task.assignee || 'O responsável'} recusou a tarefa "${task.title}". Motivo: ${declinedReason}`,
+        type: 'assignment',
+        color: status === 'ACCEPTED' ? '#10B981' : '#EF4444',
+        taskId: task.id
+      });
+
+      refreshOpenTaskDetail(task);
+      showToast(status === 'ACCEPTED' ? '✅ Atribuição da tarefa aceita!' : '⚠️ Atribuição recusada e registrada.');
+    }
+
+    // --- Renderizador Unificado de Detalhes da Onda 3 (#21, #22, #23, #32, #34) ---
+    function renderTaskOnda3Details(task) {
+      if (!task) return;
+      const db = getDB();
+      const members = getTeamMemberNamesList(db);
+
+      // 1. Popula seletor de co-responsável do checklist (#22 FE-21.3)
+      const coSelect = document.getElementById('inlineSubtaskAssigneeSelect');
+      if (coSelect) {
+        coSelect.innerHTML = `<option value="">Mesmo da tarefa (${escapeHtml(task.assignee || 'Membro')})</option>` +
+          members.map(m => `<option value="${escapeHtml(m)}">👤 ${escapeHtml(m)}</option>`).join('');
+      }
+
+      // 2. Renderiza status e botões de Aceite / Recusa (#23 FE-22.3)
+      const assignBox = document.getElementById('detailAssignmentActionBox');
+      if (assignBox) {
+        const aStatus = task.assignmentStatus || 'ACCEPTED';
+        let statusPill = `<span style="background: #DCFCE7; color: #15803D; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">✅ Aceita pelo responsável</span>`;
+        if (aStatus === 'PENDING') {
+          statusPill = `<span style="background: #FEF3C7; color: #B45309; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">⏳ Aguardando Aceite</span>`;
+        } else if (aStatus === 'DECLINED') {
+          statusPill = `<span style="background: #FEE2E2; color: #DC2626; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">❌ Recusada</span>`;
+        }
+
+        assignBox.innerHTML = `
+          <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span style="color: #475569; font-weight: 600;">Status da Delegação (US22):</span>
+              ${statusPill}
+            </div>
+            ${task.declinedReason ? `<div style="margin-top: 4px; font-size: 10px; color: #DC2626; background: #FEF2F2; padding: 4px 6px; border-radius: 6px;">Motivo da recusa: ${escapeHtml(task.declinedReason)}</div>` : ''}
+            <div style="display: flex; gap: 6px; margin-top: 7px;">
+              <button type="button" onclick="respondTaskAssignmentUI('ACCEPTED')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1px solid #86EFAC; background: ${aStatus === 'ACCEPTED' ? '#DCFCE7' : '#FFFFFF'}; color: #15803D; font-size: 10.5px; font-weight: 700; cursor: pointer;">✅ Confirmar Aceite</button>
+              <button type="button" onclick="respondTaskAssignmentUI('DECLINED')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1px solid #FCA5A5; background: ${aStatus === 'DECLINED' ? '#FEE2E2' : '#FFFFFF'}; color: #DC2626; font-size: 10.5px; font-weight: 700; cursor: pointer;">❌ Recusar / Redistribuir</button>
+            </div>
+          </div>
+        `;
+      }
+
+      // 3. Renderiza informações de Recorrência & Fila Round-Robin (#32 FE-13.3)
+      const recBox = document.getElementById('detailRecurrenceInfoBox');
+      if (recBox) {
+        if (task.isRecurring && task.recurrenceInterval && task.recurrenceInterval !== 'NONE') {
+          const labels = { DAILY: 'Diária', WEEKLY: 'Semanal', BIWEEKLY: 'Quinzenal', MONTHLY: 'Mensal', SPRINT: 'A cada Sprint' };
+          const queue = (Array.isArray(task.rotationUserIds) && task.rotationUserIds.length > 0) ? task.rotationUserIds : members;
+          recBox.style.display = 'block';
+          recBox.innerHTML = `
+            <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 10px; padding: 8px 10px; font-size: 10.5px; color: #1E3A8A;">
+              <div style="display: flex; justify-content: space-between; font-weight: 700;">
+                <span>🔄 Recorrência: ${labels[task.recurrenceInterval] || task.recurrenceInterval}</span>
+                <span>Ciclo #${task.currentOccurrence || 1}/${task.maxOccurrences || 4}</span>
+              </div>
+              <div style="margin-top: 3px; font-size: 10px; color: #2563EB;">
+                Fila Round-Robin: <strong>${queue.map(n => escapeHtml(n)).join(' ➔ ')}</strong>
+              </div>
+            </div>
+          `;
+        } else {
+          recBox.style.display = 'none';
+        }
+      }
+
+      // 4. Renderiza Dependências & Pré-requisitos (#21 FE-10.3)
+      const depListEl = document.getElementById('detailDependenciesList');
+      const depBadgeEl = document.getElementById('detailDepsStatusBadge');
+      const depBannerEl = document.getElementById('detailDependenciesBanner');
+      const depSelectEl = document.getElementById('detailAddDepSelect');
+
+      const team = db.currentTeam || 'Meu Time';
+      const teamTasks = (db.tasks || []).filter(t => !t.team || t.team === team || t.team === 'Meu Time');
+      const deps = Array.isArray(task.dependencies) ? task.dependencies : [];
+
+      if (depSelectEl) {
+        const currentDepIds = new Set(deps.map(d => String(d.dependsOnTaskId || d)));
+        const candidates = teamTasks.filter(t => String(t.id) !== String(task.id) && !currentDepIds.has(String(t.id)));
+        depSelectEl.innerHTML = `<option value="">+ Selecionar tarefa pré-requisito...</option>` +
+          candidates.map(c => `<option value="${c.id}">${escapeHtml(c.title)} (${c.status === 'COMPLETED' ? 'Concluída' : 'Pendente'})</option>`).join('');
+      }
+
+      let hasBlocking = false;
+      if (depListEl) {
+        if (deps.length === 0) {
+          depListEl.innerHTML = `<span style="font-size: 10.5px; color: #94A3B8; font-style: italic;">Nenhum pré-requisito vinculado.</span>`;
+        } else {
+          depListEl.innerHTML = deps.map(d => {
+            const predId = String(d.dependsOnTaskId || d);
+            const pred = (db.tasks || []).find(t => String(t.id) === predId);
+            const isDone = pred ? pred.status === 'COMPLETED' : false;
+            if (!isDone) hasBlocking = true;
+            const depKey = d.id || predId;
+            return `
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; border-radius: 8px; background: ${isDone ? '#F0FDF4' : '#FEF2F2'}; border: 1px solid ${isDone ? '#BBF7D0' : '#FECACA'}; font-size: 11px;">
+                <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; cursor: pointer;" onclick="openTaskDetail('${predId}')">
+                  <span>${isDone ? '✅' : '🔒'}</span>
+                  <span style="font-weight: 600; color: ${isDone ? '#166534' : '#991B1B'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(pred ? pred.title : predId)}</span>
+                </div>
+                <button type="button" onclick="handleRemoveTaskDependencyUI('${depKey}')" style="background: none; border: none; color: #DC2626; font-size: 11px; font-weight: 700; cursor: pointer;">✕</button>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      if (depBadgeEl) {
+        if (hasBlocking && task.status !== 'COMPLETED') {
+          depBadgeEl.innerText = '🔒 Bloqueada';
+          depBadgeEl.style.background = '#FEE2E2';
+          depBadgeEl.style.color = '#991B1B';
+        } else {
+          depBadgeEl.innerText = deps.length > 0 ? '✅ Pré-requisitos OK' : 'Livre';
+          depBadgeEl.style.background = '#DCFCE7';
+          depBadgeEl.style.color = '#15803D';
+        }
+      }
+
+      if (depBannerEl) {
+        if (hasBlocking && task.status !== 'COMPLETED') {
+          depBannerEl.style.display = 'block';
+          depBannerEl.innerHTML = `
+            <div style="background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 6px 8px; font-size: 10.5px; color: #991B1B; font-weight: 600;">
+              ⚠️ Esta tarefa está bloqueada até que todos os pré-requisitos acima sejam concluídos.
+            </div>
+          `;
+        } else {
+          depBannerEl.style.display = 'none';
+        }
+      }
+
+      // 5. Badge de Consenso PERT (#34 FE-14.3)
+      const pertBadge = document.getElementById('detailPertSummaryBadge');
+      if (pertBadge) {
+        if (task.pertConsensus) {
+          pertBadge.style.display = 'block';
+          pertBadge.innerHTML = `🎯 Consenso PERT aplicado: <strong>${task.pertConsensus.expectedHours}h</strong> (O=${task.pertConsensus.optimistic}h, M=${task.pertConsensus.mostLikely}h, P=${task.pertConsensus.pessimistic}h • σ=${task.pertConsensus.stdDev}h)`;
+        } else {
+          pertBadge.style.display = 'none';
+        }
+      }
+    }
+
+    // --- #24 (FE-09.2), #25 (FE-09.3), #26 (FE-08.3) & #32 (FE-13.3): Tela de Criar Tarefa ---
+    function initCreateTaskOnda3() {
+      const recSel = document.getElementById('createRecurrenceSelect');
+      if (recSel) recSel.value = 'NONE';
+      toggleCreateRecurrenceOptions();
+      updateCreateTaskAiEstimate();
+      setTimeout(() => renderCreateAssigneeCapacityPreview(), 120);
+    }
+
+    function toggleCreateRecurrenceOptions() {
+      const recSel = document.getElementById('createRecurrenceSelect');
+      const box = document.getElementById('createRecurrenceOptionsBox');
+      const queuePreview = document.getElementById('createRotationQueuePreview');
+      if (!recSel || !box) return;
+      if (recSel.value && recSel.value !== 'NONE') {
+        box.style.display = 'block';
+        const members = getTeamMemberNamesList(getDB());
+        if (queuePreview) {
+          queuePreview.innerText = `Fila Round-Robin: ${members.join(' ➔ ')}`;
+        }
+      } else {
+        box.style.display = 'none';
+      }
+    }
+
+    function computeLocalTfliteEffortEstimate() {
+      const title = (document.getElementById('createThemeInput')?.value || '').trim();
+      const desc = (document.getElementById('createDescInput')?.value || '').trim();
+      const priority = document.getElementById('createPrioritySelect')?.value || 'Média';
+      const tagsCount = (typeof createTaskSelectedTags !== 'undefined' && Array.isArray(createTaskSelectedTags)) ? createTaskSelectedTags.length : 0;
+      const subsCount = (typeof draftSubtasks !== 'undefined' && Array.isArray(draftSubtasks)) ? draftSubtasks.length : 0;
+
+      const words = title ? title.split(/\s+/).length : 1;
+      const descChars = desc.length;
+      const pWeight = priority === 'Urgente' ? 4 : priority === 'Alta' ? 3 : priority === 'Baixa' ? 1 : 2;
+
+      // Pesos do modelo linear TFLite (ML-08.1 / FE-08.2)
+      const raw = 1.2 + (words * 0.28) + (descChars * 0.008) + (subsCount * 1.35) + (pWeight * 0.75) + (tagsCount * 0.45);
+      return Math.max(1, Math.min(40, Math.round(raw * 2) / 2));
+    }
+
+    function updateCreateTaskAiEstimate() {
+      const btn = document.getElementById('btnAiEffortSuggest');
+      if (!btn) return;
+      const est = computeLocalTfliteEffortEstimate();
+      btn.innerText = `🧠 IA TFLite: ~${est.toFixed(1)}h (Aplicar)`;
+      btn.dataset.estimate = String(est);
+    }
+
+    function applyAiEffortSuggestion() {
+      const est = computeLocalTfliteEffortEstimate();
+      const input = document.getElementById('createEffortInput');
+      if (input) {
+        input.value = String(est);
+        showToast(`🧠 Estimativa preditiva TFLite (${est}h) aplicada ao esforço!`);
+      }
+    }
+
+    function isMemberOnLeaveLocal(memberName, db, targetDate = new Date()) {
+      const absences = Array.isArray(db.absences) ? db.absences : [];
+      const ts = targetDate.getTime();
+      return absences.find(a => {
+        if (!a.userName || a.userName.trim().toLowerCase() !== String(memberName).trim().toLowerCase()) return false;
+        const start = new Date(a.startDate).setHours(0, 0, 0, 0);
+        const end = new Date(a.endDate).setHours(23, 59, 59, 999);
+        return ts >= start && ts <= end;
+      }) || null;
+    }
+
+    function getMemberCapacityStatsLocal(db) {
+      const team = db.currentTeam || 'Meu Time';
+      const tasks = (db.tasks || []).filter(t => (!t.team || t.team === team || t.team === 'Meu Time') && t.status !== 'COMPLETED');
+      const members = getTeamMemberNamesList(db);
+
+      return members.map(name => {
+        const memberTasks = tasks.filter(t => (t.assignee || '').trim().toLowerCase() === name.trim().toLowerCase());
+        const allocatedHours = memberTasks.reduce((acc, t) => acc + (Number(t.effortHours) || 4), 0);
+        const maxHours = 40;
+        const percent = Math.min(100, Math.round((allocatedHours / maxHours) * 100));
+        const absence = isMemberOnLeaveLocal(name, db);
+        return {
+          name,
+          allocatedHours,
+          maxHours,
+          availableHours: Math.max(0, maxHours - allocatedHours),
+          percent,
+          absence
+        };
+      });
+    }
+
+    function renderCreateAssigneeCapacityPreview() {
+      const container = document.getElementById('createAssigneeCapacityBar');
+      const select = document.getElementById('createAssigneeSelect');
+      if (!container || !select) return;
+
+      const db = getDB();
+      const stats = getMemberCapacityStatsLocal(db);
+      const selected = select.value;
+
+      container.innerHTML = `
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; font-size: 10px;">
+          <div style="font-weight: 700; color: #475569; margin-bottom: 5px;">📊 Ocupação Semanal da Equipe (FE-09.3):</div>
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            ${stats.map(s => {
+              const isSel = s.name === selected;
+              const barColor = s.absence ? '#94A3B8' : s.percent >= 85 ? '#EF4444' : s.percent >= 70 ? '#F59E0B' : '#10B981';
+              return `
+                <div onclick="document.getElementById('createAssigneeSelect').value='${escapeHtml(s.name)}'; renderCreateAssigneeCapacityPreview();" style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 2px 4px; border-radius: 6px; background: ${isSel ? '#EFF6FF' : 'transparent'};">
+                  <span style="width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: ${isSel ? '800' : '600'}; color: ${isSel ? '#1D4ED8' : '#334155'};">${escapeHtml(s.name)}</span>
+                  <div style="flex: 1; height: 5px; background: #E2E8F0; border-radius: 9999px; overflow: hidden;">
+                    <div style="width: ${s.percent}%; height: 100%; background: ${barColor};"></div>
+                  </div>
+                  <span style="min-width: 68px; text-align: right; font-weight: 700; color: ${barColor};">
+                    ${s.absence ? '🏖️ Férias' : `${s.allocatedHours}h/40h (${s.percent}%)`}
+                  </span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function autoSuggestAssigneeUI() {
+      const db = getDB();
+      const stats = getMemberCapacityStatsLocal(db);
+      const available = stats.filter(s => !s.absence).sort((a, b) => a.allocatedHours - b.allocatedHours);
+
+      if (available.length === 0) {
+        showToast('⚠️ Todos os membros estão com ausência/férias registrada no período!');
+        return;
+      }
+
+      const best = available[0];
+      const select = document.getElementById('createAssigneeSelect');
+      if (select) {
+        select.value = best.name;
+        renderCreateAssigneeCapacityPreview();
+      }
+      showToast(`✨ Auto-Alocação IA: "${best.name}" selecionado (${best.allocatedHours}h/40h alocadas • menor carga disponível)!`);
+    }
+
+    function buildCreateTaskOnda3Fields(selectedAssignee, user) {
+      const recSel = document.getElementById('createRecurrenceSelect');
+      const maxOccInput = document.getElementById('createMaxOccurrencesInput');
+      const interval = recSel ? recSel.value : 'NONE';
+      const isRecurring = Boolean(interval && interval !== 'NONE');
+      const maxOccurrences = maxOccInput ? (parseInt(maxOccInput.value, 10) || 4) : 4;
+      const rotationUserIds = isRecurring ? getTeamMemberNamesList(getDB()) : [];
+      const isOtherMember = selectedAssignee && user?.name && selectedAssignee.trim().toLowerCase() !== user.name.trim().toLowerCase();
+
+      return {
+        assignmentStatus: isOtherMember ? 'PENDING' : 'ACCEPTED',
+        isRecurring,
+        recurrenceInterval: isRecurring ? interval : null,
+        maxOccurrences: isRecurring ? maxOccurrences : null,
+        currentOccurrence: 1,
+        rotationUserIds,
+        currentRotationIndex: 0,
+        dependencies: []
+      };
+    }
+
+    // --- #23 (FE-22.3): Modal de Gestão de Férias & Ausências ---
+    function openAbsencesModal() {
+      const db = getDB();
+      const members = getTeamMemberNamesList(db);
+      const sel = document.getElementById('absenceMemberSelect');
+      if (sel) {
+        sel.innerHTML = members.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+      }
+      const today = getLocalDateString(new Date());
+      const nextWeek = getLocalDateString(new Date(Date.now() + 7 * 86400000));
+      const sIn = document.getElementById('absenceStartInput');
+      const eIn = document.getElementById('absenceEndInput');
+      if (sIn && !sIn.value) sIn.value = today;
+      if (eIn && !eIn.value) eIn.value = nextWeek;
+
+      renderAbsencesListUI();
+      const modal = document.getElementById('modalUserAbsences');
+      if (modal) modal.classList.add('active');
+    }
+
+    function handleSaveUserAbsence() {
+      const userName = document.getElementById('absenceMemberSelect')?.value;
+      const type = document.getElementById('absenceTypeSelect')?.value || 'VACATION';
+      const startDate = document.getElementById('absenceStartInput')?.value;
+      const endDate = document.getElementById('absenceEndInput')?.value;
+      const reason = document.getElementById('absenceReasonInput')?.value?.trim() || 'Férias / Indisponibilidade';
+
+      if (!userName || !startDate || !endDate) {
+        showToast('Preencha o membro e as datas de início e término.');
+        return;
+      }
+
+      const db = getDB();
+      if (!Array.isArray(db.absences)) db.absences = [];
+      const newAbs = {
+        id: 'abs-' + Date.now(),
+        userId: userName,
+        userName,
+        type,
+        startDate,
+        endDate,
+        reason
+      };
+      db.absences.unshift(newAbs);
+      saveDB(db, false);
+
+      apiFetch('/capacity/absences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAbs)
+      }).catch(() => {});
+
+      const reasonInput = document.getElementById('absenceReasonInput');
+      if (reasonInput) reasonInput.value = '';
+      renderAbsencesListUI();
+      renderProjectWorkload();
+      renderCreateAssigneeCapacityPreview();
+      showToast(`🏖️ Ausência registrada para ${userName}!`);
+    }
+
+    function removeUserAbsenceUI(absId) {
+      const db = getDB();
+      if (!Array.isArray(db.absences)) return;
+      db.absences = db.absences.filter(a => String(a.id) !== String(absId));
+      saveDB(db, false);
+      renderAbsencesListUI();
+      renderProjectWorkload();
+      renderCreateAssigneeCapacityPreview();
+      showToast('Registro de ausência removido.');
+    }
+
+    function renderAbsencesListUI() {
+      const container = document.getElementById('absencesListContainer');
+      if (!container) return;
+      const db = getDB();
+      const list = Array.isArray(db.absences) ? db.absences : [];
+      if (list.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 12px; color: #94A3B8; font-size: 11px;">Nenhuma ausência ou férias ativa registrada.</div>`;
+        return;
+      }
+      const typeLabels = { VACATION: '🏖️ Férias', MEDICAL: '🏥 Licença Médica', UNAVAILABLE: '⏳ Indisponível' };
+      container.innerHTML = list.map(a => `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 10.5px;">
+          <div>
+            <strong style="color: #0F172A;">${escapeHtml(a.userName)}</strong> • <span style="color: #0D9488; font-weight: 700;">${typeLabels[a.type] || a.type}</span>
+            <div style="color: #64748B; font-size: 9.5px;">${a.startDate} até ${a.endDate} — ${escapeHtml(a.reason || '')}</div>
+          </div>
+          <button type="button" onclick="removeUserAbsenceUI('${a.id}')" style="background: none; border: none; color: #EF4444; font-weight: 700; cursor: pointer;">✕</button>
+        </div>
+      `).join('');
+    }
+
+    // --- #33 (FE-14.2) & #34 (FE-14.3): Modal de Planning Poker & Estimativa PERT ---
+    let pokerRevealed = false;
+
+    function openPlanningPokerModal() {
+      const db = getDB();
+      const task = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
+      if (!task) return;
+
+      pokerRevealed = false;
+      const titleEl = document.getElementById('pokerTaskTitleLabel');
+      if (titleEl) titleEl.innerText = `Tarefa: ${task.title}`;
+
+      const members = getTeamMemberNamesList(db);
+      const voterSel = document.getElementById('pokerVoterSelect');
+      if (voterSel) {
+        voterSel.innerHTML = members.map(m => `<option value="${escapeHtml(m)}">👤 ${escapeHtml(m)}</option>`).join('');
+      }
+
+      renderPlanningPokerSessionUI(task);
+      const modal = document.getElementById('modalPlanningPoker');
+      if (modal) modal.classList.add('active');
+    }
+
+    function castPokerVoteUI(points) {
+      const db = getDB();
+      const task = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
+      if (!task) return;
+
+      const voter = document.getElementById('pokerVoterSelect')?.value || db.currentUser?.name || 'Davi';
+      if (!Array.isArray(task.pokerVotes)) task.pokerVotes = [];
+
+      const existingIdx = task.pokerVotes.findIndex(v => v.userName === voter);
+      if (existingIdx >= 0) {
+        task.pokerVotes[existingIdx].points = Number(points);
+      } else {
+        task.pokerVotes.push({ userName: voter, points: Number(points), timestamp: Date.now() });
+      }
+
+      saveDB(db, false);
+      apiFetch(`/planning/poker/${task.id}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: voter, userName: voter, points: Number(points) })
+      }).catch(() => {});
+
+      renderPlanningPokerSessionUI(task);
+      showToast(`🃏 Voto de ${voter} (${points}h) registrado!`);
+    }
+
+    function revealPokerVotesUI() {
+      pokerRevealed = true;
+      const db = getDB();
+      const task = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
+      if (task) renderPlanningPokerSessionUI(task);
+    }
+
+    function computePertFromVotes(votes) {
+      if (!Array.isArray(votes) || votes.length === 0) return null;
+      const pts = votes.map(v => Number(v.points)).sort((a, b) => a - b);
+      const optimistic = pts[0];
+      const pessimistic = pts[pts.length - 1];
+      const mid = Math.floor(pts.length / 2);
+      const median = pts.length % 2 !== 0 ? pts[mid] : (pts[mid - 1] + pts[mid]) / 2;
+      const mostLikely = median;
+      const expectedHours = Math.round(((optimistic + 4 * mostLikely + pessimistic) / 6) * 10) / 10;
+      const stdDev = Math.round(((pessimistic - optimistic) / 6) * 100) / 100;
+      return { optimistic, mostLikely, pessimistic, expectedHours, stdDev, count: pts.length };
+    }
+
+    function renderPlanningPokerSessionUI(task) {
+      const votesBox = document.getElementById('pokerVotesListContainer');
+      const pertBox = document.getElementById('pokerPertResultBox');
+      if (!votesBox || !pertBox) return;
+
+      const votes = Array.isArray(task.pokerVotes) ? task.pokerVotes : [];
+      if (votes.length === 0) {
+        votesBox.innerHTML = `<div style="text-align: center; color: #94A3B8; padding: 8px;">Nenhum voto registrado ainda. Selecione um membro acima e toque em uma carta Fibonacci!</div>`;
+        pertBox.innerHTML = `<div style="color: #1E40AF; text-align: center;">Fórmula PERT: <strong>E = (O + 4M + P) / 6</strong> • Vote para calcular o consenso.</div>`;
+        return;
+      }
+
+      votesBox.innerHTML = votes.map(v => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-bottom: 1px dashed #E2E8F0;">
+          <span style="font-weight: 700; color: #1E293B;">👤 ${escapeHtml(v.userName)}</span>
+          <span style="background: ${pokerRevealed ? '#DBEAFE' : '#1E293B'}; color: ${pokerRevealed ? '#1E40AF' : '#FFFFFF'}; font-weight: 800; padding: 2px 8px; border-radius: 6px; font-size: 11px;">
+            ${pokerRevealed ? `${v.points}h` : '🂠 Votou'}
+          </span>
+        </div>
+      `).join('');
+
+      const pert = computePertFromVotes(votes);
+      pertBox.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <strong style="color: #1E3A8A;">📊 Cálculo PERT Consensual (${pert.count} voto${pert.count > 1 ? 's' : ''}):</strong>
+          <strong style="font-size: 14px; color: #1D4ED8;">${pert.expectedHours}h</strong>
+        </div>
+        <div style="font-size: 10px; color: #1E40AF;">
+          Otimista (O): <strong>${pert.optimistic}h</strong> • Mais Provável (M): <strong>${pert.mostLikely}h</strong> • Pessimista (P): <strong>${pert.pessimistic}h</strong> • Desvio (σ): <strong>±${pert.stdDev}h</strong>
+        </div>
+      `;
+    }
+
+    function applyPokerPertConsensusUI() {
+      const db = getDB();
+      const task = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
+      if (!task) return;
+      const pert = computePertFromVotes(task.pokerVotes || []);
+      if (!pert) {
+        showToast('Registre ao menos 1 voto antes de aplicar o consenso PERT.');
+        return;
+      }
+
+      task.effortHours = pert.expectedHours;
+      task.pertConsensus = pert;
+      task._status = (task._status === 'created') ? 'created' : 'updated';
+      saveDB(db, true);
+
+      apiFetch(`/planning/poker/${task.id}/apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version: task.version })
+      }).catch(() => {});
+
+      closeModal('modalPlanningPoker');
+      refreshOpenTaskDetail(task);
+      renderDashboard();
+      showToast(`✅ Consenso PERT de ${pert.expectedHours}h aplicado à tarefa!`);
+    }
+
+    // --- #27 (FE-11.2), #28 (FE-11.3), #29 (FE-23.3), #30 (FE-12.2) & #31 (FE-12.3): Planejamento (DAG, Gantt, Mapa Mental e Carga) ---
+    function switchPlanningViewMode(mode) {
+      activePlanningViewMode = mode;
+      const modes = ['dag', 'gantt', 'mindmap'];
+      const ids = { dag: 'btnPlanViewDag', gantt: 'btnPlanViewGantt', mindmap: 'btnPlanViewMindmap' };
+      modes.forEach(m => {
+        const btn = document.getElementById(ids[m]);
+        if (btn) {
+          if (m === mode) {
+            btn.style.background = '#2563EB';
+            btn.style.color = '#FFFFFF';
+          } else {
+            btn.style.background = 'transparent';
+            btn.style.color = '#64748B';
+          }
+        }
+      });
+      renderTimeline();
+    }
+
+    function renderOnda3PlanningView() {
+      const container = document.getElementById('planningTimelineContainer');
+      if (!container) return;
+      const db = getDB();
+      const team = db.currentTeam || 'Meu Time';
+      const tasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
+
+      if (tasks.length === 0) return;
+
+      const dag = computeLocalDagAndCpm(tasks);
+      const taskMap = new Map();
+      tasks.forEach(t => taskMap.set(String(t.id), t));
+
+      // Identifica alertas preditivos de dependências externas (#16 BE-23.2 / #29 FE-23.3)
+      const extWarnings = tasks.filter(t => {
+        if (t.status === 'COMPLETED') return false;
+        const tagsStr = JSON.stringify(t.tags || []).toLowerCase();
+        const titleStr = (t.title || '').toLowerCase();
+        return tagsStr.includes('extern') || tagsStr.includes('fornecedor') || tagsStr.includes('terceiro') || titleStr.includes('fornecedor') || titleStr.includes('extern');
+      });
+
+      const criticalCount = Array.from(dag.isCritical.values()).filter(Boolean).length;
+
+      // Cabeçalho de resumo do Caminho Crítico (CPM)
+      let headerBanner = `
+        <div style="margin: 0 16px 10px 16px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 10px; padding: 8px 10px; font-size: 10.5px; color: #991B1B; display: flex; justify-content: space-between; align-items: center;">
+          <span>🔥 <strong>Caminho Crítico (CPM):</strong> ${criticalCount} tarefa(s) crítica(s) (folga 0h)</span>
+          <strong style="background: #FEE2E2; padding: 2px 7px; border-radius: 6px;">Duração Total: ${dag.projectDuration}h</strong>
+        </div>
+      `;
+
+      if (extWarnings.length > 0) {
+        headerBanner += `
+          <div style="margin: 0 16px 10px 16px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: 7px 10px; font-size: 10px; color: #92400E;">
+            ⚠️ <strong>Alerta Preditivo de Dependência Externa (US23):</strong> ${extWarnings.map(w => escapeHtml(w.title)).join(', ')}
+          </div>
+        `;
+      }
+
+      if (activePlanningViewMode === 'dag') {
+        // #28 FE-11.3: Lista Ordenada pela Sequência Topológica (Kahn / DAG) + Métricas CPM (#29)
+        const cardsHtml = dag.orderedIds.map((id, idx) => {
+          const t = taskMap.get(id);
+          if (!t) return '';
+          const level = dag.levelMap.get(id) || 1;
+          const crit = dag.isCritical.get(id);
+          const slackVal = dag.slack.get(id) || 0;
+          const preds = (dag.prereqsMap.get(id) || []).map(pId => taskMap.get(pId)?.title || pId);
+          const respPhoto = resolveUserPhoto(t.assignee || t.assigneeName, t.avatar || t.assigneeAvatar);
+
+          return `
+            <div onclick="openTaskDetail('${t.id}')" style="background: ${crit ? '#FFF5F5' : '#FFFFFF'}; border: 1.5px solid ${crit ? '#F87171' : 'var(--border)'}; border-radius: 12px; padding: 10px 12px; margin: 0 16px 8px 16px; cursor: pointer;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+                  <span style="background: #1E293B; color: #FFFFFF; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 9999px;">#${idx + 1} • Nível ${level}</span>
+                  <strong style="font-size: 12px; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(t.title)}</strong>
+                </div>
+                ${crit
+                  ? `<span style="font-size: 9px; font-weight: 800; background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; padding: 2px 6px; border-radius: 9999px; white-space: nowrap;">🔥 CPM Crítica (Folga 0h)</span>`
+                  : `<span style="font-size: 9px; font-weight: 700; background: #F1F5F9; color: #475569; padding: 2px 6px; border-radius: 9999px; white-space: nowrap;">Folga: ${slackVal}h</span>`
+                }
+              </div>
+              ${preds.length > 0 ? `<div style="font-size: 10px; color: #2563EB; font-weight: 600; margin-top: 4px;">↳ Pré-requisito: ${preds.map(p => escapeHtml(p)).join(', ')}</div>` : ''}
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <img src="${respPhoto}" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1px solid #CBD5E1;">
+                  <span style="font-size: 10px; color: #64748B;">${escapeHtml(t.assignee || 'Membro')} • <strong>${t.effortHours || 4}h</strong> (ES:${dag.es.get(id)}h → EF:${dag.ef.get(id)}h)</span>
+                </div>
+                <span style="font-size: 10px; color: #64748B;">${t.dueDate || 'Hoje'}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        container.innerHTML = headerBanner + cardsHtml;
+      } else if (activePlanningViewMode === 'gantt') {
+        // #30 FE-12.2 & #29 FE-23.3: Gráfico de Gantt Interativo Horizontal com Caminho Crítico CPM
+        const totalDur = Math.max(dag.projectDuration, 8);
+        const rowsHtml = dag.orderedIds.map(id => {
+          const t = taskMap.get(id);
+          if (!t) return '';
+          const esVal = dag.es.get(id) || 0;
+          const efVal = dag.ef.get(id) || (esVal + 4);
+          const slackVal = dag.slack.get(id) || 0;
+          const crit = dag.isCritical.get(id);
+          const leftPct = Math.min(88, Math.round((esVal / totalDur) * 100));
+          const widthPct = Math.max(12, Math.min(100 - leftPct, Math.round(((efVal - esVal) / totalDur) * 100)));
+          const slackPct = Math.min(100 - leftPct - widthPct, Math.round((slackVal / totalDur) * 100));
+
+          return `
+            <div onclick="openTaskDetail('${t.id}')" style="margin-bottom: 10px; cursor: pointer;">
+              <div style="display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 3px;">
+                <strong style="color: ${crit ? '#DC2626' : '#1E293B'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65%;">${crit ? '🔥 ' : ''}${escapeHtml(t.title)}</strong>
+                <span style="color: #64748B; font-size: 9.5px;">${esVal}h–${efVal}h (${t.effortHours || 4}h)${slackVal > 0 ? ` • +${slackVal}h folga` : ''}</span>
+              </div>
+              <div style="position: relative; height: 18px; background: #F1F5F9; border-radius: 6px; overflow: hidden; border: 1px solid #E2E8F0;">
+                <div style="position: absolute; left: ${leftPct}%; width: ${widthPct}%; top: 2px; bottom: 2px; background: ${crit ? 'linear-gradient(90deg,#EF4444,#DC2626)' : 'linear-gradient(90deg,#3B82F6,#2563EB)'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 8.5px; font-weight: 700;">
+                  ${escapeHtml((t.assignee || '').split(' ')[0])}
+                </div>
+                ${slackPct > 0 ? `<div style="position: absolute; left: ${leftPct + widthPct}%; width: ${slackPct}%; top: 5px; bottom: 5px; background: repeating-linear-gradient(45deg,#CBD5E1,#CBD5E1 3px,#F8FAFC 3px,#F8FAFC 6px); border-radius: 0 4px 4px 0;" title="Folga (Slack): ${slackVal}h"></div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        container.innerHTML = headerBanner + `
+          <div style="margin: 0 16px 12px 16px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px; overflow-x: auto;">
+            <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: #64748B; font-weight: 700; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px; margin-bottom: 8px;">
+              <span>Início (0h)</span>
+              <span>Meio (${Math.round(totalDur / 2)}h)</span>
+              <span>Fim (${totalDur}h)</span>
+            </div>
+            ${rowsHtml}
+            <div style="display: flex; gap: 12px; font-size: 9.5px; color: #475569; margin-top: 8px; padding-top: 6px; border-top: 1px dashed #E2E8F0;">
+              <span>🟥 <strong>Caminho Crítico (CPM)</strong></span>
+              <span>🟦 <strong>Tarefa Normal</strong></span>
+              <span>⬜ <strong>Folga (Slack)</strong></span>
+            </div>
+          </div>
+        `;
+      } else if (activePlanningViewMode === 'mindmap') {
+        // #27 FE-11.2: Visualização em Mapa Mental / Grafo Hierárquico de Dependências e Subtarefas
+        const nodesHtml = dag.orderedIds.map(id => {
+          const t = taskMap.get(id);
+          if (!t) return '';
+          const crit = dag.isCritical.get(id);
+          const subs = Array.isArray(t.subtasks) ? t.subtasks : [];
+          const preds = (dag.prereqsMap.get(id) || []).map(pId => taskMap.get(pId)?.title || pId);
+
+          return `
+            <div style="margin-left: 14px; padding-left: 12px; border-left: 2px solid ${crit ? '#EF4444' : '#93C5FD'}; margin-bottom: 10px; position: relative;">
+              <div onclick="openTaskDetail('${t.id}')" style="background: ${crit ? '#FEF2F2' : '#EFF6FF'}; border: 1.5px solid ${crit ? '#FCA5A5' : '#BFDBFE'}; border-radius: 10px; padding: 8px 10px; cursor: pointer;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong style="font-size: 11.5px; color: ${crit ? '#991B1B' : '#1E3A8A'};">${crit ? '🔥 ' : '🔹 '}${escapeHtml(t.title)}</strong>
+                  <span style="font-size: 9px; font-weight: 700; color: #475569;">${t.effortHours || 4}h • ${escapeHtml(t.assignee || 'Membro')}</span>
+                </div>
+                ${preds.length > 0 ? `<div style="font-size: 9.5px; color: #DC2626; margin-top: 2px;">🔗 Depende de: ${preds.map(p => escapeHtml(p)).join(', ')}</div>` : ''}
+              </div>
+              ${subs.length > 0 ? `
+                <div style="margin-left: 14px; margin-top: 5px; display: flex; flex-direction: column; gap: 4px;">
+                  ${subs.map(s => `
+                    <div style="display: flex; align-items: center; gap: 6px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 4px 8px; font-size: 10px; color: #334155;">
+                      <span>${s.completed ? '✅' : '▫️'}</span>
+                      <span style="flex: 1; ${s.completed ? 'text-decoration:line-through;color:#94A3B8;' : ''}">${escapeHtml(s.title)}</span>
+                      ${s.assigneeName ? `<span style="font-size: 9px; color: #1D4ED8; font-weight: 700;">👤 ${escapeHtml(s.assigneeName)}</span>` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        container.innerHTML = headerBanner + `
+          <div style="margin: 0 16px 12px 16px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+            <div style="background: #1E293B; color: #FFFFFF; border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 800; margin-bottom: 10px; display: inline-flex; align-items: center; gap: 6px;">
+              <span>🕸️ Projeto: ${escapeHtml(team)}</span>
+              <span style="font-size: 9.5px; background: #3B82F6; padding: 1px 6px; border-radius: 9999px;">${tasks.length} nós</span>
+            </div>
+            ${nodesHtml}
+          </div>
+        `;
+      }
+    }
+
+    // --- #31 (FE-12.3): Alertas de Sobrecarga e Redistribuição Automática no Dashboard de Carga ---
+    function enhanceOnda3WorkloadView(container) {
+      if (!container) return;
+      const db = getDB();
+      const stats = getMemberCapacityStatsLocal(db);
+      const overloaded = stats.filter(s => s.percent >= 85 && !s.absence);
+      const onLeave = stats.filter(s => Boolean(s.absence));
+
+      let extraHtml = '';
+      if (overloaded.length > 0) {
+        extraHtml += `
+          <div style="margin-top: 10px; padding: 8px 10px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; font-size: 10.5px; color: #991B1B; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+            <span>⚠️ <strong>Alerta de Sobrecarga:</strong> ${overloaded.map(o => `${escapeHtml(o.name)} (${o.allocatedHours}h)`).join(', ')} acima do limite seguro!</span>
+            <button type="button" onclick="autoRedistributeOverloadUI()" style="background: #DC2626; color: #FFFFFF; border: none; border-radius: 6px; padding: 4px 8px; font-size: 9.5px; font-weight: 700; cursor: pointer; white-space: nowrap;">Redistribuir</button>
+          </div>
+        `;
+      }
+      if (onLeave.length > 0) {
+        extraHtml += `
+          <div style="margin-top: 6px; padding: 6px 10px; background: #F0FDFA; border: 1px solid #99F6E4; border-radius: 8px; font-size: 10px; color: #0F766E;">
+            🏖️ <strong>Em Férias / Ausência:</strong> ${onLeave.map(l => `${escapeHtml(l.name)} (${l.absence.startDate} a ${l.absence.endDate})`).join(', ')}
+          </div>
+        `;
+      }
+      if (extraHtml) {
+        container.insertAdjacentHTML('beforeend', extraHtml);
+      }
+    }
+
+    function autoRedistributeOverloadUI() {
+      const db = getDB();
+      const team = db.currentTeam || 'Meu Time';
+      const stats = getMemberCapacityStatsLocal(db);
+      const overloaded = stats.filter(s => s.allocatedHours > 32 || s.absence);
+      const available = stats.filter(s => !s.absence && s.allocatedHours < 32).sort((a, b) => a.allocatedHours - b.allocatedHours);
+
+      if (overloaded.length === 0 || available.length === 0) {
+        showToast('✅ A carga da equipe já está equilibrada entre os membros disponíveis!');
+        return;
+      }
+
+      const targetMember = available[0];
+      const candidateTask = (db.tasks || []).find(t =>
+        (!t.team || t.team === team || t.team === 'Meu Time') &&
+        t.status !== 'COMPLETED' &&
+        overloaded.some(o => o.name.toLowerCase() === (t.assignee || '').trim().toLowerCase())
+      );
+
+      if (!candidateTask) {
+        showToast('Nenhuma tarefa pendente elegível para redistribuição.');
+        return;
+      }
+
+      const oldAssignee = candidateTask.assignee;
+      candidateTask.assignee = targetMember.name;
+      candidateTask.assigneeName = targetMember.name;
+      const newPhoto = resolveUserPhoto(targetMember.name, null);
+      candidateTask.avatar = newPhoto;
+      candidateTask.assigneeAvatar = newPhoto;
+      candidateTask._status = (candidateTask._status === 'created') ? 'created' : 'updated';
+
+      saveDB(db, true);
+      renderTimeline();
+      renderDashboard();
+      showToast(`⚡ Tarefa "${candidateTask.title}" redistribuída de ${oldAssignee} para ${targetMember.name}!`);
     }
 
     // Compatibilidade com chamadas legadas
