@@ -1881,6 +1881,7 @@
             <strong style="font-size: 12px;">Capacidade de Carga de Trabalho</strong>
             <div style="display: flex; align-items: center; gap: 6px;">
               <button type="button" onclick="openAbsencesModal()" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;">🏖️ Férias / Ausências</button>
+              <button type="button" onclick="openAutomationsModal()" style="background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;">⚡ Automações Se/Então</button>
               <button type="button" onclick="autoRedistributeOverloadUI()" style="background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;">⚡ Equilibrar Carga</button>
             </div>
           </div>
@@ -2419,6 +2420,7 @@
           <button class="btn-primary" style="margin-bottom: 8px; background: #2563EB;" onclick="closeModal('modalUserMenu'); openInviteModal();"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Convidar Membros para o Time</button>
           <button class="btn-primary" style="margin-bottom: 8px;" onclick="closeModal('modalUserMenu'); switchScreen('team-onboarding', null);"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>Trocar ou Criar Outro Time</button>
           <button class="btn-primary" style="margin-bottom: 8px; background: #0D9488;" onclick="closeModal('modalUserMenu'); openAbsencesModal();">🏖️ Férias & Ausências da Equipe (US22)</button>
+          <button class="btn-primary" style="margin-bottom: 8px; background: #7C3AED;" onclick="closeModal('modalUserMenu'); openAutomationsModal();">⚡ Automações Inteligentes Se/Então (US15)</button>
           <button class="btn-secondary" style="color: #DC2626; border-color: #FCA5A5; margin-bottom: 8px;" onclick="logoutUser()"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair da Conta (Logout)</button>
           <button class="btn-secondary" onclick="closeModal('modalUserMenu')">Fechar</button>
         </div>
@@ -2498,6 +2500,99 @@
             <button type="button" onclick="revealPokerVotesUI()" style="flex: 1; padding: 9px; border-radius: 8px; border: 1px solid #BFDBFE; background: #FFFFFF; color: #1D4ED8; font-size: 11.5px; font-weight: 700; cursor: pointer;">👁️ Revelar Cartas</button>
             <button type="button" onclick="applyPokerPertConsensusUI()" style="flex: 1.3; padding: 9px; border-radius: 8px; border: none; background: #10B981; color: #FFFFFF; font-size: 11.5px; font-weight: 700; cursor: pointer;">✅ Aplicar PERT na Tarefa</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Sprint 2 Onda 4 (#36 FE-15.3): Modal de Gerenciamento de Regras de Automação c/ Editor Visual 'Se/Então' e JSON (US15) -->
+      <div id="modalAutomations" class="modal-overlay">
+        <div class="modal-card" style="max-height: 90vh; display: flex; flex-direction: column; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 16px;">⚡</span>
+              <h3 class="modal-title" style="margin: 0; font-size: 15px;">Automações "Se / Então" (US15)</h3>
+            </div>
+            <button type="button" onclick="closeModal('modalAutomations')" style="background: none; border: none; font-size: 16px; color: #64748B; cursor: pointer;">✕</button>
+          </div>
+          <p style="font-size: 10.5px; color: #64748B; margin-bottom: 8px;">
+            Configure gatilhos automáticos disparados por eventos do ciclo de vida das tarefas (JSON Engine BE-15.2 / FE-15.3).
+          </p>
+
+          <!-- Templates Rápidos 1-Toque -->
+          <div style="display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 8px;">
+            <button type="button" onclick="applyAutomationPreset('urgent_notify')" style="background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE; border-radius: 9999px; padding: 3px 8px; font-size: 9.5px; font-weight: 700; white-space: nowrap; cursor: pointer;">⚡ Preset: Urgente ➔ Notificar Gestor</button>
+            <button type="button" onclick="applyAutomationPreset('done_tag')" style="background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; border-radius: 9999px; padding: 3px 8px; font-size: 9.5px; font-weight: 700; white-space: nowrap; cursor: pointer;">✅ Preset: Concluída ➔ Tag Auditada</button>
+            <button type="button" onclick="applyAutomationPreset('overdue_urgent')" style="background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; border-radius: 9999px; padding: 3px 8px; font-size: 9.5px; font-weight: 700; white-space: nowrap; cursor: pointer;">🚨 Preset: Atraso ➔ Elevar p/ Urgente</button>
+          </div>
+
+          <!-- Editor Visual SE / ENTÃO -->
+          <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 10px;">
+            <div style="margin-bottom: 6px;">
+              <label style="font-size: 10px; font-weight: 700; color: #334155;">Nome da Regra:</label>
+              <input type="text" id="autoRuleNameInput" oninput="updateAutoRuleJsonPreview()" placeholder="Ex: Se Prioridade Urgente, Notificar Gestor" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; margin-top: 2px; background: #FFFFFF;">
+            </div>
+
+            <!-- Bloco SE (Gatilho + Condição) -->
+            <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 8px; margin-bottom: 6px;">
+              <div style="font-size: 10px; font-weight: 800; color: #1E40AF; margin-bottom: 4px;">🔹 SE (QUANDO O EVENTO OCORRER):</div>
+              <select id="autoRuleTriggerSelect" onchange="updateAutoRuleJsonPreview()" style="width: 100%; padding: 5px 6px; border: 1px solid #93C5FD; border-radius: 6px; font-size: 10.5px; font-weight: 700; background: #FFFFFF; color: #0F172A; margin-bottom: 6px;">
+                <option value="TASK_CREATED">📌 Tarefa Criada (TASK_CREATED)</option>
+                <option value="STATUS_CHANGED">🔄 Status Alterado / Concluída (STATUS_CHANGED)</option>
+                <option value="ASSIGNED_TO_ME">👤 Atribuída a Membro (ASSIGNED_TO_ME)</option>
+                <option value="DEADLINE_APPROACHING">⏰ Prazo Próximo (DEADLINE_APPROACHING)</option>
+                <option value="OVERDUE">🚨 Tarefa em Atraso (OVERDUE)</option>
+              </select>
+              <div style="display: grid; grid-template-columns: 1.1fr 0.9fr 1fr; gap: 4px;">
+                <select id="autoCondFieldSelect" onchange="updateAutoRuleJsonPreview()" style="padding: 4px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
+                  <option value="priority">Prioridade</option>
+                  <option value="status">Status</option>
+                  <option value="effortHours">Esforço (h)</option>
+                  <option value="assignee">Responsável</option>
+                  <option value="title">Título</option>
+                </select>
+                <select id="autoCondOpSelect" onchange="updateAutoRuleJsonPreview()" style="padding: 4px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
+                  <option value="EQUALS">Igual a (=)</option>
+                  <option value="NOT_EQUALS">Diferente (≠)</option>
+                  <option value="CONTAINS">Contém</option>
+                  <option value="GREATER_THAN">Maior que (&gt;)</option>
+                </select>
+                <input type="text" id="autoCondValInput" value="URGENT" oninput="updateAutoRuleJsonPreview()" placeholder="Valor" style="padding: 4px 6px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
+              </div>
+            </div>
+
+            <!-- Bloco ENTÃO (Ação) -->
+            <div style="background: #F5F3FF; border: 1px solid #DDD6FE; border-radius: 8px; padding: 8px; margin-bottom: 6px;">
+              <div style="font-size: 10px; font-weight: 800; color: #5B21B6; margin-bottom: 4px;">⚡ ENTÃO (EXECUTAR AÇÃO):</div>
+              <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 4px;">
+                <select id="autoActionTypeSelect" onchange="updateAutoRuleJsonPreview()" style="padding: 5px; border: 1px solid #C4B5FD; border-radius: 6px; font-size: 10px; font-weight: 700; background: #FFFFFF; color: #0F172A;">
+                  <option value="SEND_NOTIFICATION">🔔 Enviar Notificação</option>
+                  <option value="CHANGE_PRIORITY">🔥 Alterar Prioridade</option>
+                  <option value="CHANGE_STATUS">🔄 Alterar Status</option>
+                  <option value="ASSIGN_USER">👤 Atribuir a Membro</option>
+                  <option value="ADD_TAG">🏷️ Adicionar Tag</option>
+                  <option value="ARCHIVE">📦 Arquivar / Concluir</option>
+                </select>
+                <input type="text" id="autoActionValInput" value="ADMIN" oninput="updateAutoRuleJsonPreview()" placeholder="Alvo (ex: ADMIN, URGENT)" style="padding: 5px 6px; border: 1px solid #C4B5FD; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
+              </div>
+            </div>
+
+            <!-- Visualizador / Editor JSON Sincronizado -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <button type="button" onclick="toggleAutoJsonPreviewUI()" style="background: none; border: none; color: #6D28D9; font-size: 10px; font-weight: 700; cursor: pointer; padding: 0;">{ } Ver / Editar Payload JSON da Regra</button>
+              <span style="font-size: 9px; color: #64748B;">Schema DB-15.1</span>
+            </div>
+            <textarea id="autoRuleJsonPreviewBox" rows="3" style="display: none; width: 100%; font-family: monospace; font-size: 9.5px; background: #0F172A; color: #38BDF8; border-radius: 6px; padding: 6px; border: 1px solid #334155; margin-bottom: 6px;"></textarea>
+
+            <button type="button" onclick="handleSaveAutomationRuleUI()" class="btn-primary" style="background: #7C3AED; padding: 8px; font-size: 11.5px;">+ Salvar Regra de Automação</button>
+          </div>
+
+          <!-- Lista de Regras Ativas -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <strong style="font-size: 11px; color: #0F172A;">Regras Configuradas no Projeto:</strong>
+            <span id="automationRulesCountBadge" style="font-size: 9.5px; font-weight: 700; color: #6D28D9; background: #F5F3FF; padding: 1px 6px; border-radius: 9999px;">0</span>
+          </div>
+          <div id="automationRulesListContainer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; max-height: 150px; margin-bottom: 8px;"></div>
+
+          <button type="button" class="btn-secondary" onclick="closeModal('modalAutomations')">Fechar</button>
         </div>
       </div>
 
@@ -6646,7 +6741,12 @@
         });
 
         // Avalia e agenda alertas progressivos para a nova tarefa
+        // Avalia e agenda alertas progressivos para a nova tarefa
         checkProgressiveDeadlines();
+        if (typeof evaluateLocalAutomations === 'function') {
+          evaluateLocalAutomations('TASK_CREATED', newTask, db);
+          if (newTask.assignee) evaluateLocalAutomations('ASSIGNED_TO_ME', newTask, db);
+        }
 
         // Retorna ao Dashboard e atualiza lista
         switchScreen('dashboard', null);
@@ -9273,6 +9373,9 @@
           showToast(`🔄 Próxima ocorrência atribuída em rodízio para ${nextAssignee}!`);
         }
       }
+      if (typeof evaluateLocalAutomations === 'function') {
+        evaluateLocalAutomations('STATUS_CHANGED', completedTask, db);
+      }
       saveDB(db, false);
     }
 
@@ -10148,6 +10251,338 @@
       renderTimeline();
       renderDashboard();
       showToast(`⚡ Tarefa "${candidateTask.title}" redistribuída de ${oldAssignee} para ${targetMember.name}!`);
+    }
+
+    // ==========================================
+    // SPRINT 2 ONDA 4 (#35 BE-15.2 & #36 FE-15.3): ENGINE DE AUTOMAÇÃO "SE / ENTÃO" E EDITOR VISUAL/JSON (US15)
+    // ==========================================
+    function ensureDefaultAutomationRules(db) {
+      if (!Array.isArray(db.automationRules)) {
+        db.automationRules = [
+          {
+            id: 'auto-001',
+            projectId: db.currentTeamId || 'proj-sinergia-001',
+            name: 'Se Prioridade URGENTE, Notificar Gestor Imediatamente',
+            trigger: 'TASK_CREATED',
+            conditionsJson: JSON.stringify({ field: 'priority', operator: 'EQUALS', value: 'URGENT' }),
+            actionsJson: JSON.stringify([{ action: 'SEND_NOTIFICATION', targetRole: 'ADMIN', targetValue: 'ADMIN' }]),
+            isActive: true
+          }
+        ];
+      }
+      return db.automationRules;
+    }
+
+    function openAutomationsModal() {
+      const db = getDB();
+      ensureDefaultAutomationRules(db);
+      saveDB(db, false);
+
+      // Tenta sincronizar regras do backend em background
+      apiFetch('/automations')
+        .then(r => (r.ok ? r.json() : null))
+        .then(res => {
+          if (res && Array.isArray(res.data) && res.data.length > 0) {
+            const curDb = getDB();
+            curDb.automationRules = res.data;
+            saveDB(curDb, false);
+            renderAutomationRulesListUI();
+          }
+        })
+        .catch(() => {});
+
+      updateAutoRuleJsonPreview();
+      renderAutomationRulesListUI();
+      const modal = document.getElementById('modalAutomations');
+      if (modal) modal.classList.add('active');
+    }
+
+    function applyAutomationPreset(presetKey) {
+      const nameIn = document.getElementById('autoRuleNameInput');
+      const trigSel = document.getElementById('autoRuleTriggerSelect');
+      const fSel = document.getElementById('autoCondFieldSelect');
+      const opSel = document.getElementById('autoCondOpSelect');
+      const valIn = document.getElementById('autoCondValInput');
+      const actSel = document.getElementById('autoActionTypeSelect');
+      const actValIn = document.getElementById('autoActionValInput');
+
+      if (presetKey === 'urgent_notify') {
+        if (nameIn) nameIn.value = 'Se Prioridade URGENTE ➔ Notificar Gestor';
+        if (trigSel) trigSel.value = 'TASK_CREATED';
+        if (fSel) fSel.value = 'priority';
+        if (opSel) opSel.value = 'EQUALS';
+        if (valIn) valIn.value = 'URGENT';
+        if (actSel) actSel.value = 'SEND_NOTIFICATION';
+        if (actValIn) actValIn.value = 'ADMIN';
+      } else if (presetKey === 'done_tag') {
+        if (nameIn) nameIn.value = 'Se Status CONCLUÍDA ➔ Adicionar Tag Auditada';
+        if (trigSel) trigSel.value = 'STATUS_CHANGED';
+        if (fSel) fSel.value = 'status';
+        if (opSel) opSel.value = 'EQUALS';
+        if (valIn) valIn.value = 'COMPLETED';
+        if (actSel) actSel.value = 'ADD_TAG';
+        if (actValIn) actValIn.value = 'Auditada';
+      } else if (presetKey === 'overdue_urgent') {
+        if (nameIn) nameIn.value = 'Se Tarefa em Atraso ➔ Elevar Prioridade p/ Urgente';
+        if (trigSel) trigSel.value = 'OVERDUE';
+        if (fSel) fSel.value = 'status';
+        if (opSel) opSel.value = 'NOT_EQUALS';
+        if (valIn) valIn.value = 'COMPLETED';
+        if (actSel) actSel.value = 'CHANGE_PRIORITY';
+        if (actValIn) actValIn.value = 'URGENT';
+      }
+      updateAutoRuleJsonPreview();
+      showToast('✨ Preset carregado no editor Se/Então!');
+    }
+
+    function buildCurrentAutoRulePayload() {
+      const name = (document.getElementById('autoRuleNameInput')?.value || '').trim() || 'Regra Se/Então Personalizada';
+      const trigger = document.getElementById('autoRuleTriggerSelect')?.value || 'TASK_CREATED';
+      const field = document.getElementById('autoCondFieldSelect')?.value || 'priority';
+      const operator = document.getElementById('autoCondOpSelect')?.value || 'EQUALS';
+      const value = (document.getElementById('autoCondValInput')?.value || '').trim();
+      const actionType = document.getElementById('autoActionTypeSelect')?.value || 'SEND_NOTIFICATION';
+      const actionVal = (document.getElementById('autoActionValInput')?.value || '').trim() || 'ADMIN';
+
+      const conditionsObj = { field, operator, value };
+      const actionsArr = [
+        {
+          action: actionType,
+          targetValue: actionVal,
+          targetRole: actionType === 'SEND_NOTIFICATION' ? actionVal : undefined
+        }
+      ];
+
+      return {
+        name,
+        trigger,
+        conditionsJson: JSON.stringify(conditionsObj),
+        actionsJson: JSON.stringify(actionsArr),
+        conditions: conditionsObj,
+        actions: actionsArr
+      };
+    }
+
+    function updateAutoRuleJsonPreview() {
+      const box = document.getElementById('autoRuleJsonPreviewBox');
+      if (!box) return;
+      const payload = buildCurrentAutoRulePayload();
+      box.value = JSON.stringify(
+        {
+          trigger: payload.trigger,
+          conditions: payload.conditions,
+          actions: payload.actions
+        },
+        null,
+        2
+      );
+    }
+
+    function toggleAutoJsonPreviewUI() {
+      const box = document.getElementById('autoRuleJsonPreviewBox');
+      if (!box) return;
+      if (box.style.display === 'none') {
+        updateAutoRuleJsonPreview();
+        box.style.display = 'block';
+      } else {
+        box.style.display = 'none';
+      }
+    }
+
+    function handleSaveAutomationRuleUI() {
+      const payload = buildCurrentAutoRulePayload();
+      const jsonBox = document.getElementById('autoRuleJsonPreviewBox');
+
+      if (jsonBox && jsonBox.style.display !== 'none' && jsonBox.value.trim()) {
+        try {
+          const edited = JSON.parse(jsonBox.value);
+          if (edited.trigger) payload.trigger = edited.trigger;
+          if (edited.conditions) payload.conditionsJson = JSON.stringify(edited.conditions);
+          if (edited.actions) payload.actionsJson = JSON.stringify(edited.actions);
+        } catch (err) {
+          showToast('⚠️ O JSON editado manualmente contém erro de sintaxe.');
+          return;
+        }
+      }
+
+      const db = getDB();
+      ensureDefaultAutomationRules(db);
+
+      const newRule = {
+        id: 'auto-' + Date.now(),
+        projectId: db.currentTeamId || 'proj-sinergia-001',
+        name: payload.name,
+        trigger: payload.trigger,
+        conditionsJson: payload.conditionsJson,
+        actionsJson: payload.actionsJson,
+        isActive: true,
+        createdById: db.currentUser?.id || 'user-davi-001',
+        createdAt: new Date().toISOString()
+      };
+
+      db.automationRules.unshift(newRule);
+      saveDB(db, false);
+
+      apiFetch('/automations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRule)
+      }).catch(() => {});
+
+      const nameIn = document.getElementById('autoRuleNameInput');
+      if (nameIn) nameIn.value = '';
+      renderAutomationRulesListUI();
+      showToast(`⚡ Regra "${newRule.name}" salva e ativada!`);
+    }
+
+    function toggleAutomationRuleUI(ruleId) {
+      const db = getDB();
+      const rules = ensureDefaultAutomationRules(db);
+      const r = rules.find(x => String(x.id) === String(ruleId));
+      if (!r) return;
+      r.isActive = !r.isActive;
+      saveDB(db, false);
+
+      apiFetch(`/automations/${ruleId}/toggle`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: r.isActive })
+      }).catch(() => {});
+
+      renderAutomationRulesListUI();
+      showToast(r.isActive ? '✅ Regra ativada!' : '⏸️ Regra pausada.');
+    }
+
+    function deleteAutomationRuleUI(ruleId) {
+      const db = getDB();
+      ensureDefaultAutomationRules(db);
+      db.automationRules = db.automationRules.filter(x => String(x.id) !== String(ruleId));
+      saveDB(db, false);
+
+      apiFetch(`/automations/${ruleId}`, { method: 'DELETE' }).catch(() => {});
+      renderAutomationRulesListUI();
+      showToast('🗑️ Regra de automação removida.');
+    }
+
+    function renderAutomationRulesListUI() {
+      const container = document.getElementById('automationRulesListContainer');
+      const badge = document.getElementById('automationRulesCountBadge');
+      if (!container) return;
+
+      const db = getDB();
+      const rules = ensureDefaultAutomationRules(db);
+      if (badge) badge.innerText = String(rules.length);
+
+      if (rules.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 12px; color: #94A3B8; font-size: 11px;">Nenhuma regra configurada. Use o editor Se/Então acima!</div>`;
+        return;
+      }
+
+      const trigLabels = {
+        TASK_CREATED: '📌 Ao Criar',
+        STATUS_CHANGED: '🔄 Mudança Status',
+        ASSIGNED_TO_ME: '👤 Ao Atribuir',
+        DEADLINE_APPROACHING: '⏰ Prazo Próximo',
+        OVERDUE: '🚨 Em Atraso'
+      };
+
+      container.innerHTML = rules.map(r => {
+        let condSummary = '';
+        let actSummary = '';
+        try {
+          const c = JSON.parse(r.conditionsJson || '{}');
+          if (c.field) condSummary = `${c.field} ${c.operator || '='} ${c.value}`;
+          const a = JSON.parse(r.actionsJson || '[]');
+          const firstAct = Array.isArray(a) ? a[0] : a;
+          if (firstAct) actSummary = `${firstAct.action} ➔ ${firstAct.targetValue || firstAct.targetRole || ''}`;
+        } catch {}
+
+        return `
+          <div style="background: ${r.isActive ? '#FFFFFF' : '#F8FAFC'}; border: 1px solid ${r.isActive ? '#DDD6FE' : 'var(--border)'}; border-radius: 8px; padding: 8px 10px; font-size: 10.5px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <div style="min-width: 0; flex: 1;">
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <span style="background: ${r.isActive ? '#F5F3FF' : '#E2E8F0'}; color: ${r.isActive ? '#6D28D9' : '#64748B'}; font-size: 8.5px; font-weight: 800; padding: 1px 5px; border-radius: 4px;">${trigLabels[r.trigger] || r.trigger}</span>
+                <strong style="color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(r.name)}</strong>
+              </div>
+              <div style="color: #64748B; font-size: 9.5px; margin-top: 2px; font-family: monospace;">
+                SE [${escapeHtml(condSummary || 'Sempre')}] ➔ ENTÃO [${escapeHtml(actSummary)}]
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <button type="button" onclick="toggleAutomationRuleUI('${r.id}')" style="border: 1px solid ${r.isActive ? '#86EFAC' : '#CBD5E1'}; background: ${r.isActive ? '#DCFCE7' : '#F1F5F9'}; color: ${r.isActive ? '#15803D' : '#64748B'}; border-radius: 6px; padding: 2px 6px; font-size: 9px; font-weight: 800; cursor: pointer;">
+                ${r.isActive ? 'ATIVA' : 'OFF'}
+              </button>
+              <button type="button" onclick="deleteAutomationRuleUI('${r.id}')" style="background: none; border: none; color: #EF4444; font-weight: 700; cursor: pointer;">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function evaluateLocalAutomations(trigger, task, db) {
+      if (!task || !db) return;
+      const rules = ensureDefaultAutomationRules(db).filter(r => r.isActive && r.trigger === trigger);
+      if (rules.length === 0) return;
+
+      const normPriority = normalizePriorityToEnum(task.priority);
+
+      rules.forEach(rule => {
+        let matched = true;
+        try {
+          const cond = JSON.parse(rule.conditionsJson || '{}');
+          if (cond && cond.field) {
+            let actual = task[cond.field];
+            if (cond.field === 'priority') actual = normPriority;
+            const actualStr = String(actual ?? '').toLowerCase();
+            const expectedStr = String(cond.value ?? '').toLowerCase();
+            const op = cond.operator || 'EQUALS';
+            if (op === 'EQUALS') matched = actualStr === expectedStr || String(task[cond.field] ?? '').toLowerCase() === expectedStr;
+            else if (op === 'NOT_EQUALS') matched = actualStr !== expectedStr;
+            else if (op === 'CONTAINS') matched = actualStr.includes(expectedStr);
+            else if (op === 'GREATER_THAN') matched = Number(actual) > Number(cond.value);
+            else if (op === 'LESS_THAN') matched = Number(actual) < Number(cond.value);
+          }
+        } catch {
+          matched = false;
+        }
+
+        if (!matched) return;
+
+        try {
+          const rawActs = JSON.parse(rule.actionsJson || '[]');
+          const actions = Array.isArray(rawActs) ? rawActs : [rawActs];
+          actions.forEach(act => {
+            const val = act.targetValue || act.targetRole || act.value || '';
+            if (act.action === 'SEND_NOTIFICATION') {
+              createNotification({
+                title: `⚡ Automação Disparada: ${rule.name}`,
+                message: `Gatilho [${trigger}] acionou notificação automática (${val}) para a tarefa "${task.title}".`,
+                type: 'task',
+                color: '#7C3AED',
+                taskId: task.id
+              });
+              showToast(`⚡ Automação Se/Então disparada: ${rule.name}`);
+            } else if (act.action === 'CHANGE_PRIORITY' && val) {
+              task.priority = normalizePriorityToDisplay(val);
+              const { bg, col } = getPriorityColors(task.priority);
+              task.priorityBg = bg;
+              task.priorityColor = col;
+              showToast(`⚡ Automação: Prioridade alterada para ${task.priority}!`);
+            } else if (act.action === 'CHANGE_STATUS' && val) {
+              task.status = String(val).toUpperCase();
+              showToast(`⚡ Automação: Status alterado para ${task.status}!`);
+            } else if (act.action === 'ADD_TAG' && val) {
+              if (!Array.isArray(task.tags)) task.tags = [];
+              if (!task.tags.includes(val)) task.tags.push(val);
+              showToast(`⚡ Automação: Tag "${val}" adicionada automaticamente!`);
+            } else if (act.action === 'ASSIGN_USER' && val) {
+              task.assignee = val;
+              task.assigneeName = val;
+              showToast(`⚡ Automação: Tarefa atribuída para ${val}!`);
+            }
+          });
+        } catch {}
+      });
     }
 
     // Compatibilidade com chamadas legadas

@@ -9,6 +9,20 @@ $adbExe = "$env:USERPROFILE\platform-tools\adb.exe"
 $foundJre = Get-ChildItem -Path $env:USERPROFILE -Filter "java.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
 $javaExe = if (Get-Command java -ErrorAction SilentlyContinue) { "java" } elseif ($foundJre) { $foundJre.FullName } else { "java" }
 
+if (-not (Test-Path $signerJar)) {
+    Write-Host ">>> Downloading uber-apk-signer.jar..."
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar" -OutFile $signerJar -UseBasicParsing
+}
+
+if (-not (Test-Path $adbExe)) {
+    Write-Host ">>> Downloading Android platform-tools (ADB)..."
+    $ptZip = Join-Path $tempRoot "platform-tools.zip"
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri "https://dl.google.com/android/repository/platform-tools-latest-windows.zip" -OutFile $ptZip -UseBasicParsing
+    Expand-Archive -Path $ptZip -DestinationPath $env:USERPROFILE -Force
+}
+
 Write-Host ">>> Cleaning temp directory: $work"
 if (Test-Path $work) {
     Remove-Item $work -Recurse -Force
@@ -101,7 +115,10 @@ if (-not $deviceLines -or $deviceLines.Count -eq 0) {
 }
 
 Write-Host ">>> Dispositivo detectado! Instalando no celular via ADB (adb install -r)..."
+& $adbExe wait-for-device
+$ErrorActionPreference = "Continue"
 $res = & $adbExe install -r $finalApk 2>&1
+$ErrorActionPreference = "Stop"
 Write-Host $res
 
 if ($res -match "INSTALL_FAILED_UPDATE_INCOMPATIBLE" -or $res -match "signatures do not match") {

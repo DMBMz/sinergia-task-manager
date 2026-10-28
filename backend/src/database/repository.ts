@@ -1174,7 +1174,23 @@ export class AppRepository {
     return rule;
   }
 
-  getAutomationRules(projectId: string): AutomationRule[] {
+  getAutomationRules(projectId?: string): AutomationRule[] {
+    const all = Array.from(this.automationRules.values());
+    if (!projectId) return all;
+    return all.filter(r => r.projectId === projectId);
+  }
+
+  toggleAutomationRule(id: string, isActive?: boolean): AutomationRule | undefined {
+    const rule = this.automationRules.get(id);
+    if (!rule) return undefined;
+    rule.isActive = isActive !== undefined ? Boolean(isActive) : !rule.isActive;
+    rule.updatedAt = new Date();
+    this.automationRules.set(id, rule);
+    this.logChange('automationRules', id, 'updated');
+    return rule;
+  }
+
+  private _oldGetAutomationRules_unused(projectId: string): AutomationRule[] {
     return Array.from(this.automationRules.values()).filter(r => r.projectId === projectId);
   }
 

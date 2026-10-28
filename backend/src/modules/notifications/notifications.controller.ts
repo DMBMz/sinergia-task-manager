@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { repository } from '../../database/repository';
-import { NotificationService } from './fcm.service';
+import { NotificationService, notificationService } from './fcm.service';
+import { AutomationEngineService } from '../automations/automation.service';
 
-const notificationService = new NotificationService();
+// Using exported notificationService singleton from fcm.service
 
 export class NotificationsController {
   async checkDeadlines(req: Request, res: Response) {
@@ -14,6 +15,11 @@ export class NotificationsController {
       if (task.dueDate && task.status !== 'COMPLETED') {
         const dueDate = new Date(task.dueDate);
         const alert = notificationService.calculateDeadlineAlert(dueDate, now);
+        if (dueDate.getTime() < now.getTime()) {
+          await AutomationEngineService.evaluateEvent('OVERDUE', task.id);
+        } else if (alert) {
+          await AutomationEngineService.evaluateEvent('DEADLINE_APPROACHING', task.id);
+        }
 
         if (alert && task.assignee) {
           const sent = await notificationService.sendNotification(task.assignee, {

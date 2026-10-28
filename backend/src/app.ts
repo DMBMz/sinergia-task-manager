@@ -13,6 +13,7 @@ import { repository } from './database/repository';
 import { prisma } from './database/prisma';
 import { planningController } from './modules/planning/planning.controller';
 import { capacityController } from './modules/capacity/capacity.controller';
+import { automationsController } from './modules/automations/automation.controller';
 
 export function createApp() {
   const app = express();
@@ -73,6 +74,13 @@ export function createApp() {
   app.post('/api/v1/capacity/suggest', (req, res) => capacityController.suggestAssignee(req, res));
   app.post('/api/v1/capacity/absences', (req, res) => capacityController.addAbsence(req, res));
   app.get('/api/v1/capacity/absences/:userId', (req, res) => capacityController.getMemberAbsences(req, res));
+
+  // Sprint 2 Onda 4: Engine de Automação JSON "Se / Então" (US15 / BE-15.2)
+  app.get('/api/v1/automations', (req, res) => automationsController.list(req, res));
+  app.post('/api/v1/automations', (req, res) => automationsController.create(req, res));
+  app.patch('/api/v1/automations/:id/toggle', (req, res) => automationsController.toggle(req, res));
+  app.delete('/api/v1/automations/:id', (req, res) => automationsController.remove(req, res));
+  app.post('/api/v1/automations/evaluate', (req, res) => automationsController.evaluate(req, res));
 
   // US02: WatermelonDB Offline Delta Sync
   app.get('/api/v1/sync/pull', (req, res) => syncController.pull(req, res));

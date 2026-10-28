@@ -4,6 +4,7 @@ import { Priority, TaskStatus, DependencyType, AssignmentStatus } from '../../da
 import { TaskDependencyGuard } from './tasks.guard';
 import { DagService } from '../planning/dag.service';
 import { RecurrenceRoundRobinService } from '../recurrence/recurrence.service';
+import { AutomationEngineService } from '../automations/automation.service';
 
 export class TasksController {
   async list(req: Request, res: Response) {
@@ -134,6 +135,12 @@ export class TasksController {
       repository.setTaskTags(task.id, task.projectId, tags);
     }
 
+    // Sprint 2 Onda 4: Dispara gatilhos de automação (BE-15.2)
+    await AutomationEngineService.evaluateEvent('TASK_CREATED', task.id);
+    if (assigneeId || assignee) {
+      await AutomationEngineService.evaluateEvent('ASSIGNED_TO_ME', task.id);
+    }
+
     const created = repository.getTaskWithDetails(task.id);
     return res.status(201).json({ success: true, data: created });
   }
@@ -192,6 +199,14 @@ export class TasksController {
     if (result.task && updateData.status === 'COMPLETED') {
       TaskDependencyGuard.onTaskCompleted(id).catch(err => console.error('[Guard Error]', err));
       RecurrenceRoundRobinService.handleTaskCompletion(id).catch(err => console.error('[Recurrence Error]', err));
+    }
+
+    // Sprint 2 Onda 4: Dispara gatilhos de automação em atualização (BE-15.2)
+    if (updateData.status) {
+      await AutomationEngineService.evaluateEvent('STATUS_CHANGED', id);
+    }
+    if (updateData.assigneeId || updateData.assignee) {
+      await AutomationEngineService.evaluateEvent('ASSIGNED_TO_ME', id);
     }
 
     const updatedTask = repository.getTaskWithDetails(id);
