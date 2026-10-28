@@ -4199,8 +4199,22 @@
       const insightTeam = document.getElementById('insightTeamName');
       if (insightTeam) insightTeam.innerText = `${team} • Time Ativo`;
 
-      // Filtra tarefas pertencentes ao time ativo
-      const tasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
+    function isTaskInCurrentTeam(t, db) {
+      if (!t) return false;
+      const curTeam = (db?.currentTeam || 'Meu Time').trim().toLowerCase();
+      const curTeamId = (db?.currentTeamId || '').trim().toLowerCase();
+      const tTeam = (t.team || '').trim().toLowerCase();
+      const tProjId = (t.projectId || '').trim().toLowerCase();
+      if (tTeam) return tTeam === curTeam;
+      if (curTeamId && tProjId) return tProjId === curTeamId;
+      if (!curTeam && !curTeamId) return true;
+      if (tTeam && curTeam && tTeam === curTeam) return true;
+      if (curTeamId && tProjId && tProjId === curTeamId && (!tTeam || tTeam === 'meu time')) return true;
+      return !tTeam && (curTeam === 'meu time' || curTeam === 'sinergia mobile app');
+    }
+
+    // Filtra tarefas pertencentes ao time ativo
+      const tasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
 
       const completed = tasks.filter(t => t.status === 'COMPLETED').length;
       const pending = tasks.filter(t => t.status !== 'COMPLETED').length;
@@ -4862,7 +4876,7 @@
       if (completedContainer) completedContainer.innerHTML = '';
 
       const team = db.currentTeam;
-      const allTeamTasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
+      const allTeamTasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
 
       // Aplicação dos Filtros Compostos (Onda 1 Sprint 2)
       const filteredTasks = allTeamTasks.filter(task => {
@@ -8146,7 +8160,7 @@
       container.innerHTML = '';
 
       const team = db.currentTeam;
-      const tasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
+      const tasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
 
       if (tasks.length === 0) {
         container.innerHTML = `
@@ -8188,7 +8202,7 @@
       if (!container) return;
       const db = getDB();
       const team = db.currentTeam || 'Meu Time';
-      const tasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
+      const tasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
 
       let members = (projectMembersCache && projectMembersCache.length > 0) ? [...projectMembersCache] : [];
       if (members.length === 0 && db.teamMembersByTeam && Array.isArray(db.teamMembersByTeam[team]) && db.teamMembersByTeam[team].length > 0) {
@@ -8220,24 +8234,32 @@
         if (!t.completed && t.assignee) {
           const hours = Number(t.effortHours) || 4;
           const aName = t.assignee.trim();
+        const isOpenTask = t.status !== 'COMPLETED' && !t.completed;
+        const aKey = String(t.assignee || t.assigneeName || '').trim().toLowerCase();
+        if (isOpenTask && aKey && isTaskInCurrentTeam(t, db)) {
+          const hours = Number(t.effortHours) || 4;
+          totalHoursByMember[aKey] = (totalHoursByMember[aKey] || 0) + hours;
+          activeTasksByMember[aKey] = (activeTasksByMember[aKey] || 0) + 1;
+        }
+        } else if (false) {
           totalHoursByMember[aName] = (totalHoursByMember[aName] || 0) + hours;
           activeTasksByMember[aName] = (activeTasksByMember[aName] || 0) + 1;
         }
       });
 
-      const MAX_SPRINT_HOURS = 40;
+      const MAX_SPRINT_HOURS = (typeof getTeamSettings === 'function') ? (getTeamSettings(db, team).weeklyCapacityHours || 40) : 40;
       let html = '';
 
       members.forEach((m, idx) => {
         const photo = resolveUserPhoto(m, m.avatarUrl || m.avatar);
         const name = m.name || 'Membro';
-        const hours = totalHoursByMember[name] || 0;
+        const hours = totalHoursByMember[String(name).trim().toLowerCase()] || 0;
 
         let percent = 0;
         if (hours > 0) {
           percent = Math.min(Math.round((hours / MAX_SPRINT_HOURS) * 100), 100);
         } else {
-          const fallbacks = [75, 60, 40, 50, 65];
+          const fallbacks = [0, 0, 0, 0, 0];
           percent = fallbacks[idx % fallbacks.length];
         }
 
@@ -8558,6 +8580,12 @@
       const taskCountByUser = {};
       tasks.forEach(t => {
         if (!t.completed && t.assignee) {
+        const isOpen = t.status !== 'COMPLETED' && !t.completed;
+        const aKey = String(t.assignee || t.assigneeName || '').trim().toLowerCase();
+        if (isOpen && aKey && isTaskInCurrentTeam(t, db)) {
+          taskCountByUser[aKey] = (taskCountByUser[aKey] || 0) + 1;
+        }
+        } else if (false) {
           taskCountByUser[t.assignee] = (taskCountByUser[t.assignee] || 0) + 1;
         }
       });
@@ -8570,7 +8598,14 @@
         const memberEmail = String(member.email || 'sem e-mail');
         const safeName = memberName.replace(/'/g, "\\'");
         const avatar = resolveUserPhoto(member, member.avatarUrl || member.avatar);
-        const activeTasks = taskCountByUser[memberName] || 0;
+        const mKey = memberName.trim().toLowerCase();
+        const activeTasks = (db.tasks || []).filter(t => {
+          if (!isTaskInCurrentTeam(t, db)) return false;
+          if (t.status === 'COMPLETED' || t.completed) return false;
+          if (t.assigneeId && member.id && String(t.assigneeId) === String(member.id)) return true;
+          const tAss = String(t.assignee || t.assigneeName || '').trim().toLowerCase();
+          return tAss === mKey;
+        }).length;
         const isSelf = (db.currentUser && (
           (db.currentUser.email && member.email && String(db.currentUser.email).toLowerCase() === String(member.email).toLowerCase()) ||
           (db.currentUser.id && member.id && String(db.currentUser.id) === String(member.id)) ||
@@ -10202,7 +10237,7 @@
       if (!container) return;
       const db = getDB();
       const team = db.currentTeam || 'Meu Time';
-      const tasks = (db.tasks || []).filter(t => !t.team || !team || t.team === team || t.team === 'Meu Time');
+      const tasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
 
       if (tasks.length === 0) return;
 
