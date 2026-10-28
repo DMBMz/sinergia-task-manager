@@ -235,7 +235,7 @@ export class AuthController {
   }
 
   // Garante que o usuário existe no PostgreSQL (ex: usuários cadastrados antes da nuvem ou via token)
-  private async ensureUserExists(userId: string, reqUser?: { id?: string; email?: string; name?: string }) {
+  private async ensureUserExists(userId: string, reqUser?: { id?: string; email?: string; name?: string; avatarUrl?: string | null }) {
     try {
       let user = await prisma.user.findUnique({ where: { id: userId } });
       if (user) return user;
