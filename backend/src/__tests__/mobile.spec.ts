@@ -178,6 +178,19 @@ describe('Sinergia Mobile — Testes Unitários de Serviços Mobile', () => {
 
       expect(complex.estimatedHours).toBeGreaterThan(simple.estimatedHours);
     });
+
+    it('deve estimar até 0.5h (15-30 min) para tarefas rápidas e verificações diárias como "verificação diária do servidor"', () => {
+      const dailyCheck = aiEstimator.estimate({
+        title: 'Verificação diária do servidor',
+        description: 'Checar status de uptime e logs básicos todo dia',
+        priority: 'MEDIUM',
+        subtasksCount: 0,
+        recurrencePattern: 'DAILY'
+      });
+
+      expect(dailyCheck.estimatedHours).toBeLessThanOrEqual(0.5);
+      expect(dailyCheck.estimatedHours).toBeGreaterThanOrEqual(0.25);
+    });
   });
 });
 

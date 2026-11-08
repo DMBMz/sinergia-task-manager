@@ -75,11 +75,13 @@ export class StorageController {
 
       const storageKey = `avatars/${targetUser.replace(/[^a-zA-Z0-9_-]/g, '_')}/${uuidv4()}.${ext}`;
       const uploadResult = await minioService.uploadBuffer(buffer, storageKey, mimetype);
+      const base64DataUrl = `data:${mimetype};base64,${buffer.toString('base64')}`;
+      const persistentAvatarUrl = buffer.length <= 150000 ? base64DataUrl : uploadResult.url;
 
-      // Atualiza no repositório em memória
-      const repoUser = repository.updateUserAvatar(targetUser, uploadResult.url);
+      // Atualiza no repositório em memória com URL persistente
+      const repoUser = repository.updateUserAvatar(targetUser, persistentAvatarUrl);
 
-      // Atualiza no banco de dados PostgreSQL via Prisma
+      // Atualiza no banco de dados PostgreSQL via Prisma (armazena DataURL compacto para não quebrar em disco efêmero)
       try {
         await prisma.user.updateMany({
           where: {
@@ -90,7 +92,7 @@ export class StorageController {
             ]
           },
           data: {
-            avatarUrl: uploadResult.url
+            avatarUrl: persistentAvatarUrl
           }
         });
       } catch (dbErr) {
@@ -99,10 +101,11 @@ export class StorageController {
 
       return res.status(200).json({
         success: true,
-        message: 'Foto de perfil salva com sucesso no MinIO.',
-        avatarUrl: uploadResult.url,
+        message: 'Foto de perfil salva com sucesso.',
+        avatarUrl: persistentAvatarUrl,
+        fileUrl: uploadResult.url,
         storageKey: uploadResult.storageKey,
-        user: repoUser || { id: targetUser, avatarUrl: uploadResult.url }
+        user: repoUser || { id: targetUser, avatarUrl: persistentAvatarUrl }
       });
     } catch (error) {
       console.error('[Upload Avatar Error]', error);
@@ -131,6 +134,11 @@ export class StorageController {
       res.setHeader('Cache-Control', 'public, max-age=86400');
       stream.pipe(res);
     } catch (error) {
+      if (key && key.startsWith('avatars/')) {
+        const placeholderSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" fill="#E2E8F0"/><path d="M64 64a22 22 0 1 0 0-44 22 22 0 0 0 0 44Zm0 12c-24.2 0-44 16.5-44 38v4h88v-4c0-21.5-19.8-38-44-38Z" fill="#94A3B8"/></svg>`;
+        res.setHeader('Content-Type', 'image/svg+xml');
+        return res.status(200).send(placeholderSvg);
+      }
       return res.status(404).json({ success: false, error: 'Arquivo não encontrado.' });
     }
   }

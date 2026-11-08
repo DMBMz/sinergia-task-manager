@@ -280,17 +280,17 @@ export class AppRepository {
       }
       if (!tagName || tagName === '[object Object]') continue;
 
-      let foundTag = this.tags.get(tagName);
-      if (!foundTag) {
-        foundTag = Array.from(this.tags.values()).find(t => t.name.toLowerCase() === tagName.toLowerCase());
-      }
+      const targetProjId = projectId || 'proj-sinergia-001';
+      let foundTag = Array.from(this.tags.values()).find(
+        t => t.projectId === targetProjId && t.name.toLowerCase() === tagName.toLowerCase()
+      );
       if (!foundTag) {
         const newTagId = 'tag-' + uuidv4().slice(0, 8);
         foundTag = {
           id: newTagId,
           name: tagName,
           color: '#3B82F6',
-          projectId: projectId || 'proj-sinergia-001'
+          projectId: targetProjId
         };
         this.tags.set(newTagId, foundTag);
       }
@@ -339,6 +339,10 @@ export class AppRepository {
       }
     }
 
+    const preservedDueIso = (typeof rawDue === 'string' && rawDue.includes('T'))
+      ? rawDue.trim().replace(/\.\d+Z$/i, '').replace(/Z$/i, '')
+      : null;
+
     const task: Task = {
       id,
       title: data.title || 'Nova Tarefa',
@@ -348,6 +352,7 @@ export class AppRepository {
       effortHours: data.effortHours || 0,
       startDate: data.startDate ? new Date(data.startDate) : null,
       dueDate: parsedDue,
+      ...(preservedDueIso ? { dueDateIso: preservedDueIso } : {}),
       projectId,
       team: data.team || this.projects.get(projectId)?.name || 'Meu Time',
       assigneeId: data.assigneeId || null,
@@ -494,7 +499,8 @@ export class AppRepository {
     const project = this.projects.get(task.projectId);
     const team = task.team || project?.name || 'Meu Time';
 
-    const isoDue = task.dueDate ? (task.dueDate instanceof Date ? (isNaN(task.dueDate.getTime()) ? null : task.dueDate.toISOString()) : String(task.dueDate)) : null;
+    const rawIsoDue = (task as any).dueDateIso || (task.dueDate ? (task.dueDate instanceof Date ? (isNaN(task.dueDate.getTime()) ? null : task.dueDate.toISOString()) : String(task.dueDate)) : null);
+    const isoDue = typeof rawIsoDue === 'string' ? rawIsoDue.replace(/\.\d+Z$/i, '').replace(/Z$/i, '') : rawIsoDue;
 
     return {
       ...task,
@@ -735,6 +741,11 @@ export class AppRepository {
     const cleanAvatar = (cleanData as any).avatar || (cleanData as any).assigneeAvatar || (cleanData.assigneeName && cleanData.assigneeName !== existing.assigneeName ? null : ((existing as any).avatar || existing.assigneeAvatar)) || null;
     const cleanAssigneeAvatar = (cleanData as any).assigneeAvatar || (cleanData as any).avatar || (cleanData.assigneeName && cleanData.assigneeName !== existing.assigneeName ? null : (existing.assigneeAvatar || (existing as any).avatar)) || null;
 
+    const rawUpdateDue = (data as any).dueDateIso !== undefined ? (data as any).dueDateIso : (data as any).dueDate;
+    const preservedUpdateDueIso = (typeof rawUpdateDue === 'string' && rawUpdateDue.includes('T'))
+      ? rawUpdateDue.trim().replace(/\.\d+Z$/i, '').replace(/Z$/i, '')
+      : ((existing as any).dueDateIso || undefined);
+
     const updated: Task = {
       ...existing,
       ...cleanData,
@@ -746,6 +757,7 @@ export class AppRepository {
       creator: existing.creator,
       priority: (cleanData as any).priority !== undefined ? normalizePriority((cleanData as any).priority) : existing.priority,
       dueDate: parsedDue !== undefined ? parsedDue : existing.dueDate,
+      ...(preservedUpdateDueIso ? { dueDateIso: preservedUpdateDueIso } : {}),
       team: (data as any).team || existing.team,
       subtasks: (data as any).subtasks !== undefined ? (data as any).subtasks : existing.subtasks,
       lockedBy: (data as any).lockedBy !== undefined ? (data as any).lockedBy : null, // Libera o lock após conclusão da edição se não informado

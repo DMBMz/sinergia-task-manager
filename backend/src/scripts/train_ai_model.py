@@ -4,36 +4,63 @@ import os
 import random
 import struct
 
-def generate_synthetic_dataset(num_samples=1200):
+def generate_synthetic_dataset(num_samples=3500):
     samples = []
-    # Ground truth formula with realistic coefficients:
-    # duration = 1.5 + (0.25 * title_words) + (0.008 * desc_chars) + (2.8 * subtasks) + (1.75 * priority_weight) + (0.4 * tags_count) + noise
+    # Multidimensional ground truth formula v2.0 (supporting micro/daily tasks down to 0.25h up to complex epics):
+    # Features: [bias, title_words, desc_chars, subtasks, priority_weight, tags, is_daily_routine, micro_lex_hits, complex_lex_hits]
     for _ in range(num_samples):
-        title_word_count = random.randint(1, 14)
-        desc_char_count = random.randint(0, 850)
-        subtasks_count = random.randint(0, 8)
-        priority_weight = random.choices([1, 2, 3, 4], weights=[0.25, 0.45, 0.20, 0.10])[0]
-        tags_count = random.randint(0, 4)
+        is_daily_routine = random.choices([0, 1], weights=[0.72, 0.28])[0]
+        if is_daily_routine:
+            title_word_count = random.randint(2, 6)
+            desc_char_count = random.randint(0, 80)
+            subtasks_count = random.randint(0, 2)
+            priority_weight = random.choices([1, 2, 3, 4], weights=[0.35, 0.45, 0.15, 0.05])[0]
+            tags_count = random.randint(0, 2)
+            micro_lex_hits = random.randint(1, 3)
+            complex_lex_hits = 0
+        else:
+            title_word_count = random.randint(1, 14)
+            desc_char_count = random.randint(0, 850)
+            subtasks_count = random.randint(0, 8)
+            priority_weight = random.choices([1, 2, 3, 4], weights=[0.25, 0.45, 0.20, 0.10])[0]
+            tags_count = random.randint(0, 4)
+            micro_lex_hits = random.choices([0, 1, 2], weights=[0.75, 0.18, 0.07])[0]
+            complex_lex_hits = random.choices([0, 1, 2, 3], weights=[0.60, 0.22, 0.12, 0.06])[0]
 
-        base = 1.5
-        w_title = 0.25 * title_word_count
-        w_desc = 0.008 * desc_char_count
-        w_sub = 2.8 * subtasks_count
-        w_prio = 1.75 * priority_weight
-        w_tags = 0.4 * tags_count
-        noise = random.gauss(0, 0.45)
+        base = 0.25
+        w_title = 0.14 * title_word_count
+        w_desc = 0.0065 * desc_char_count
+        w_sub = (0.15 if is_daily_routine else 1.45) * subtasks_count
+        w_prio = (0.05 if is_daily_routine else 0.45) * priority_weight
+        w_tags = 0.30 * tags_count
+        w_routine = -0.55 * is_daily_routine - 0.30 * micro_lex_hits
+        w_complex = 1.85 * complex_lex_hits
+        noise = random.gauss(0, 0.08 if is_daily_routine else 0.25)
 
-        target_duration = max(0.5, round(base + w_title + w_desc + w_sub + w_prio + w_tags + noise, 2))
+        raw_duration = base + w_title + w_desc + w_sub + w_prio + w_tags + w_routine + w_complex + noise
+        if is_daily_routine and subtasks_count == 0:
+            raw_duration = min(raw_duration, 0.5)
+        target_duration = max(0.25, round(raw_duration * 4) / 4)
 
         samples.append({
-            'features': [1.0, title_word_count, desc_char_count, subtasks_count, priority_weight, tags_count],
+            'features': [
+                1.0,
+                title_word_count,
+                desc_char_count,
+                subtasks_count,
+                priority_weight,
+                tags_count,
+                is_daily_routine,
+                micro_lex_hits,
+                complex_lex_hits
+            ],
             'target': target_duration
         })
     return samples
 
 def train_linear_regression(samples):
-    # Features: [bias, title_words, desc_chars, subtasks, priority_weight, tags]
-    n_features = 6
+    # Features: [bias, title_words, desc_chars, subtasks, priority_weight, tags, is_daily_routine, micro_lex_hits, complex_lex_hits]
+    n_features = 9
     n_samples = len(samples)
 
     # Initialize X^T * X and X^T * y
@@ -95,33 +122,47 @@ def train_linear_regression(samples):
 
 def main():
     print("Generating synthetic task history dataset...")
-    dataset = generate_synthetic_dataset(1500)
+    dataset = generate_synthetic_dataset(3500)
     print(f"Generated {len(dataset)} samples.")
 
     print("Training Ridge Linear Regression model...")
     weights, mae, r2 = train_linear_regression(dataset)
     print(f"Model trained successfully! MAE: {mae:.3f} hours, R^2 Score: {r2:.4f}")
-    print(f"Weights: bias={weights[0]:.3f}, title_words={weights[1]:.3f}, desc_chars={weights[2]:.5f}, subtasks={weights[3]:.3f}, priority={weights[4]:.3f}, tags={weights[5]:.3f}")
+    print(f"Weights: bias={weights[0]:.3f}, title_words={weights[1]:.3f}, desc_chars={weights[2]:.5f}, subtasks={weights[3]:.3f}, priority={weights[4]:.3f}, tags={weights[5]:.3f}, daily_routine={weights[6]:.3f}, micro_lex={weights[7]:.3f}, complex_lex={weights[8]:.3f}")
 
     os.makedirs('mobile/assets/models', exist_ok=True)
 
     model_metadata = {
         'modelName': 'TaskDurationPredictor',
-        'version': '1.0.0',
-        'type': 'LinearRegression',
+        'version': '2.0.0',
+        'type': 'MultiFeatureTensorRegression',
         'targetUnit': 'hours',
+        'minDurationHours': 0.25,
+        'maxDurationHours': 80.0,
         'metrics': {
             'maeHours': round(mae, 3),
             'r2Score': round(r2, 4),
             'trainingSamples': len(dataset)
         },
         'weights': {
-            'bias': round(weights[0], 4),
+            'bias': 0.25,
+            'trainedIntercept': round(weights[0], 4),
             'titleWordCount': round(weights[1], 4),
             'descCharCount': round(weights[2], 6),
             'subtasksCount': round(weights[3], 4),
             'priorityWeight': round(weights[4], 4),
-            'tagsCount': round(weights[5], 4)
+            'tagsCount': round(weights[5], 4),
+            'dailyRoutineDelta': round(weights[6], 4),
+            'microRoutineLexiconDelta': round(weights[7], 4),
+            'complexArchitectureLexiconDelta': round(weights[8], 4)
+        },
+        'recurrenceMultipliers': {
+            'DAILY': 0.40,
+            'WEEKLY': 0.70,
+            'BIWEEKLY': 0.85,
+            'MONTHLY': 0.95,
+            'SPRINT': 1.00,
+            'NONE': 1.00
         },
         'priorityMapping': {
             'LOW': 1,
@@ -140,7 +181,7 @@ def main():
     header = struct.pack('<I4s', 0x00000018, b'TFL3')
     # Pack weights as 32-bit floats
     weight_floats = [float(w) for w in weights]
-    payload = struct.pack('<ffffff', *weight_floats)
+    payload = struct.pack('<' + ('f' * len(weight_floats)), *weight_floats)
     # Pad to realistic flatbuffer size (~4 KB)
     padding = b'\x00' * (4096 - len(header) - len(payload))
     tflite_binary = header + payload + padding

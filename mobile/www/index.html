@@ -1716,7 +1716,7 @@
               <button type="button" onclick="handleAddSubtaskInline()" style="padding: 6px 12px; background: #2563EB; color: #FFFFFF; font-size: 11px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer;">Adicionar</button>
             </div>
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 10.5px; color: #64748B;">
-              <span>Co-responsável do item (US21):</span>
+              <span>Co-responsável do item:</span>
               <select id="inlineSubtaskAssigneeSelect" style="padding: 3px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 10.5px; background: #F8FAFC; color: #1E293B; max-width: 175px;">
                 <option value="">Mesmo da tarefa</option>
               </select>
@@ -1853,19 +1853,19 @@
             </div>
           </div>
 
-          <!-- 3 Stats -->
+          <!-- 3 Stats (Dados Reais da Sprint 2 / Zerados para métricas da Sprint 3) -->
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px 12px 16px;">
             <div style="background: #FFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px; font-size: 11px;">
               <span style="color: #64748B;">● Saúde</span><br>
-              <strong style="color: #10B981; font-size: 13px;">82% <span style="font-size: 9px; font-weight: 500;">bom</span></strong>
+              <strong id="projStatHealth" style="color: #64748B; font-size: 13px;">0% <span style="font-size: 9px; font-weight: 500;">—</span></strong>
             </div>
             <div style="background: #FFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px; font-size: 11px;">
               <span style="color: #64748B;">● Atrasadas</span><br>
-              <strong style="color: #F59E0B; font-size: 13px;">3 <span style="font-size: 9px; font-weight: 500;">Tarefas</span></strong>
+              <strong id="projStatLate" style="color: #10B981; font-size: 13px;">0 <span style="font-size: 9px; font-weight: 500;">Tarefas</span></strong>
             </div>
             <div style="display: grid; background: #FFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px; font-size: 11px;">
               <span style="color: #64748B;">● Conflitos</span>
-              <strong style="color: #EF4444; font-size: 13px;">2 <span style="font-size: 9px; font-weight: 500;">ativos</span></strong>
+              <strong id="projStatConflicts" style="color: #10B981; font-size: 13px;">0 <span style="font-size: 9px; font-weight: 500;">ativos</span></strong>
             </div>
           </div>
 
@@ -2006,7 +2006,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div style="display: flex; align-items: center; gap: 6px;">
               <span style="font-size: 12px; font-weight: 700;">Responsável</span>
-              <button type="button" onclick="autoSuggestAssigneeUI()" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugerir automaticamente o membro com menor carga e sem férias (US09)">✨ Auto-Alocar IA</button>
+              <button type="button" onclick="autoSuggestAssigneeUI()" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugerir automaticamente o membro com menor carga e sem férias">✨ Auto-Alocar IA</button>
             </div>
             <select id="createAssigneeSelect" onchange="renderCreateAssigneeCapacityPreview()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 11.5px; background: #FFFFFF; font-weight: 600; color: #1E293B; max-width: 170px;">
               <option value="">Carregando usuários...</option>
@@ -2019,11 +2019,14 @@
           <div id="createAssigneeCapacityBar" style="margin-top: -6px; margin-bottom: 12px;"></div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
               <span style="font-size: 12px; font-weight: 700;">Esforço (horas)</span>
-              <button type="button" id="btnAiEffortSuggest" onclick="applyAiEffortSuggestion()" style="background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugestão preditiva TensorFlow Lite baseada no escopo (US08)">🧠 IA TFLite: ~4.0h (Aplicar)</button>
+              <button type="button" id="btnAiEffortSuggest" onclick="applyAiEffortSuggestion()" style="background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugestão preditiva TensorFlow Lite baseada no escopo, recorrência, semântica e subtarefas">🧠 IA TFLite: ~0.5h (30m) • Aplicar</button>
             </div>
-            <input type="number" id="createEffortInput" value="4" min="0.5" step="0.5" style="width: 60px; padding: 4px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px;">
+            <input type="number" id="createEffortInput" value="0.5" min="0.1" max="200" step="0.25" oninput="onManualEffortInput()" style="width: 68px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-weight: 700; color: #0F172A;">
+          </div>
+          <div id="aiEffortBreakdownHint" style="margin-top: 5px; margin-bottom: 4px; font-size: 10px; color: #475569; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; padding: 5px 8px; line-height: 1.35;">
+            🧠 <strong>TensorFlow Lite:</strong> Digite o título ou descrição para análise preditiva multidimensional (de 15 min a tarefas complexas).
           </div>
 
           <!-- Prazo de Entrega (Requisito US01 e Notificações Progressivas) -->
@@ -2065,8 +2068,8 @@
           <!-- Sprint 2 Onda 3 (#32 FE-13.3): Controles de Recorrência & Fila de Rodízio (Round-Robin) -->
           <div style="margin-top: 12px; margin-bottom: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <label style="font-size: 11.5px; font-weight: 700; color: #1E293B;">🔄 Recorrência & Rodízio (US13):</label>
-              <select id="createRecurrenceSelect" onchange="toggleCreateRecurrenceOptions()" style="padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-weight: 600; background: #FFFFFF; color: #0F172A;">
+              <label style="font-size: 11.5px; font-weight: 700; color: #1E293B;">🔄 Recorrência & Rodízio:</label>
+              <select id="createRecurrenceSelect" onchange="toggleCreateRecurrenceOptions(); updateCreateTaskAiEstimate();" style="padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-weight: 600; background: #FFFFFF; color: #0F172A;">
                 <option value="NONE" selected>Não repetir</option>
                 <option value="DAILY">Diária (Rodízio)</option>
                 <option value="WEEKLY">Semanal (Rodízio)</option>
@@ -2230,7 +2233,7 @@
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
               <div>
-                <label style="font-size: 10px; font-weight: 700; color: #334155;">⏱️ Capacidade / Membro (US09)</label>
+                <label style="font-size: 10px; font-weight: 700; color: #334155;">⏱️ Capacidade / Membro</label>
                 <select id="newTeamWeeklyHoursSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 600; margin-top: 3px; background: #FFFFFF;">
                   <option value="40" selected>40h / semana (Integral)</option>
                   <option value="30">30h / semana (Parcial)</option>
@@ -2239,7 +2242,7 @@
                 </select>
               </div>
               <div>
-                <label style="font-size: 10px; font-weight: 700; color: #334155;">🔄 Ciclo da Sprint (US13)</label>
+                <label style="font-size: 10px; font-weight: 700; color: #334155;">🔄 Ciclo da Sprint</label>
                 <select id="newTeamSprintCycleSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 600; margin-top: 3px; background: #FFFFFF;">
                   <option value="WEEKLY">Semanal (7 dias)</option>
                   <option value="BIWEEKLY" selected>Quinzenal (14 dias)</option>
@@ -2248,7 +2251,7 @@
               </div>
             </div>
             <div>
-              <label style="font-size: 10px; font-weight: 700; color: #334155;">🛡️ Permissão Padrão em Novos Convites (ACL US03)</label>
+              <label style="font-size: 10px; font-weight: 700; color: #334155;">🛡️ Permissão Padrão em Novos Convites (ACL)</label>
               <select id="newTeamDefaultRoleSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 600; margin-top: 3px; background: #FFFFFF;">
                 <option value="EDIT" selected>⚡ EDIT — Criar e Editar Tarefas (Padrão)</option>
                 <option value="DELEGATE">🎯 DELEGATE — Pode Delegar e Redistribuir</option>
@@ -2259,19 +2262,19 @@
             <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;">
               <span style="font-size: 10px; font-weight: 800; color: #1E40AF; text-transform: uppercase;">⚙️ Políticas & Automações da Equipe:</span>
               <label style="display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; color: #1E293B; cursor: pointer;">
-                <span>🧠 Auto-Alocação IA & Estimativa TFLite (US08/US09)</span>
+                <span>🧠 Auto-Alocação IA & Estimativa TFLite</span>
                 <input type="checkbox" id="newTeamPolicyAiToggle" checked style="accent-color: #2563EB;">
               </label>
               <label style="display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; color: #1E293B; cursor: pointer;">
-                <span>🤝 Exigir Aceite/Recusa ao Delegar Tarefa (US22)</span>
+                <span>🤝 Exigir Aceite/Recusa ao Delegar Tarefa</span>
                 <input type="checkbox" id="newTeamPolicyAcceptToggle" checked style="accent-color: #2563EB;">
               </label>
               <label style="display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; color: #1E293B; cursor: pointer;">
-                <span>🔒 Bloquear Tarefas com Dependências Pendentes (US10)</span>
+                <span>🔒 Bloquear Tarefas com Dependências Pendentes</span>
                 <input type="checkbox" id="newTeamPolicyDagBlockToggle" checked style="accent-color: #2563EB;">
               </label>
               <label style="display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; color: #1E293B; cursor: pointer;">
-                <span>⚡ Regra "Se Urgente ➔ Notificar Gestor" (US15)</span>
+                <span>⚡ Regra "Se Urgente ➔ Notificar Gestor"</span>
                 <input type="checkbox" id="newTeamPolicyAutoUrgentToggle" checked style="accent-color: #7C3AED;">
               </label>
             </div>
@@ -2478,22 +2481,22 @@
           </div>
           <button class="btn-primary" style="margin-bottom: 8px; background: #2563EB;" onclick="closeModal('modalUserMenu'); openInviteModal();"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Convidar Membros para o Time</button>
           <button class="btn-primary" style="margin-bottom: 8px;" onclick="closeModal('modalUserMenu'); switchScreen('team-onboarding', null);"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>Trocar ou Criar Outro Time</button>
-          <button class="btn-primary" style="margin-bottom: 8px; background: #0D9488;" onclick="closeModal('modalUserMenu'); openAbsencesModal();">🏖️ Férias & Ausências da Equipe (US22)</button>
-          <button class="btn-primary" style="margin-bottom: 8px; background: #7C3AED;" onclick="closeModal('modalUserMenu'); openAutomationsModal();">⚡ Automações Inteligentes Se/Então (US15)</button>
+          <button class="btn-primary" style="margin-bottom: 8px; background: #0D9488;" onclick="closeModal('modalUserMenu'); openAbsencesModal();">🏖️ Férias & Ausências da Equipe</button>
+          <button class="btn-primary" style="margin-bottom: 8px; background: #7C3AED;" onclick="closeModal('modalUserMenu'); openAutomationsModal();">⚡ Automações Inteligentes Se/Então</button>
           <button class="btn-secondary" style="color: #DC2626; border-color: #FCA5A5; margin-bottom: 8px;" onclick="logoutUser()"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair da Conta (Logout)</button>
           <button class="btn-secondary" onclick="closeModal('modalUserMenu')">Fechar</button>
         </div>
       </div>
 
-      <!-- Sprint 2 Onda 3 (#23 FE-22.3): Modal de Gestão de Férias & Ausências (US22) -->
+      <!-- Sprint 2 Onda 3 (#23 FE-22.3): Modal de Gestão de Férias & Ausências -->
       <div id="modalUserAbsences" class="modal-overlay">
         <div class="modal-card" style="max-height: 85vh; display: flex; flex-direction: column; padding: 16px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 class="modal-title" style="margin: 0; font-size: 15px;">🏖️ Férias & Ausências (US22)</h3>
+            <h3 class="modal-title" style="margin: 0; font-size: 15px;">🏖️ Férias & Ausências</h3>
             <button type="button" onclick="closeModal('modalUserAbsences')" style="background: none; border: none; font-size: 16px; color: #64748B; cursor: pointer;">✕</button>
           </div>
           <p style="font-size: 11px; color: #64748B; margin-bottom: 10px;">
-            Membros em período de ausência ficam bloqueados para auto-alocação inteligente de novas tarefas.
+            Membros em período de férias ou folga ficam bloqueados para auto-alocação inteligente e exigem confirmação ao atribuir tarefas.
           </p>
           <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 12px;">
             <div style="margin-bottom: 8px;">
@@ -2503,9 +2506,10 @@
             <div style="margin-bottom: 8px;">
               <label style="font-size: 10.5px; font-weight: 700; color: #334155;">Tipo de Ausência:</label>
               <select id="absenceTypeSelect" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; margin-top: 3px; background: #FFFFFF;">
-                <option value="VACATION">🏖️ Férias (VACATION)</option>
-                <option value="MEDICAL">🏥 Licença Médica (MEDICAL)</option>
-                <option value="UNAVAILABLE">⏳ Indisponibilidade Temporária (UNAVAILABLE)</option>
+                <option value="VACATION">🏖️ Férias</option>
+                <option value="DAY_OFF">🌴 Folga / Recesso</option>
+                <option value="MEDICAL">🏥 Licença Médica</option>
+                <option value="UNAVAILABLE">⏳ Indisponibilidade Temporária</option>
               </select>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
@@ -2519,7 +2523,7 @@
               </div>
             </div>
             <div style="margin-bottom: 8px;">
-              <input type="text" id="absenceReasonInput" placeholder="Motivo / observação (ex: Férias de Verão)" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; background: #FFFFFF;">
+              <input type="text" id="absenceReasonInput" placeholder="Motivo / observação (ex: Férias de Verão ou Folga)" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; background: #FFFFFF;">
             </div>
             <button type="button" onclick="handleSaveUserAbsence()" class="btn-primary" style="padding: 8px; font-size: 11.5px;">+ Registrar Período de Ausência</button>
           </div>
@@ -2529,11 +2533,36 @@
         </div>
       </div>
 
-      <!-- Sprint 2 Onda 3 (#33 FE-14.2 & #34 FE-14.3): Modal de Planning Poker & Estimativa PERT Consensual (US14) -->
+      <!-- Modal de Confirmação ao Atribuir Tarefa para Membro em Férias / Folga -->
+      <div id="modalConfirmAbsenceAssign" class="modal-overlay" style="z-index: 10005;">
+        <div class="modal-card" style="max-width: 350px; padding: 18px; text-align: center;">
+          <div style="width: 48px; height: 48px; border-radius: 50%; background: #FEF3C7; border: 2px solid #F59E0B; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 10px auto;">
+            🏖️
+          </div>
+          <h3 class="modal-title" style="margin: 0 0 6px 0; font-size: 15px; color: #0F172A;">Integrante em Férias / Folga</h3>
+          <p style="font-size: 11.5px; color: #475569; margin: 0 0 12px 0; line-height: 1.45;">
+            O integrante selecionado possui um período de ausência ativo registrado. Deseja realmente atribuir esta tarefa a ele?
+          </p>
+          <div id="confirmAbsenceMemberCard" style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 10px 12px; text-align: left; margin-bottom: 14px; font-size: 11px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 7px;">
+            <button type="button" onclick="handleAbsenceModalAutoReassign()" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+              ✨ Auto-Alocar para Membro Disponível
+            </button>
+            <button type="button" onclick="handleAbsenceModalConfirmProceed()" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: none; background: #D97706; color: #FFFFFF; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+              ✅ Confirmar e Atribuir Mesmo Assim
+            </button>
+            <button type="button" onclick="handleAbsenceModalCancel()" class="btn-secondary" style="margin: 0; padding: 8px 12px; font-size: 11.5px;">
+              Cancelar / Escolher Outro Responsável
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sprint 2 Onda 3 (#33 FE-14.2 & #34 FE-14.3): Modal de Planning Poker & Estimativa PERT Consensual -->
       <div id="modalPlanningPoker" class="modal-overlay">
         <div class="modal-card" style="max-height: 88vh; display: flex; flex-direction: column; padding: 16px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h3 class="modal-title" style="margin: 0; font-size: 15px;">🃏 Planning Poker & PERT (US14)</h3>
+            <h3 class="modal-title" style="margin: 0; font-size: 15px;">🃏 Planning Poker & PERT</h3>
             <button type="button" onclick="closeModal('modalPlanningPoker')" style="background: none; border: none; font-size: 16px; color: #64748B; cursor: pointer;">✕</button>
           </div>
           <p id="pokerTaskTitleLabel" style="font-size: 11.5px; font-weight: 700; color: #1E40AF; margin-bottom: 8px;"></p>
@@ -2562,18 +2591,18 @@
         </div>
       </div>
 
-      <!-- Sprint 2 Onda 4 (#36 FE-15.3): Modal de Gerenciamento de Regras de Automação c/ Editor Visual 'Se/Então' e JSON (US15) -->
+      <!-- Sprint 2 Onda 4 (#36 FE-15.3): Modal de Gerenciamento de Regras de Automação c/ Editor Visual 'Se/Então' e JSON -->
       <div id="modalAutomations" class="modal-overlay">
         <div class="modal-card" style="max-height: 90vh; display: flex; flex-direction: column; padding: 16px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <div style="display: flex; align-items: center; gap: 6px;">
               <span style="font-size: 16px;">⚡</span>
-              <h3 class="modal-title" style="margin: 0; font-size: 15px;">Automações "Se / Então" (US15)</h3>
+              <h3 class="modal-title" style="margin: 0; font-size: 15px;">Automações "Se / Então"</h3>
             </div>
             <button type="button" onclick="closeModal('modalAutomations')" style="background: none; border: none; font-size: 16px; color: #64748B; cursor: pointer;">✕</button>
           </div>
           <p style="font-size: 10.5px; color: #64748B; margin-bottom: 8px;">
-            Configure gatilhos automáticos disparados por eventos do ciclo de vida das tarefas (JSON Engine BE-15.2 / FE-15.3).
+            Configure gatilhos automáticos disparados por eventos do ciclo de vida das tarefas.
           </p>
 
           <!-- Templates Rápidos 1-Toque -->
@@ -2637,7 +2666,7 @@
             <!-- Visualizador / Editor JSON Sincronizado -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
               <button type="button" onclick="toggleAutoJsonPreviewUI()" style="background: none; border: none; color: #6D28D9; font-size: 10px; font-weight: 700; cursor: pointer; padding: 0;">{ } Ver / Editar Payload JSON da Regra</button>
-              <span style="font-size: 9px; color: #64748B;">Schema DB-15.1</span>
+              <span style="font-size: 9px; color: #64748B;">Formato JSON</span>
             </div>
             <textarea id="autoRuleJsonPreviewBox" rows="3" style="display: none; width: 100%; font-family: monospace; font-size: 9.5px; background: #0F172A; color: #38BDF8; border-radius: 6px; padding: 6px; border: 1px solid #334155; margin-bottom: 6px;"></textarea>
 
@@ -2812,8 +2841,11 @@
                 </select>
               </div>
               <div>
-                <span style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Esforço (horas):</span>
-                <input type="number" id="editFullTaskEffort" min="0.5" max="200" step="0.5" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: #0F172A; background: #FFFFFF;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <span style="font-size: 11px; font-weight: 700; color: #475569;">Esforço (h):</span>
+                  <button type="button" onclick="applyEditModalAiEffortSuggestion()" style="background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; border-radius: 5px; padding: 1px 5px; font-size: 9px; font-weight: 700; cursor: pointer;" title="Recalcular esforço via IA TensorFlow Lite">🧠 IA TFLite</button>
+                </div>
+                <input type="number" id="editFullTaskEffort" min="0.1" max="200" step="0.25" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: #0F172A; background: #FFFFFF;">
               </div>
             </div>
 
@@ -3251,6 +3283,90 @@
     }
 
     const DEFAULT_PLACEHOLDER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='64' fill='%23E2E8F0'/%3E%3Cpath d='M64 64a22 22 0 1 0 0-44 22 22 0 0 0 0 44Zm0 12c-24.2 0-44 16.5-44 38v4h88v-4c0-21.5-19.8-38-44-38Z' fill='%2394A3B8'/%3E%3C/svg%3E";
+    const PERSISTENT_AVATARS_KEY = 'sinergia_persistent_avatars_v1';
+
+    function isDataUrlAvatar(url) {
+      if (!url || typeof url !== 'string') return false;
+      const clean = url.trim();
+      if (clean.startsWith('data:image/svg+xml') && clean.includes('viewBox=')) return false;
+      return clean.startsWith('data:image/');
+    }
+
+    function getPersistentAvatarsMap() {
+      try {
+        const raw = localStorage.getItem(PERSISTENT_AVATARS_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function savePersistentAvatar(keysOrObj, dataUrl) {
+      if (!isDataUrlAvatar(dataUrl) || dataUrl.length > 120000) return;
+      try {
+        const map = getPersistentAvatarsMap();
+        const addKey = (k) => {
+          if (!k) return;
+          const norm = String(k).trim().toLowerCase();
+          if (norm && norm !== 'null' && norm !== 'undefined') {
+            map[norm] = dataUrl;
+          }
+        };
+        if (Array.isArray(keysOrObj)) {
+          keysOrObj.forEach(addKey);
+        } else if (keysOrObj && typeof keysOrObj === 'object') {
+          addKey(keysOrObj.name);
+          addKey(keysOrObj.email);
+          addKey(keysOrObj.id);
+        } else {
+          addKey(keysOrObj);
+        }
+        localStorage.setItem(PERSISTENT_AVATARS_KEY, JSON.stringify(map));
+      } catch (e) {}
+    }
+
+    function getPersistentAvatar(userOrKey) {
+      try {
+        const map = getPersistentAvatarsMap();
+        if (!userOrKey) return null;
+        if (typeof userOrKey === 'object') {
+          const byName = userOrKey.name ? map[String(userOrKey.name).trim().toLowerCase()] : null;
+          if (isDataUrlAvatar(byName)) return byName;
+          const byEmail = userOrKey.email ? map[String(userOrKey.email).trim().toLowerCase()] : null;
+          if (isDataUrlAvatar(byEmail)) return byEmail;
+          const byId = userOrKey.id ? map[String(userOrKey.id).trim().toLowerCase()] : null;
+          if (isDataUrlAvatar(byId)) return byId;
+          return null;
+        }
+        const key = String(userOrKey).trim().toLowerCase();
+        const exact = map[key];
+        if (isDataUrlAvatar(exact)) return exact;
+        const firstPart = key.split(' ')[0];
+        if (firstPart && firstPart.length >= 3) {
+          for (const k in map) {
+            if ((k === firstPart || k.startsWith(firstPart + ' ') || key.startsWith(k + ' ')) && isDataUrlAvatar(map[k])) {
+              return map[k];
+            }
+          }
+        }
+        return null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Listener global para recuperar automaticamente qualquer <img> cuja URL efêmera do servidor tenha expirado
+    window.addEventListener('error', function(e) {
+      const el = e && e.target;
+      if (el && el.tagName === 'IMG' && el.src && !el.src.startsWith('data:image/svg+xml')) {
+        const userHint = el.getAttribute('data-user-name') || el.getAttribute('alt') || '';
+        const recovered = getPersistentAvatar(userHint);
+        const fallback = isDataUrlAvatar(recovered) ? recovered : DEFAULT_PLACEHOLDER_AVATAR;
+        if (el.src !== fallback) {
+          el.src = fallback;
+        }
+      }
+    }, true);
 
     function isCustomAvatar(url) {
       if (!url || typeof url !== 'string') return false;
@@ -3264,7 +3380,15 @@
       return false;
     }
 
-    function resolveAvatarUrl(url) {
+    function resolveAvatarUrl(url, userNameHint) {
+      if (isDataUrlAvatar(url)) {
+        if (userNameHint) savePersistentAvatar(userNameHint, url);
+        return url;
+      }
+      if (userNameHint) {
+        const persisted = getPersistentAvatar(userNameHint);
+        if (isDataUrlAvatar(persisted)) return persisted;
+      }
       if (!url || url === '#' || url === '' || url === 'null' || url === 'undefined') {
         return DEFAULT_PLACEHOLDER_AVATAR;
       }
@@ -3306,19 +3430,32 @@
 
       const rememberAvatar = (pic) => {
         if (!pic || !db || !targetLower || !isCustomAvatar(pic)) return;
-        if (typeof pic === 'string' && pic.length > 80000) return;
+        if (typeof pic === 'string' && pic.length > 100000) return;
         try {
+          if (isDataUrlAvatar(pic)) {
+            savePersistentAvatar([targetLower, targetObj?.id, targetObj?.email], pic);
+          }
           if (!db.userAvatars) db.userAvatars = {};
-          db.userAvatars[targetLower] = pic;
-          if (targetObj?.id) db.userAvatars[String(targetObj.id).trim().toLowerCase()] = pic;
-          if (targetObj?.email) db.userAvatars[String(targetObj.email).trim().toLowerCase()] = pic;
+          const existing = db.userAvatars[targetLower];
+          if (!isDataUrlAvatar(existing) || isDataUrlAvatar(pic)) {
+            db.userAvatars[targetLower] = pic;
+            if (targetObj?.id) db.userAvatars[String(targetObj.id).trim().toLowerCase()] = pic;
+            if (targetObj?.email) db.userAvatars[String(targetObj.email).trim().toLowerCase()] = pic;
+          }
         } catch (e) {}
       };
 
-      // 1. Prioridade máxima: explicitAvatar se for foto personalizada real
-      if (isCustomAvatar(explicitAvatar)) {
+      // 0. Se explicitAvatar já é um DataURL Base64 permanente, salva e retorna imediatamente
+      if (isDataUrlAvatar(explicitAvatar)) {
         rememberAvatar(explicitAvatar);
-        return resolveAvatarUrl(explicitAvatar);
+        return explicitAvatar;
+      }
+
+      // 1. Cofre persistente de fotos em Base64 (nunca quebra após reinício do servidor)
+      const persistedPic = getPersistentAvatar(targetObj || targetLower);
+      if (isDataUrlAvatar(persistedPic)) {
+        rememberAvatar(persistedPic);
+        return persistedPic;
       }
 
       // 2. Usuário logado atual (currentUser)
@@ -3345,10 +3482,15 @@
         );
 
         if (isMe) {
+          const myPersisted = getPersistentAvatar(db.currentUser);
+          if (isDataUrlAvatar(myPersisted)) {
+            rememberAvatar(myPersisted);
+            return myPersisted;
+          }
           const myAvatar = db.currentUser.avatar || db.currentUser.avatarUrl;
           if (isCustomAvatar(myAvatar)) {
             rememberAvatar(myAvatar);
-            return resolveAvatarUrl(myAvatar);
+            return resolveAvatarUrl(myAvatar, myName);
           }
         }
       }
@@ -3358,8 +3500,12 @@
         const cached = db.userAvatars[targetLower] ||
           (targetObj?.email ? db.userAvatars[String(targetObj.email).trim().toLowerCase()] : null) ||
           (targetObj?.id ? db.userAvatars[String(targetObj.id).trim().toLowerCase()] : null);
-        if (isCustomAvatar(cached)) {
-          return resolveAvatarUrl(cached);
+        if (isDataUrlAvatar(cached)) {
+          savePersistentAvatar(targetObj || targetLower, cached);
+          return cached;
+        }
+        if (isCustomAvatar(cached) && !isCustomAvatar(explicitAvatar)) {
+          return resolveAvatarUrl(cached, targetLower);
         }
       }
 
@@ -3378,9 +3524,13 @@
 
         if (found) {
           const foundPic = found.avatarUrl || found.avatar;
-          if (isCustomAvatar(foundPic)) {
+          if (isDataUrlAvatar(foundPic)) {
             rememberAvatar(foundPic);
-            return resolveAvatarUrl(foundPic);
+            return foundPic;
+          }
+          if (isCustomAvatar(foundPic) && !isCustomAvatar(explicitAvatar)) {
+            rememberAvatar(foundPic);
+            return resolveAvatarUrl(foundPic, targetLower);
           }
         }
       }
@@ -3397,11 +3547,17 @@
         if (existingTaskWithPhoto) {
           const photo = existingTaskWithPhoto.avatar || existingTaskWithPhoto.assigneeAvatar;
           rememberAvatar(photo);
-          return resolveAvatarUrl(photo);
+          return resolveAvatarUrl(photo, targetLower);
         }
       }
 
-      // 6. Único Placeholder Universal Padrão (Sem imagens aleatórias)
+      // 6. Se explicitAvatar era uma URL de servidor (/api/v1/attachments/file/...), tenta resolvê-la com fallback
+      if (isCustomAvatar(explicitAvatar)) {
+        rememberAvatar(explicitAvatar);
+        return resolveAvatarUrl(explicitAvatar, targetLower);
+      }
+
+      // 7. Único Placeholder Universal Padrão (Sem imagens aleatórias)
       return DEFAULT_PLACEHOLDER_AVATAR;
     }
 
@@ -3448,6 +3604,30 @@
             }
           }
 
+          if (Array.isArray(parsed.tags)) {
+            const migratedTags = [];
+            parsed.tags.forEach(tg => {
+              if (!tg || typeof tg !== 'object') {
+                cleanedHeavyAvatars = true;
+                return;
+              }
+              const tgName = String(tg.name || '').trim();
+              const tgTeam = String(tg.team || '').trim();
+              const tgTeamId = String(tg.teamId || tg.projectId || '').trim();
+              if (!tgName) {
+                cleanedHeavyAvatars = true;
+                return;
+              }
+              // Descarta tags globais antigas que não possuíam vínculo explícito de time
+              if (!tgTeam && (!tgTeamId || tgTeamId === 'proj-sinergia-001')) {
+                cleanedHeavyAvatars = true;
+                return;
+              }
+              migratedTags.push(tg);
+            });
+            parsed.tags = migratedTags;
+          }
+
           if (Array.isArray(parsed.tasks)) {
             parsed.tasks.forEach(t => {
               if (t.priority) {
@@ -3455,6 +3635,13 @@
                 const cols = getPriorityColors(t.priority);
                 t.priorityBg = cols.bg;
                 t.priorityColor = cols.col;
+              }
+              if (typeof t.dueDateIso === 'string' && t.dueDateIso.includes('T')) {
+                const cleanIso = t.dueDateIso.replace(/\.\d+Z$/i, '').replace(/Z$/i, '');
+                if (cleanIso !== t.dueDateIso) {
+                  t.dueDateIso = cleanIso;
+                  cleanedHeavyAvatars = true;
+                }
               }
               // Remove dicebear e strings excessivamente pesadas (>80KB)
               if (typeof t.avatar === 'string' && (t.avatar.includes('api.dicebear.com') || t.avatar.length > 80000)) {
@@ -3638,17 +3825,104 @@
       }
     }
 
-    function createNotification({ id = null, title, message, type = 'task', color = '#2563EB', taskId = null, urgency = 'info' }) {
+    function getUserParticipatingTeamsSet(db) {
+      const names = new Set();
+      const ids = new Set();
+      if (!db || !db.currentUser) return { names, ids };
+
+      if (db.currentTeam && String(db.currentTeam).trim()) {
+        names.add(String(db.currentTeam).trim().toLowerCase());
+      }
+      if (db.currentTeamId && String(db.currentTeamId).trim()) {
+        ids.add(String(db.currentTeamId).trim().toLowerCase());
+      }
+      if (Array.isArray(db.userTeams)) {
+        db.userTeams.forEach(t => {
+          if (t && t.name) names.add(String(t.name).trim().toLowerCase());
+          if (t && t.id) ids.add(String(t.id).trim().toLowerCase());
+        });
+      }
+      if (Array.isArray(db.teams)) {
+        db.teams.forEach(tName => {
+          if (typeof tName === 'string' && tName.trim()) {
+            names.add(tName.trim().toLowerCase());
+          }
+        });
+      }
+      return { names, ids };
+    }
+
+    function isNotificationForCurrentUser(n, db) {
+      if (!n || !db || !db.currentUser) return false;
+
+      const myId = db.currentUser.id ? String(db.currentUser.id).trim().toLowerCase() : '';
+      const myEmail = db.currentUser.email ? String(db.currentUser.email).trim().toLowerCase() : '';
+      const myName = db.currentUser.name ? String(db.currentUser.name).trim().toLowerCase() : '';
+
+      // Exige vínculo explícito com o usuário logado (descarta notificações antigas sem dono ou de outra conta)
+      const nUserId = n.userId ? String(n.userId).trim().toLowerCase() : '';
+      const nEmail = n.userEmail ? String(n.userEmail).trim().toLowerCase() : '';
+      const nName = n.userName ? String(n.userName).trim().toLowerCase() : '';
+
+      if (!nUserId && !nEmail && !nName) return false;
+      if (nUserId && myId && nUserId !== myId) return false;
+      if (nEmail && myEmail && nEmail !== myEmail) return false;
+      if (!nUserId && !nEmail && nName && myName && nName !== myName) return false;
+
+      // Verifica se a notificação pertence a um time do qual este usuário realmente participa
+      const { names, ids } = getUserParticipatingTeamsSet(db);
+      if (names.size === 0 && ids.size === 0) return false;
+
+      const nTeam = n.team ? String(n.team).trim().toLowerCase() : '';
+      const nTeamId = n.teamId ? String(n.teamId).trim().toLowerCase() : '';
+
+      if (nTeam || nTeamId) {
+        const matchTeam = (nTeam && names.has(nTeam)) || (nTeamId && ids.has(nTeamId));
+        if (!matchTeam) return false;
+      } else if (n.taskId) {
+        const taskObj = (db.tasks || []).find(t => String(t.id) === String(n.taskId));
+        if (!taskObj) return false;
+        const tTeam = taskObj.team ? String(taskObj.team).trim().toLowerCase() : '';
+        const tProj = taskObj.projectId ? String(taskObj.projectId).trim().toLowerCase() : '';
+        if (!((tTeam && names.has(tTeam)) || (tProj && ids.has(tProj)))) return false;
+      } else {
+        return false;
+      }
+
+      return true;
+    }
+
+    function createNotification({ id = null, title, message, type = 'task', color = '#2563EB', taskId = null, urgency = 'info', team = null, teamId = null }) {
       const db = getDB();
+      if (!db.currentUser) return null;
+      if (!db.currentTeam && !db.currentTeamId && !team && !teamId) return null;
       if (!db.notifications) db.notifications = [];
 
-      const notifId = id || ('notif-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
-      if (db.notifications.some(n => n.id === notifId)) {
+      const taskObj = taskId ? (db.tasks || []).find(t => String(t.id) === String(taskId)) : null;
+      const notifTeam = team || (taskObj && taskObj.team) || db.currentTeam || null;
+      const notifTeamId = teamId || (taskObj && taskObj.projectId) || db.currentTeamId || null;
+
+      // Só cria a notificação se o usuário participar do time correspondente
+      const { names, ids } = getUserParticipatingTeamsSet(db);
+      const belongsToMyTeams =
+        (notifTeam && names.has(String(notifTeam).trim().toLowerCase())) ||
+        (notifTeamId && ids.has(String(notifTeamId).trim().toLowerCase()));
+      if (!belongsToMyTeams) return null;
+
+      const userKey = String(db.currentUser.id || db.currentUser.email || db.currentUser.name || 'user').trim().toLowerCase();
+      const notifId = id ? `${userKey}_${id}` : ('notif-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
+      if (db.notifications.some(n => n.id === notifId || (id && n.rawId === id && isNotificationForCurrentUser(n, db)))) {
         return null;
       }
 
       const notif = {
         id: notifId,
+        rawId: id || notifId,
+        userId: db.currentUser.id || null,
+        userEmail: (db.currentUser.email || '').trim().toLowerCase() || null,
+        userName: db.currentUser.name || null,
+        team: notifTeam,
+        teamId: notifTeamId,
         title,
         message,
         type,
@@ -3676,16 +3950,19 @@
 
     function checkProgressiveDeadlines() {
       const db = getDB();
-      const tasks = db.tasks || [];
+      if (!db.currentUser || (!db.currentTeam && !db.currentTeamId)) return;
+      const tasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
       const now = Date.now();
       let alertTriggered = false;
+      const userKey = String(db.currentUser.id || db.currentUser.email || db.currentUser.name || 'user').trim().toLowerCase();
 
       tasks.forEach(task => {
         if (task.status === 'COMPLETED') return;
 
         let dueTimestamp = null;
         if (task.dueDateIso) {
-          dueTimestamp = new Date(task.dueDateIso).getTime();
+          const parsedLocal = parseLocalIsoDate(task.dueDateIso);
+          if (parsedLocal) dueTimestamp = parsedLocal.getTime();
         } else if (task.dueDate) {
           const today = new Date();
           if (task.dueDate.includes('Hoje')) {
@@ -3701,18 +3978,22 @@
         const diffDays = diffHours / 24;
 
         if (!task._alertsSent) task._alertsSent = [];
+        const alertKey = (suffix) => `${userKey}:${suffix}`;
 
         // 1. ALERTA DE TAREFA ATRASADA (VENCIDA)
         if (diffHours < 0) {
-          if (!task._alertsSent.includes('overdue')) {
-            task._alertsSent.push('overdue');
+          if (!task._alertsSent.includes(alertKey('overdue'))) {
+            task._alertsSent.push(alertKey('overdue'));
             const displayTime = getTaskDueDateDisplay(task, false);
             createNotification({
+              id: `deadline_${task.id}_overdue`,
               title: '🚨 Tarefa Atrasada!',
               message: `A tarefa "${task.title}" venceu ${displayTime} e está pendente! Conclua ou repactue o prazo.`,
               type: 'deadline',
               color: '#DC2626',
               taskId: task.id,
+              team: task.team || db.currentTeam,
+              teamId: task.projectId || db.currentTeamId,
               urgency: 'critico'
             });
             alertTriggered = true;
@@ -3720,14 +4001,17 @@
         }
         // 2. ALERTA DE PRAZO CRÍTICO (< 1 HORA)
         else if (diffHours <= 1) {
-          if (!task._alertsSent.includes('1h')) {
-            task._alertsSent.push('1h');
+          if (!task._alertsSent.includes(alertKey('1h'))) {
+            task._alertsSent.push(alertKey('1h'));
             createNotification({
+              id: `deadline_${task.id}_1h`,
               title: '⏰ Prazo Crítico (menos de 1h)',
               message: `A tarefa "${task.title}" vence em menos de 1 hora! Priorize a conclusão.`,
               type: 'deadline',
               color: '#EF4444',
               taskId: task.id,
+              team: task.team || db.currentTeam,
+              teamId: task.projectId || db.currentTeamId,
               urgency: 'critico'
             });
             alertTriggered = true;
@@ -3735,14 +4019,17 @@
         }
         // 3. ALERTA DE 1 DIA (AMANHÃ)
         else if (diffDays <= 1) {
-          if (!task._alertsSent.includes('1d')) {
-            task._alertsSent.push('1d');
+          if (!task._alertsSent.includes(alertKey('1d'))) {
+            task._alertsSent.push(alertKey('1d'));
             createNotification({
+              id: `deadline_${task.id}_1d`,
               title: '📅 Prazo Próximo (1 dia)',
               message: `A tarefa "${task.title}" vence amanhã.`,
               type: 'deadline',
               color: '#F97316',
               taskId: task.id,
+              team: task.team || db.currentTeam,
+              teamId: task.projectId || db.currentTeamId,
               urgency: 'urgente'
             });
             alertTriggered = true;
@@ -3750,14 +4037,17 @@
         }
         // 4. ALERTA DE 3 DIAS
         else if (diffDays <= 3) {
-          if (!task._alertsSent.includes('3d')) {
-            task._alertsSent.push('3d');
+          if (!task._alertsSent.includes(alertKey('3d'))) {
+            task._alertsSent.push(alertKey('3d'));
             createNotification({
+              id: `deadline_${task.id}_3d`,
               title: '📋 Prazo se Aproximando (3 dias)',
               message: `A tarefa "${task.title}" vence em 3 dias.`,
               type: 'deadline',
               color: '#F59E0B',
               taskId: task.id,
+              team: task.team || db.currentTeam,
+              teamId: task.projectId || db.currentTeamId,
               urgency: 'medio'
             });
             alertTriggered = true;
@@ -3765,14 +4055,17 @@
         }
         // 5. ALERTA DE 7 DIAS
         else if (diffDays <= 7) {
-          if (!task._alertsSent.includes('7d')) {
-            task._alertsSent.push('7d');
+          if (!task._alertsSent.includes(alertKey('7d'))) {
+            task._alertsSent.push(alertKey('7d'));
             createNotification({
+              id: `deadline_${task.id}_7d`,
               title: '🗓️ Prazo Confortável (7 dias)',
               message: `Lembrete inicial: a tarefa "${task.title}" vence em 7 dias.`,
               type: 'deadline',
               color: '#10B981',
               taskId: task.id,
+              team: task.team || db.currentTeam,
+              teamId: task.projectId || db.currentTeamId,
               urgency: 'baixo'
             });
             alertTriggered = true;
@@ -3789,7 +4082,8 @@
 
     function updateNotificationBadges() {
       const db = getDB();
-      const unreadCount = (db.notifications || []).filter(n => !n.read).length;
+      const myNotifs = (db.notifications || []).filter(n => isNotificationForCurrentUser(n, db));
+      const unreadCount = myNotifs.filter(n => !n.read).length;
 
       ['notifBadge', 'notifBadgeProj'].forEach(id => {
         const el = document.getElementById(id);
@@ -3831,7 +4125,7 @@
       const container = document.getElementById('dynamicNotifFeed');
       if (!container) return;
 
-      const notifs = db.notifications || [];
+      const notifs = (db.notifications || []).filter(n => isNotificationForCurrentUser(n, db));
       let filtered = notifs;
       if (currentNotifFilter === 'deadline') {
         filtered = notifs.filter(n => n.type === 'deadline');
@@ -3877,7 +4171,7 @@
 
     function handleNotifClick(notifId, taskId) {
       const db = getDB();
-      const notif = (db.notifications || []).find(n => n.id === notifId);
+      const notif = (db.notifications || []).find(n => n.id === notifId && isNotificationForCurrentUser(n, db));
       if (notif) {
         notif.read = true;
         saveDB(db, false);
@@ -3893,7 +4187,9 @@
 
     function markAllNotificationsAsRead() {
       const db = getDB();
-      (db.notifications || []).forEach(n => n.read = true);
+      (db.notifications || []).forEach(n => {
+        if (isNotificationForCurrentUser(n, db)) n.read = true;
+      });
       saveDB(db, false);
       updateNotificationBadges();
       renderNotificationsFeed();
@@ -3902,7 +4198,7 @@
 
     function clearAllNotifications() {
       const db = getDB();
-      db.notifications = [];
+      db.notifications = (db.notifications || []).filter(n => !isNotificationForCurrentUser(n, db));
       saveDB(db, false);
       updateNotificationBadges();
       renderNotificationsFeed();
@@ -3984,10 +4280,28 @@
         dateEl.innerText = new Date().toLocaleDateString('pt-BR', options);
       }
 
+      const db = getDB();
+      // Higieniza notificações e ausências de sessões anteriores sem isolamento de usuário/time
+      let sanitizedBoot = false;
+      if (Array.isArray(db.notifications)) {
+        const filteredNotifs = db.notifications.filter(n => isNotificationForCurrentUser(n, db));
+        if (filteredNotifs.length !== db.notifications.length) {
+          db.notifications = filteredNotifs;
+          sanitizedBoot = true;
+        }
+      }
+      if (Array.isArray(db.absences)) {
+        const filteredAbs = db.absences.filter(a => a && (a.team || a.teamId));
+        if (filteredAbs.length !== db.absences.length) {
+          db.absences = filteredAbs;
+          sanitizedBoot = true;
+        }
+      }
+      if (sanitizedBoot) saveDB(db, false);
+
       updateNotificationBadges();
       checkProgressiveDeadlines();
 
-      const db = getDB();
       if (!db.currentUser || !db.authToken) {
         // Passo 1: Usuário não autenticado -> Tela de Login (Sign in)
         switchScreen('login-page', null);
@@ -4157,16 +4471,35 @@
     setTimeout(checkBackendConnectivity, 1200);
 
     function isTaskInCurrentTeam(t, db) {
-      if (!t) return false;
-      const curTeam = String(db?.currentTeam || 'Meu Time').trim().toLowerCase();
+      if (!t || !db) return false;
+      const curTeam = String(db.currentTeam || '').trim().toLowerCase();
+      const curTeamId = String(db.currentTeamId || '').trim().toLowerCase();
+      if (!curTeam && !curTeamId) return false;
+
       const tTeam = String(t.team || '').trim().toLowerCase();
-      if (!tTeam || !curTeam || tTeam === curTeam || tTeam === 'meu time') return true;
-      const curTeamId = String(db?.currentTeamId || '').trim().toLowerCase();
       const tProjId = String(t.projectId || '').trim().toLowerCase();
+
       if (curTeamId && tProjId && curTeamId !== 'proj-sinergia-001' && tProjId === curTeamId) return true;
+      if (curTeam && tTeam && tTeam === curTeam) return true;
       return false;
     }
     window.isTaskInCurrentTeam = isTaskInCurrentTeam;
+
+    function isTagInCurrentTeam(tg, db) {
+      if (!tg || typeof tg !== 'object' || !db) return false;
+      const curTeam = String(db.currentTeam || '').trim().toLowerCase();
+      const curTeamId = String(db.currentTeamId || '').trim().toLowerCase();
+      if (!curTeam && !curTeamId) return false;
+
+      const tgTeam = String(tg.team || '').trim().toLowerCase();
+      const tgTeamId = String(tg.teamId || tg.projectId || '').trim().toLowerCase();
+      if (!tgTeam && !tgTeamId) return false;
+
+      if (curTeamId && tgTeamId && curTeamId !== 'proj-sinergia-001' && tgTeamId === curTeamId) return true;
+      if (curTeam && tgTeam && tgTeam === curTeam) return true;
+      return false;
+    }
+    window.isTagInCurrentTeam = isTagInCurrentTeam;
 
     // Renderizar Dashboard Dinâmico do Time Ativo
     function renderDashboard() {
@@ -4197,10 +4530,11 @@
       });
 
       document.getElementById('dashGreeting').innerText = `Olá, ${user.name}`;
+      const myResolvedPhoto = resolveUserPhoto(user, user.avatar || user.avatarUrl);
       const userMini = document.getElementById('userAvatarMini');
-      if (userMini) userMini.src = resolveAvatarUrl(user.avatar || user.avatarUrl, user.name);
+      if (userMini) userMini.src = myResolvedPhoto;
       const projMini = document.getElementById('projectUserAvatarMini');
-      if (projMini) projMini.src = resolveAvatarUrl(user.avatar || user.avatarUrl, user.name);
+      if (projMini) projMini.src = myResolvedPhoto;
 
       const teamBadge = document.getElementById('dashTeamBadgeName');
       if (teamBadge) teamBadge.innerText = team;
@@ -4435,7 +4769,7 @@
             </div>
             <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
               ${deadlineHtml}
-              <span style="font-size: 10px; color: #94A3B8;">• ${task.effortHours || 0}h ${subBadge}</span>
+              <span style="font-size: 10px; color: #94A3B8;">• ${typeof formatEffortBadgeText === 'function' ? formatEffortBadgeText(task.effortHours) : `${task.effortHours || 0}h`} ${subBadge}</span>
             </div>
           </div>
         </div>
@@ -4697,38 +5031,27 @@
 
       // 2. Responsáveis Reais Exclusivamente do Time Atual
       const memberMap = new Map();
-      const currentTeamName = team || 'Meu Time';
-      const currentTeamId = teamId || 'proj-sinergia-001';
+      const currentTeamName = team || '';
+      const currentTeamId = teamId || '';
       const teamKey = (currentTeamId || currentTeamName).toLowerCase().trim();
 
-      // Recupera membros do time atual do cache estruturado ou estado
+      // Recupera membros estritamente do cache estruturado do time ativo (sem vazar de outros times)
       let teamMembers = [];
-      if (db.teamMembersByTeam && Array.isArray(db.teamMembersByTeam[teamKey]) && db.teamMembersByTeam[teamKey].length > 0) {
-        teamMembers = db.teamMembersByTeam[teamKey];
-      } else if (Array.isArray(db.teamUsers) && db.teamUsers.length > 0) {
-        teamMembers = db.teamUsers;
-      } else if (Array.isArray(db.allUsers) && db.allUsers.length > 0) {
-        teamMembers = db.allUsers;
+      if (teamKey && db.teamMembersByTeam) {
+        if (Array.isArray(db.teamMembersByTeam[teamKey]) && db.teamMembersByTeam[teamKey].length > 0) {
+          teamMembers = db.teamMembersByTeam[teamKey];
+        } else if (currentTeamName && Array.isArray(db.teamMembersByTeam[currentTeamName]) && db.teamMembersByTeam[currentTeamName].length > 0) {
+          teamMembers = db.teamMembersByTeam[currentTeamName];
+        }
       }
 
-      // Fallback inicial offline se ainda não carregado
-      if (teamMembers.length === 0) {
-        if (db.currentUser) {
-          teamMembers.push({
-            id: db.currentUser.id || 'user-davi-001',
-            name: db.currentUser.name || 'Davi',
-            avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl
-          });
-        }
-        const isDefaultTeam = currentTeamName === 'Meu Time' || currentTeamName === 'Sinergia Mobile App' || currentTeamId === 'proj-sinergia-001';
-        if (isDefaultTeam && !teamMembers.some(u => u.name === 'Ana Silva')) {
-          teamMembers.push({
-            id: 'user-ana-002',
-            name: 'Ana Silva',
-            email: 'ana@sinergia.com',
-            avatarUrl: DEFAULT_PLACEHOLDER_AVATAR
-          });
-        }
+      // Se ainda não carregado, garante apenas o usuário logado atual (sem injetar membros de outros times)
+      if (teamMembers.length === 0 && db.currentUser) {
+        teamMembers.push({
+          id: db.currentUser.id || 'user-current',
+          name: db.currentUser.name || 'Você',
+          avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl
+        });
       }
 
       // Adiciona TODOS os membros oficiais do time ao filtro
@@ -4795,6 +5118,7 @@
       });
       if (Array.isArray(db.tags)) {
         db.tags.forEach(tg => {
+          if (!isTagInCurrentTeam(tg, db)) return;
           const name = (typeof tg === 'string' ? tg : (tg?.name || '')).trim();
           if (name) tagsSet.add(name);
         });
@@ -5055,7 +5379,7 @@
       const dueEl = document.getElementById('detailDueDate');
       if (dueEl) dueEl.innerText = getTaskDueDateDisplay(task, true);
       const effortEl = document.getElementById('detailEffortHours');
-      if (effortEl) effortEl.innerText = `~${task.effortHours || 4} horas`;
+      if (effortEl) effortEl.innerText = typeof formatEffortBadgeText === 'function' ? `~${formatEffortBadgeText(task.effortHours, true)}` : `~${task.effortHours || 1} horas`;
 
       const projectTagEl = document.getElementById('detailProjectTag');
       if (projectTagEl) projectTagEl.innerText = task.team || db.currentTeam || 'Sinergia Mobile';
@@ -5446,11 +5770,11 @@
       if (creatorNameEl) creatorNameEl.innerText = curCreatorName;
       if (creatorAvatarEl) creatorAvatarEl.src = curCreatorAvatar;
 
-      // Prazo (data e hora locais)
-      if (task.dueDateIso && !isNaN(new Date(task.dueDateIso).getTime())) {
-        const target = new Date(task.dueDateIso);
-        document.getElementById('editFullTaskDueDate').value = getLocalDateString(target);
-        document.getElementById('editFullTaskDueTime').value = `${String(target.getHours()).padStart(2, '0')}:${String(target.getMinutes()).padStart(2, '0')}`;
+      // Prazo (data e hora locais sem deslocamento UTC)
+      const parsedEditDue = parseLocalIsoDate(task.dueDateIso || task.dueDate);
+      if (parsedEditDue) {
+        document.getElementById('editFullTaskDueDate').value = getLocalDateString(parsedEditDue);
+        document.getElementById('editFullTaskDueTime').value = `${String(parsedEditDue.getHours()).padStart(2, '0')}:${String(parsedEditDue.getMinutes()).padStart(2, '0')}`;
       } else {
         const now = new Date();
         document.getElementById('editFullTaskDueDate').value = getLocalDateString(now);
@@ -5497,6 +5821,16 @@
       const newEffort = parseFloat(document.getElementById('editFullTaskEffort').value) || 4;
       const dateVal = document.getElementById('editFullTaskDueDate').value;
       const timeVal = document.getElementById('editFullTaskDueTime').value || '18:00';
+      const targetDueDate = dateVal ? new Date(`${dateVal}T12:00:00`) : new Date();
+
+      if (typeof isMemberOnLeaveLocal === 'function' && !window._bypassAbsenceCheckOnce) {
+        const activeAbsence = isMemberOnLeaveLocal(newAssignee, db, targetDueDate);
+        if (activeAbsence) {
+          openAbsenceConfirmationModal(newAssignee, activeAbsence, 'edit');
+          return;
+        }
+      }
+      window._bypassAbsenceCheckOnce = false;
 
       task.title = newTitle;
       task.description = newDesc;
@@ -5509,6 +5843,22 @@
       task.effortHours = newEffort;
       task.tags = [...editingTaskTags];
       task.subtasks = [...editingTaskSubtasks];
+
+      if (task.tags && task.tags.length > 0) {
+        if (!Array.isArray(db.tags)) db.tags = [];
+        task.tags.forEach(tg => {
+          const cleanName = String(tg || '').trim();
+          if (cleanName && !db.tags.some(t => isTagInCurrentTeam(t, db) && String(t.name || '').trim().toLowerCase() === cleanName.toLowerCase())) {
+            db.tags.push({
+              id: 'tag-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+              name: cleanName,
+              color: '#3B82F6',
+              team: task.team || db.currentTeam || '',
+              teamId: task.projectId || db.currentTeamId || ''
+            });
+          }
+        });
+      }
 
       // Busca dados do usuário atribuído em allUsers/teamUsers
       const allUsers = (db.allUsers && Array.isArray(db.allUsers) && db.allUsers.length > 0)
@@ -5738,10 +6088,12 @@
         const row = document.createElement('div');
         row.className = 'subtask-item';
         row.onclick = () => toggleSubtask(s.id);
+        const subAssigneePhoto = s.assigneeName ? resolveUserPhoto(s.assigneeName) : null;
         row.innerHTML = `
           <input type="checkbox" ${s.completed ? 'checked' : ''} style="cursor: pointer;">
-          <span style="flex: 1; text-decoration: ${s.completed ? 'line-through' : 'none'}; color: ${s.completed ? '#94A3B8' : '#1E293B'};">
-            ${escapeHtml(s.title)} ${s.assigneeName ? `<span style="font-size: 9px; font-weight: 700; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 1px 5px; border-radius: 9999px; margin-left: 4px;">👤 ${escapeHtml(s.assigneeName)}</span>` : ''}
+          <span style="flex: 1; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; text-decoration: ${s.completed ? 'line-through' : 'none'}; color: ${s.completed ? '#94A3B8' : '#1E293B'};">
+            <span>${escapeHtml(s.title)}</span>
+            ${s.assigneeName ? `<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 1px 6px 1px 3px; border-radius: 9999px;"><img src="${subAssigneePhoto}" style="width: 13px; height: 13px; border-radius: 50%; object-fit: cover;"> ${escapeHtml(s.assigneeName)}</span>` : ''}
           </span>
         `;
         container.appendChild(row);
@@ -5858,9 +6210,22 @@
     // --- GESTÃO DE USUÁRIOS REAIS DO POSTGRESQL (US01 / Tarefas) ---
     async function loadAvailableUsers() {
       const db = getDB();
-      const currentTeamName = db.currentTeam || 'Meu Time';
-      const currentTeamId = db.currentTeamId || 'proj-sinergia-001';
+      const currentTeamName = db.currentTeam ? String(db.currentTeam).trim() : '';
+      const currentTeamId = db.currentTeamId ? String(db.currentTeamId).trim() : '';
       const teamKey = (currentTeamId || currentTeamName).toLowerCase().trim();
+
+      // Se o usuário recém-criado ainda não participa de nenhum time, retorna apenas ele mesmo
+      if (!currentTeamName && !currentTeamId) {
+        const onlyMe = db.currentUser ? [{
+          id: db.currentUser.id || 'user-current',
+          name: db.currentUser.name || 'Você',
+          email: db.currentUser.email || '',
+          avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl || DEFAULT_PLACEHOLDER_AVATAR,
+          role: 'ADMIN'
+        }] : [];
+        cachedAvailableUsers = onlyMe;
+        return onlyMe;
+      }
 
       let users = [];
 
@@ -5880,35 +6245,27 @@
         console.warn('[Users] Falha ao carregar usuários do servidor, usando cache:', e);
       }
 
-      // Se a API não retornou usuários (offline ou time recém criado), busca no cache estruturado por time
+      // Se a API não retornou usuários (offline ou time recém criado), busca ESTRITAMENTE no cache daquele time (nunca de outro time)
       if (!users || users.length === 0) {
-        if (db.teamMembersByTeam && Array.isArray(db.teamMembersByTeam[teamKey]) && db.teamMembersByTeam[teamKey].length > 0) {
-          users = [...db.teamMembersByTeam[teamKey]];
-        } else if (Array.isArray(db.teamUsers) && db.teamUsers.length > 0) {
-          users = [...db.teamUsers];
+        if (teamKey && db.teamMembersByTeam) {
+          if (Array.isArray(db.teamMembersByTeam[teamKey]) && db.teamMembersByTeam[teamKey].length > 0) {
+            users = [...db.teamMembersByTeam[teamKey]];
+          } else if (currentTeamName && Array.isArray(db.teamMembersByTeam[currentTeamName]) && db.teamMembersByTeam[currentTeamName].length > 0) {
+            users = [...db.teamMembersByTeam[currentTeamName]];
+          }
         }
       }
 
-      // Se ainda estiver vazio (ex: boot inicial do app), garante os membros padrão do time
+      // Se ainda estiver vazio (ex: time recém-criado), contém apenas o próprio usuário logado
       if (!users || users.length === 0) {
         users = [];
         if (db.currentUser) {
           users.push({
-            id: db.currentUser.id || 'user-davi-001',
-            name: db.currentUser.name || 'Davi',
-            email: db.currentUser.email || 'davi@sinergia.com',
+            id: db.currentUser.id || 'user-current',
+            name: db.currentUser.name || 'Você',
+            email: db.currentUser.email || '',
             avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl || DEFAULT_PLACEHOLDER_AVATAR,
             role: 'ADMIN'
-          });
-        }
-        const isDefaultTeam = currentTeamName === 'Meu Time' || currentTeamName === 'Sinergia Mobile App' || currentTeamId === 'proj-sinergia-001';
-        if (isDefaultTeam && !users.some(u => u.name === 'Ana Silva')) {
-          users.push({
-            id: 'user-ana-002',
-            name: 'Ana Silva',
-            email: 'ana@sinergia.com',
-            avatarUrl: DEFAULT_PLACEHOLDER_AVATAR,
-            role: 'EDIT'
           });
         }
       }
@@ -5916,7 +6273,7 @@
       // Garante que o currentUser autenticado está presente na lista
       if (db.currentUser && !users.some(u => u.name === db.currentUser.name || (u.id && u.id === db.currentUser.id))) {
         users.unshift({
-          id: db.currentUser.id || 'user-davi-001',
+          id: db.currentUser.id || 'user-current',
           name: db.currentUser.name,
           email: db.currentUser.email,
           avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl || DEFAULT_PLACEHOLDER_AVATAR,
@@ -5926,9 +6283,11 @@
 
       // Salva no banco local estruturado estritamente por time
       if (!db.teamMembersByTeam) db.teamMembersByTeam = {};
-      db.teamMembersByTeam[teamKey] = users;
+      if (teamKey) db.teamMembersByTeam[teamKey] = users;
+      if (currentTeamName) db.teamMembersByTeam[currentTeamName] = users;
       db.teamUsers = users;
       db.allUsers = users;
+      cachedAvailableUsers = users;
       saveDB(db, false);
 
       return users;
@@ -6406,6 +6765,58 @@
       }
     }
 
+    function normalizeLocalDueDateIso(rawIso) {
+      if (!rawIso || typeof rawIso !== 'string') return rawIso;
+      const trimmed = rawIso.trim();
+      const m = trimmed.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})(?::(\d{2}))?/);
+      if (m) {
+        return `${m[1]}T${m[2]}:${m[3] || '00'}`;
+      }
+      return trimmed;
+    }
+
+    function parseLocalIsoDate(rawIso) {
+      if (!rawIso) return null;
+      if (rawIso instanceof Date) return isNaN(rawIso.getTime()) ? null : rawIso;
+      const str = String(rawIso).trim();
+      const m = str.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/);
+      if (m) {
+        return new Date(
+          parseInt(m[1], 10),
+          parseInt(m[2], 10) - 1,
+          parseInt(m[3], 10),
+          parseInt(m[4], 10),
+          parseInt(m[5], 10),
+          parseInt(m[6] || '0', 10)
+        );
+      }
+      const mDateOnly = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (mDateOnly) {
+        return new Date(
+          parseInt(mDateOnly[1], 10),
+          parseInt(mDateOnly[2], 10) - 1,
+          parseInt(mDateOnly[3], 10),
+          18, 0, 0
+        );
+      }
+      const fallback = new Date(str);
+      return isNaN(fallback.getTime()) ? null : fallback;
+    }
+
+    function extractTaskTimeStr(task, fallback = '18:00') {
+      if (!task) return fallback;
+      const iso = task.dueDateIso || (typeof task.dueDate === 'string' && task.dueDate.includes('T') ? task.dueDate : '');
+      if (iso) {
+        const m = String(iso).match(/[T\s](\d{2}:\d{2})/);
+        if (m) return m[1];
+      }
+      if (typeof task.dueDate === 'string') {
+        const m2 = task.dueDate.match(/(\d{1,2}):(\d{2})/);
+        if (m2) return `${String(m2[1]).padStart(2, '0')}:${m2[2]}`;
+      }
+      return fallback;
+    }
+
     function getLocalDateString(d = new Date()) {
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -6416,13 +6827,13 @@
     function getTaskDueTimestamp(task) {
       if (!task) return null;
       if (task.dueDateIso) {
-        const d = new Date(task.dueDateIso).getTime();
-        if (!isNaN(d)) return d;
+        const d = parseLocalIsoDate(task.dueDateIso);
+        if (d) return d.getTime();
       }
       if (task.dueDate) {
         if (task.dueDate.includes('T')) {
-          const d = new Date(task.dueDate).getTime();
-          if (!isNaN(d)) return d;
+          const d = parseLocalIsoDate(task.dueDate);
+          if (d) return d.getTime();
         }
         const today = new Date();
         if (task.dueDate.startsWith('Hoje')) {
@@ -6466,9 +6877,9 @@
       if (!task) return 'Sem prazo';
       let targetDate = null;
       if (task.dueDateIso) {
-        targetDate = new Date(task.dueDateIso);
+        targetDate = parseLocalIsoDate(task.dueDateIso);
       } else if (task.dueDate && task.dueDate.includes('T')) {
-        targetDate = new Date(task.dueDate);
+        targetDate = parseLocalIsoDate(task.dueDate);
       } else {
         const ts = getTaskDueTimestamp(task);
         if (ts) targetDate = new Date(ts);
@@ -6623,6 +7034,7 @@
 
     function renderDraftSubtasks() {
       const container = document.getElementById('draftSubtasksContainer');
+      if (typeof updateCreateTaskAiEstimate === 'function') updateCreateTaskAiEstimate();
       if (!container) return;
       if (draftSubtasks.length === 0) {
         container.innerHTML = '';
@@ -6673,6 +7085,16 @@
         if (!selectedAssignee || selectedAssignee.trim() === '') {
           selectedAssignee = user.name || 'Davi';
         }
+
+        const targetDueDate = dateVal ? new Date(`${dateVal}T12:00:00`) : new Date();
+        if (typeof isMemberOnLeaveLocal === 'function' && !window._bypassAbsenceCheckOnce) {
+          const activeAbsence = isMemberOnLeaveLocal(selectedAssignee, db, targetDueDate);
+          if (activeAbsence) {
+            openAbsenceConfirmationModal(selectedAssignee, activeAbsence, 'create');
+            return;
+          }
+        }
+        window._bypassAbsenceCheckOnce = false;
 
         const { bg: pBg, col: pCol } = getPriorityColors(priority);
 
@@ -6735,12 +7157,19 @@
         if (!db.tasks) db.tasks = [];
         db.tasks.unshift(newTask);
 
-        // Garante que todas as novas tags são registradas em db.tags para fácil alocação
+        // Garante que todas as novas tags são registradas em db.tags vinculadas exclusivamente ao time ativo
         if (newTask.tags && newTask.tags.length > 0) {
           if (!Array.isArray(db.tags)) db.tags = [];
           newTask.tags.forEach(tg => {
-            if (!db.tags.some(t => (typeof t === 'string' ? t : t?.name) === tg)) {
-              db.tags.push({ id: 'tag-' + Date.now(), name: tg, color: '#3B82F6' });
+            const cleanName = String(tg || '').trim();
+            if (cleanName && !db.tags.some(t => isTagInCurrentTeam(t, db) && String(t.name || '').trim().toLowerCase() === cleanName.toLowerCase())) {
+              db.tags.push({
+                id: 'tag-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+                name: cleanName,
+                color: '#3B82F6',
+                team: currentTeam,
+                teamId: db.currentTeamId || ''
+              });
             }
           });
         }
@@ -6762,7 +7191,7 @@
             projectId: newTask.projectId,
             createdById: newTask.createdById,
             creatorName: newTask.creatorName,
-            creatorAvatar: (newTask.creatorAvatar && !newTask.creatorAvatar.startsWith('data:')) ? newTask.creatorAvatar : null,
+            creatorAvatar: (newTask.creatorAvatar && newTask.creatorAvatar.length <= 80000) ? newTask.creatorAvatar : null,
             assigneeId: newTask.assigneeId,
             assignee: selectedAssignee,
             assigneeName: selectedAssignee,
@@ -6983,6 +7412,12 @@
       db.currentTeamId = team.id;
       const teamKey = (team.id || team.name).toLowerCase().trim();
       db.teamUsers = (db.teamMembersByTeam && db.teamMembersByTeam[teamKey]) ? db.teamMembersByTeam[teamKey] : [];
+      db.allUsers = db.teamUsers;
+      projectMembersCache = [...db.teamUsers];
+      cachedAvailableUsers = [...db.teamUsers];
+      if (typeof createTaskSelectedTags !== 'undefined') createTaskSelectedTags = [];
+      if (typeof editingTaskTags !== 'undefined') editingTaskTags = [];
+      if (typeof filterState !== 'undefined') filterState.tags = [];
       saveDB(db, false);
       closeTeamDropdown();
       showToast(`Time alterado para "${team.name}".`);
@@ -7161,6 +7596,21 @@
         }
         db.currentTeam = data.team.name;
         db.currentTeamId = data.team.id;
+        const newTeamKey = (data.team.id || data.team.name).toLowerCase().trim();
+        const creatorOnlyList = db.currentUser ? [{
+          id: db.currentUser.id || 'user-current',
+          name: db.currentUser.name || 'Você',
+          email: db.currentUser.email || '',
+          role: 'ADMIN',
+          avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl || DEFAULT_PLACEHOLDER_AVATAR
+        }] : [];
+        if (!db.teamMembersByTeam) db.teamMembersByTeam = {};
+        db.teamMembersByTeam[data.team.name] = creatorOnlyList;
+        db.teamMembersByTeam[newTeamKey] = creatorOnlyList;
+        db.teamUsers = creatorOnlyList;
+        db.allUsers = creatorOnlyList;
+        projectMembersCache = [...creatorOnlyList];
+        cachedAvailableUsers = [...creatorOnlyList];
         saveDB(db, false);
 
         closeModal('modalCreateTeam');
@@ -7222,6 +7672,10 @@
         }
         db.currentTeam = teamName;
         if (data.team?.id) db.currentTeamId = data.team.id;
+        projectMembersCache = [];
+        cachedAvailableUsers = [];
+        db.teamUsers = [];
+        db.allUsers = [];
         saveDB(db, false);
 
         closeModal('modalJoinTeam');
@@ -7553,6 +8007,10 @@
         }
         db.currentTeam = teamName;
         if (data.team?.id) db.currentTeamId = data.team.id;
+        projectMembersCache = [];
+        cachedAvailableUsers = [];
+        db.teamUsers = [];
+        db.allUsers = [];
         saveDB(db, false);
 
         showToast(`🎉 Sucesso! Você entrou no time "${teamName}".`);
@@ -7634,7 +8092,7 @@
 
       document.getElementById('menuUserName').innerText = user.name;
       document.getElementById('menuUserEmail').innerText = user.email;
-      const avatarSrc = resolveAvatarUrl(user.avatar || user.avatarUrl, user.name);
+      const avatarSrc = resolveUserPhoto(user, user.avatar || user.avatarUrl);
       document.getElementById('menuUserAvatar').src = avatarSrc;
       document.getElementById('menuCurrentTeam').innerText = team;
 
@@ -7650,7 +8108,14 @@
               document.getElementById('menuUserName').innerText = data.user.name;
               document.getElementById('menuUserEmail').innerText = data.user.email;
               if (data.user.avatar || data.user.avatarUrl) {
-                const freshAvatar = resolveAvatarUrl(data.user.avatar || data.user.avatarUrl, data.user.name);
+                const serverAv = data.user.avatar || data.user.avatarUrl;
+                const localPersisted = getPersistentAvatar(data.user) || (isDataUrlAvatar(user.avatar) ? user.avatar : null);
+                const freshAvatar = isDataUrlAvatar(serverAv)
+                  ? serverAv
+                  : (localPersisted || resolveUserPhoto(data.user, serverAv));
+                if (isDataUrlAvatar(freshAvatar)) {
+                  savePersistentAvatar(data.user, freshAvatar);
+                }
                 document.getElementById('menuUserAvatar').src = freshAvatar;
                 if (document.getElementById('userAvatarMini')) {
                   document.getElementById('userAvatarMini').src = freshAvatar;
@@ -7666,6 +8131,7 @@
                 (db.tasks || []).forEach(t => {
                   if ((t.assignee && t.assignee.toLowerCase() === data.user.name.toLowerCase()) || t.assigneeId === data.user.id) {
                     t.avatar = freshAvatar;
+                    t.assigneeAvatar = freshAvatar;
                   }
                   if ((t.creatorName && t.creatorName.toLowerCase() === data.user.name.toLowerCase()) || t.createdById === data.user.id) {
                     t.creatorAvatar = freshAvatar;
@@ -7693,6 +8159,9 @@
       const previewDataUrl = await compressAvatarToDataUrl(file, 120, 0.72);
       if (!previewDataUrl) return;
 
+      // Salva no cofre persistente em Base64 para nunca expirar após reinício do servidor
+      savePersistentAvatar(db.currentUser, previewDataUrl);
+
       const menuAvatarEl = document.getElementById('menuUserAvatar');
       const miniAvatarEl = document.getElementById('userAvatarMini');
       const projMiniEl = document.getElementById('projectUserAvatarMini');
@@ -7714,9 +8183,11 @@
           if (t.assignee === db.currentUser.name || t.assigneeId === db.currentUser.id) {
             t.avatar = previewDataUrl;
             t.assigneeAvatar = previewDataUrl;
+            if (t._status !== 'created') t._status = 'updated';
           }
           if (t.creatorName === db.currentUser.name || t.createdById === db.currentUser.id) {
             t.creatorAvatar = previewDataUrl;
+            if (t._status !== 'created') t._status = 'updated';
           }
         });
       }
@@ -7728,15 +8199,28 @@
           }
         });
       }
+      if (db.teamMembersByTeam) {
+        Object.keys(db.teamMembersByTeam).forEach(k => {
+          if (Array.isArray(db.teamMembersByTeam[k])) {
+            db.teamMembersByTeam[k].forEach(m => {
+              if (m && ((m.id && m.id === db.currentUser.id) || (m.email && m.email.toLowerCase() === (db.currentUser.email || '').toLowerCase()) || (m.name && m.name.toLowerCase() === (db.currentUser.name || '').toLowerCase()))) {
+                m.avatarUrl = previewDataUrl;
+                m.avatar = previewDataUrl;
+              }
+            });
+          }
+        });
+      }
       saveDB(db, false);
       if (typeof renderDashboard === 'function') renderDashboard();
       if (typeof renderProjectMembersTab === 'function') renderProjectMembersTab(false);
       if (typeof renderProjectWorkload === 'function') renderProjectWorkload();
-      showToast('Enviando foto para o MinIO...');
+      showToast('Enviando foto de perfil...');
 
       try {
         const formData = new FormData();
         formData.append('avatar', file);
+        formData.append('dataUrl', previewDataUrl);
         if (db.currentUser.id) formData.append('userId', db.currentUser.id);
         if (db.currentUser.email) formData.append('email', db.currentUser.email);
         if (db.currentUser.name) formData.append('name', db.currentUser.name);
@@ -7752,56 +8236,36 @@
 
         if (res.ok) {
           const data = await res.json();
-          if (data.success && data.avatarUrl) {
-            const fullAvatarUrl = resolveAvatarUrl(data.avatarUrl, db.currentUser.name);
-            db.currentUser.avatar = fullAvatarUrl;
-            db.currentUser.avatarUrl = fullAvatarUrl;
-            if (menuAvatarEl) menuAvatarEl.src = fullAvatarUrl;
-            if (miniAvatarEl) miniAvatarEl.src = fullAvatarUrl;
-            if (projMiniEl) projMiniEl.src = fullAvatarUrl;
+          if (data.success) {
+            // Mantém sempre o DataURL Base64 comprimido como fonte primária permanente (evita URL efêmera quebrada)
+            const permanentAvatar = isDataUrlAvatar(data.avatarUrl) ? data.avatarUrl : previewDataUrl;
+            savePersistentAvatar(db.currentUser, permanentAvatar);
+            db.currentUser.avatar = permanentAvatar;
+            db.currentUser.avatarUrl = permanentAvatar;
+            if (menuAvatarEl) menuAvatarEl.src = permanentAvatar;
+            if (miniAvatarEl) miniAvatarEl.src = permanentAvatar;
+            if (projMiniEl) projMiniEl.src = permanentAvatar;
 
             if (!db.userAvatars) db.userAvatars = {};
-            if (db.currentUser.name) db.userAvatars[db.currentUser.name.toLowerCase()] = fullAvatarUrl;
-            if (db.currentUser.email) db.userAvatars[db.currentUser.email.toLowerCase()] = fullAvatarUrl;
-            if (db.currentUser.id) db.userAvatars[String(db.currentUser.id).toLowerCase()] = fullAvatarUrl;
+            if (db.currentUser.name) db.userAvatars[db.currentUser.name.toLowerCase()] = permanentAvatar;
+            if (db.currentUser.email) db.userAvatars[db.currentUser.email.toLowerCase()] = permanentAvatar;
+            if (db.currentUser.id) db.userAvatars[String(db.currentUser.id).toLowerCase()] = permanentAvatar;
 
             // Atualiza o avatar das tarefas deste usuário (atribuídas e criadas)
             if (Array.isArray(db.tasks)) {
               db.tasks.forEach(t => {
                 if (t.assignee === db.currentUser.name || t.assigneeId === db.currentUser.id) {
-                  t.avatar = fullAvatarUrl;
-                  t.assigneeAvatar = fullAvatarUrl;
+                  t.avatar = permanentAvatar;
+                  t.assigneeAvatar = permanentAvatar;
                 }
                 if (t.creatorName === db.currentUser.name || t.createdById === db.currentUser.id) {
-                  t.creatorAvatar = fullAvatarUrl;
-                }
-              });
-            }
-
-            // Atualiza nos membros do projeto
-            if (Array.isArray(projectMembersCache)) {
-              projectMembersCache.forEach(m => {
-                if (m && ((m.id && m.id === db.currentUser.id) || (m.email && m.email.toLowerCase() === (db.currentUser.email || '').toLowerCase()) || (m.name && m.name.toLowerCase() === (db.currentUser.name || '').toLowerCase()))) {
-                  m.avatarUrl = fullAvatarUrl;
-                  m.avatar = fullAvatarUrl;
-                }
-              });
-            }
-            if (db.teamMembersByTeam) {
-              Object.keys(db.teamMembersByTeam).forEach(k => {
-                if (Array.isArray(db.teamMembersByTeam[k])) {
-                  db.teamMembersByTeam[k].forEach(m => {
-                    if (m && ((m.id && m.id === db.currentUser.id) || (m.email && m.email.toLowerCase() === (db.currentUser.email || '').toLowerCase()) || (m.name && m.name.toLowerCase() === (db.currentUser.name || '').toLowerCase()))) {
-                      m.avatarUrl = fullAvatarUrl;
-                      m.avatar = fullAvatarUrl;
-                    }
-                  });
+                  t.creatorAvatar = permanentAvatar;
                 }
               });
             }
 
             saveDB(db, true);
-            showToast('Foto de perfil salva com sucesso no MinIO!');
+            showToast('Foto de perfil salva permanentemente!');
             if (typeof renderDashboard === 'function') renderDashboard();
             if (typeof renderProjectMembersTab === 'function') renderProjectMembersTab(false);
             if (typeof renderProjectWorkload === 'function') renderProjectWorkload();
@@ -7809,11 +8273,64 @@
             return;
           }
         }
-        showToast('Foto de perfil atualizada localmente.');
+        showToast('Foto de perfil salva permanentemente no dispositivo.');
       } catch (uploadErr) {
         console.warn('[Avatar Upload MinIO Warning]', uploadErr);
-        showToast('Foto salva localmente no dispositivo (offline).');
+        showToast('Foto salva permanentemente no dispositivo.');
       }
+    }
+
+    function resetSessionStateForUserSwitch(db, newUser, newTeams = []) {
+      const validTeams = Array.isArray(newTeams) ? newTeams : [];
+      db.userTeams = validTeams;
+      db.teams = validTeams.map(t => t.name).filter(Boolean);
+      db.teamUsers = [];
+      db.allUsers = [];
+      db.notifiedMentions = [];
+      projectMembersCache = [];
+      cachedAvailableUsers = [];
+
+      // Filtra tarefas locais mantendo apenas as que pertencem aos times do novo usuário
+      const teamNameSet = new Set(db.teams.map(n => String(n).trim().toLowerCase()));
+      const teamIdSet = new Set(validTeams.map(t => t && t.id ? String(t.id).trim().toLowerCase() : '').filter(Boolean));
+      if (Array.isArray(db.tasks)) {
+        db.tasks = db.tasks.filter(t => {
+          if (!t) return false;
+          const tName = t.team ? String(t.team).trim().toLowerCase() : '';
+          const tProj = t.projectId ? String(t.projectId).trim().toLowerCase() : '';
+          return (tName && teamNameSet.has(tName)) || (tProj && teamIdSet.has(tProj));
+        });
+      }
+
+      // Remove ausências antigas sem time ou de times que este usuário não participa
+      if (Array.isArray(db.absences)) {
+        db.absences = db.absences.filter(a => {
+          if (!a) return false;
+          const aTeam = a.team ? String(a.team).trim().toLowerCase() : '';
+          const aTeamId = a.teamId ? String(a.teamId).trim().toLowerCase() : '';
+          if (!aTeam && !aTeamId) return false;
+          return (aTeam && teamNameSet.has(aTeam)) || (aTeamId && teamIdSet.has(aTeamId));
+        });
+      }
+
+      // Mantém no feed apenas notificações pertencentes a este usuário e aos seus times
+      if (Array.isArray(db.notifications)) {
+        db.notifications = db.notifications.filter(n => isNotificationForCurrentUser(n, db));
+      }
+
+      // Filtra tags mantendo exclusivamente aquelas criadas nos times em que o novo usuário participa
+      if (Array.isArray(db.tags)) {
+        db.tags = db.tags.filter(tg => {
+          if (!tg || typeof tg !== 'object') return false;
+          const tgTeam = tg.team ? String(tg.team).trim().toLowerCase() : '';
+          const tgTeamId = (tg.teamId || tg.projectId) ? String(tg.teamId || tg.projectId).trim().toLowerCase() : '';
+          if (!tgTeam && !tgTeamId) return false;
+          return (tgTeam && teamNameSet.has(tgTeam)) || (tgTeamId && tgTeamId !== 'proj-sinergia-001' && teamIdSet.has(tgTeamId));
+        });
+      }
+      if (typeof createTaskSelectedTags !== 'undefined') createTaskSelectedTags = [];
+      if (typeof editingTaskTags !== 'undefined') editingTaskTags = [];
+      if (typeof filterState !== 'undefined') filterState.tags = [];
     }
 
     function logoutUser() {
@@ -7822,7 +8339,18 @@
       db.authToken = null;
       db.currentTeam = null;
       db.currentTeamId = null;
+      db.teams = [];
+      db.userTeams = [];
+      db.teamUsers = [];
+      db.allUsers = [];
+      db.notifiedMentions = [];
+      projectMembersCache = [];
+      cachedAvailableUsers = [];
+      if (typeof createTaskSelectedTags !== 'undefined') createTaskSelectedTags = [];
+      if (typeof editingTaskTags !== 'undefined') editingTaskTags = [];
+      if (typeof filterState !== 'undefined') filterState.tags = [];
       saveDB(db, false);
+      updateNotificationBadges();
       closeModal('modalUserMenu');
       showToast('Sessão encerrada com sucesso.');
       switchScreen('login-page', null);
@@ -7858,15 +8386,15 @@
             sanitized.priority = normalizePriorityToEnum(t.priority);
             sanitized.dueDate = t.dueDateIso || t.dueDate;
             sanitized.dueDateIso = t.dueDateIso || t.dueDate;
-            // Remove Base64 pesados em avatar e creatorAvatar (evita HTTP 413 Payload Too Large)
-            if (typeof sanitized.avatar === 'string' && sanitized.avatar.startsWith('data:')) {
+            // Remove apenas Base64 excessivamente pesados (>80KB); preserva miniaturas comprimidas (~8KB) para sincronizar fotos reais entre membros
+            if (typeof sanitized.avatar === 'string' && sanitized.avatar.startsWith('data:') && sanitized.avatar.length > 80000) {
               delete sanitized.avatar;
               delete sanitized.assigneeAvatar;
             }
-            if (typeof sanitized.assigneeAvatar === 'string' && sanitized.assigneeAvatar.startsWith('data:')) {
+            if (typeof sanitized.assigneeAvatar === 'string' && sanitized.assigneeAvatar.startsWith('data:') && sanitized.assigneeAvatar.length > 80000) {
               delete sanitized.assigneeAvatar;
             }
-            if (typeof sanitized.creatorAvatar === 'string' && sanitized.creatorAvatar.startsWith('data:')) {
+            if (typeof sanitized.creatorAvatar === 'string' && sanitized.creatorAvatar.startsWith('data:') && sanitized.creatorAvatar.length > 80000) {
               delete sanitized.creatorAvatar;
             }
             if (Array.isArray(sanitized.attachments)) {
@@ -7951,7 +8479,8 @@
 
               if (localIndex === -1) {
                 // Nova tarefa criada por outro usuário no time!
-                const effectiveDue = st.dueDateIso || st.dueDate;
+                const rawEffectiveDue = st.dueDateIso || st.dueDate;
+                const effectiveDue = normalizeLocalDueDateIso(rawEffectiveDue);
                 const formattedDue = effectiveDue ? (effectiveDue.includes('T') ? formatDueDateDisplay(effectiveDue.split('T')[0], effectiveDue.split('T')[1]?.slice(0,5) || '18:00') : formatDueDateDisplay(effectiveDue)) : 'Hoje';
 
                 db.tasks.unshift({
@@ -8028,8 +8557,9 @@
                     lt.creatorName = creatorName;
                     lt.creatorAvatar = creatorAvatar;
                   }
-                  if (st.dueDate || st.dueDateIso) {
-                    const effectiveDue = st.dueDateIso || st.dueDate;
+                  if ((st.dueDate || st.dueDateIso) && (!lt.dueDateIso || (st.version && st.version > (lt.version || 1)))) {
+                    const rawEffectiveDue = st.dueDateIso || st.dueDate;
+                    const effectiveDue = normalizeLocalDueDateIso(rawEffectiveDue);
                     lt.dueDateIso = effectiveDue;
                     lt.dueDate = effectiveDue.includes('T') ? formatDueDateDisplay(effectiveDue.split('T')[0], effectiveDue.split('T')[1]?.slice(0,5) || '18:00') : formatDueDateDisplay(effectiveDue);
                   }
@@ -8074,7 +8604,7 @@
             const currentUserId = db.currentUser?.id;
 
             if (currentUserName) {
-              (db.tasks || []).forEach(task => {
+              (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db)).forEach(task => {
                 (task.comments || []).forEach(c => {
                   const isOtherAuthor = (c.authorId && c.authorId !== currentUserId) || 
                                         (c.author && c.author.trim().toLowerCase() !== currentUserName);
@@ -8151,14 +8681,68 @@
       }
     }, 8000);
 
+    // Atualiza os 3 cards da aba Projetos com os dados reais que já temos (Atrasadas e Conflitos) e mantém Saúde zerado (Sprint 3)
+    function updateProjectPlanningStats(tasks, db) {
+      const healthEl = document.getElementById('projStatHealth');
+      const lateEl = document.getElementById('projStatLate');
+      const conflictsEl = document.getElementById('projStatConflicts');
+
+      const teamTasks = Array.isArray(tasks) ? tasks : ((db?.tasks || []).filter(t => isTaskInCurrentTeam(t, db)));
+      const nowMs = Date.now();
+
+      // 1. Tarefas Atrasadas reais do time ativo (dados que já temos)
+      const lateCount = teamTasks.filter(t => {
+        if (!t || t.status === 'COMPLETED' || t.completed) return false;
+        const dueMs = getTaskDueTimestamp(t);
+        return dueMs !== null && dueMs < nowMs;
+      }).length;
+
+      // 2. Conflitos ativos reais do time (bloqueio por dependência pendente US10, dependência externa bloqueada US23 ou recusa de delegação US22)
+      const conflictCount = teamTasks.filter(t => {
+        if (!t || t.status === 'COMPLETED' || t.completed) return false;
+        if (t.status === 'BLOCKED') return true;
+        if (t.externalDepStatus === 'BLOCKED') return true;
+        if (t.assignmentStatus === 'DECLINED') return true;
+        const deps = Array.isArray(t.dependencies) ? t.dependencies : [];
+        if (deps.length > 0) {
+          const hasUnfinishedPred = deps.some(d => {
+            const predId = String(typeof d === 'string' ? d : (d.dependsOnTaskId || d.id || ''));
+            const pred = teamTasks.find(x => String(x.id) === predId);
+            return pred && pred.status !== 'COMPLETED';
+          });
+          if (hasUnfinishedPred) return true;
+        }
+        return false;
+      }).length;
+
+      if (lateEl) {
+        lateEl.style.color = lateCount > 0 ? '#F59E0B' : '#10B981';
+        lateEl.innerHTML = `${lateCount} <span style="font-size: 9px; font-weight: 500;">${lateCount === 1 ? 'Tarefa' : 'Tarefas'}</span>`;
+      }
+
+      if (conflictsEl) {
+        conflictsEl.style.color = conflictCount > 0 ? '#EF4444' : '#10B981';
+        conflictsEl.innerHTML = `${conflictCount} <span style="font-size: 9px; font-weight: 500;">${conflictCount === 1 ? 'ativo' : 'ativos'}</span>`;
+      }
+
+      // 3. Saúde Preditiva do Projeto (Previsto para a Sprint 3 — mantido zerado)
+      if (healthEl) {
+        healthEl.style.color = '#64748B';
+        healthEl.innerHTML = `0% <span style="font-size: 9px; font-weight: 500;">—</span>`;
+      }
+    }
+
     // Renderizar Linha do Tempo de Planejamento do Time Ativo
     function renderTimeline() {
       const db = getDB();
       const container = document.getElementById('planningTimelineContainer');
-      container.innerHTML = '';
-
       const team = db.currentTeam;
       const tasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
+
+      updateProjectPlanningStats(tasks, db);
+
+      if (!container) return;
+      container.innerHTML = '';
 
       if (tasks.length === 0) {
         container.innerHTML = `
@@ -8166,6 +8750,7 @@
             Nenhuma tarefa no time "${team}". Crie tarefas para visualizar a linha do tempo e entregas.
           </div>
         `;
+        renderProjectWorkload();
         return;
       }
 
@@ -8199,19 +8784,26 @@
       const container = document.getElementById('projectWorkloadCapacityContainer');
       if (!container) return;
       const db = getDB();
-      const team = db.currentTeam || 'Meu Time';
+      const team = db.currentTeam || '';
+      const teamId = db.currentTeamId || '';
+      const teamKey = (teamId || team).toLowerCase().trim();
       const tasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
 
-      let members = (projectMembersCache && projectMembersCache.length > 0) ? [...projectMembersCache] : [];
-      if (members.length === 0 && db.teamMembersByTeam && Array.isArray(db.teamMembersByTeam[team]) && db.teamMembersByTeam[team].length > 0) {
-        members = [...db.teamMembersByTeam[team]];
+      let members = [];
+      if (teamKey && db.teamMembersByTeam) {
+        if (Array.isArray(db.teamMembersByTeam[teamKey]) && db.teamMembersByTeam[teamKey].length > 0) {
+          members = [...db.teamMembersByTeam[teamKey]];
+        } else if (team && Array.isArray(db.teamMembersByTeam[team]) && db.teamMembersByTeam[team].length > 0) {
+          members = [...db.teamMembersByTeam[team]];
+        }
       }
-      if (members.length === 0 && Array.isArray(db.teamUsers) && db.teamUsers.length > 0) {
-        members = [...db.teamUsers];
-      }
-      if (members.length === 0) {
+      if (members.length === 0 && db.currentUser) {
         members = [
-          { name: db.currentUser?.name || 'Davi Marinho', avatarUrl: db.currentUser?.avatar || DEFAULT_PLACEHOLDER_AVATAR }
+          {
+            id: db.currentUser.id,
+            name: db.currentUser.name || 'Você',
+            avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl || DEFAULT_PLACEHOLDER_AVATAR
+          }
         ];
       }
 
@@ -8409,38 +9001,34 @@
     }
 
     function loadProjectMembersLocal(db) {
-      const teamName = db.currentTeam || 'Meu Time';
-      const teamId = db.currentTeamId || '';
+      const teamName = db.currentTeam ? String(db.currentTeam).trim() : '';
+      const teamId = db.currentTeamId ? String(db.currentTeamId).trim() : '';
       const teamKey = (teamId || teamName).toLowerCase().trim();
 
       let localList = [];
-      if (db.teamMembersByTeam) {
+      if (teamKey && db.teamMembersByTeam) {
         if (Array.isArray(db.teamMembersByTeam[teamKey]) && db.teamMembersByTeam[teamKey].length > 0) {
           localList = db.teamMembersByTeam[teamKey];
-        } else if (Array.isArray(db.teamMembersByTeam[teamName]) && db.teamMembersByTeam[teamName].length > 0) {
+        } else if (teamName && Array.isArray(db.teamMembersByTeam[teamName]) && db.teamMembersByTeam[teamName].length > 0) {
           localList = db.teamMembersByTeam[teamName];
         }
       }
-      if (localList.length === 0 && Array.isArray(db.teamUsers) && db.teamUsers.length > 0) {
-        localList = db.teamUsers;
-      }
-      if (localList.length === 0 && Array.isArray(db.allUsers) && db.allUsers.length > 0) {
-        localList = db.allUsers;
-      }
       if (localList.length === 0) {
-        localList = [
+        localList = db.currentUser ? [
           {
-            id: db.currentUser?.id || 'user-davi-001',
-            name: db.currentUser?.name || 'Davi Marinho',
-            email: db.currentUser?.email || 'davi@sinergia.com',
+            id: db.currentUser.id || 'user-current',
+            name: db.currentUser.name || 'Você',
+            email: db.currentUser.email || '',
             role: 'ADMIN',
-            avatarUrl: db.currentUser?.avatar || DEFAULT_PLACEHOLDER_AVATAR
+            avatarUrl: db.currentUser.avatar || db.currentUser.avatarUrl || DEFAULT_PLACEHOLDER_AVATAR
           }
-        ];
-        if (!db.teamMembersByTeam) db.teamMembersByTeam = {};
-        db.teamMembersByTeam[teamName] = localList;
-        db.teamMembersByTeam[teamKey] = localList;
-        saveDB(db, false);
+        ] : [];
+        if (teamKey) {
+          if (!db.teamMembersByTeam) db.teamMembersByTeam = {};
+          if (teamName) db.teamMembersByTeam[teamName] = localList;
+          db.teamMembersByTeam[teamKey] = localList;
+          saveDB(db, false);
+        }
       }
 
       projectMembersCache = [...localList];
@@ -8865,33 +9453,42 @@
         const db = getDB();
         db.authToken = data.token;
         db.currentUser = data.user;
-        if (data.user && (data.user.avatarUrl || data.user.avatar)) {
-          const freshAv = resolveAvatarUrl(data.user.avatarUrl || data.user.avatar, data.user.name);
-          db.currentUser.avatar = freshAv;
-          db.currentUser.avatarUrl = freshAv;
+        const persistedLoginAv = getPersistentAvatar(data.user);
+        const rawLoginAv = data.user && (data.user.avatarUrl || data.user.avatar);
+        const bestLoginAv = isDataUrlAvatar(rawLoginAv)
+          ? rawLoginAv
+          : (isDataUrlAvatar(persistedLoginAv) ? persistedLoginAv : (rawLoginAv ? resolveAvatarUrl(rawLoginAv, data.user.name) : null));
+        if (bestLoginAv && data.user) {
+          if (isDataUrlAvatar(bestLoginAv)) {
+            savePersistentAvatar(data.user, bestLoginAv);
+          }
+          db.currentUser.avatar = bestLoginAv;
+          db.currentUser.avatarUrl = bestLoginAv;
           if (!db.userAvatars) db.userAvatars = {};
-          if (data.user.name) db.userAvatars[data.user.name.toLowerCase()] = freshAv;
-          if (data.user.email) db.userAvatars[data.user.email.toLowerCase()] = freshAv;
-          if (data.user.id) db.userAvatars[String(data.user.id).toLowerCase()] = freshAv;
+          if (data.user.name) db.userAvatars[data.user.name.toLowerCase()] = bestLoginAv;
+          if (data.user.email) db.userAvatars[data.user.email.toLowerCase()] = bestLoginAv;
+          if (data.user.id) db.userAvatars[String(data.user.id).toLowerCase()] = bestLoginAv;
           const projMini = document.getElementById('projectUserAvatarMini');
-          if (projMini) projMini.src = freshAv;
+          if (projMini) projMini.src = bestLoginAv;
           const userMini = document.getElementById('userAvatarMini');
-          if (userMini) userMini.src = freshAv;
+          if (userMini) userMini.src = bestLoginAv;
         }
 
         if (data.teams && data.teams.length > 0) {
-          db.userTeams = data.teams;
-          db.teams = data.teams.map(t => t.name);
           db.currentTeam = data.teams[0].name;
           db.currentTeamId = data.teams[0].id;
+          resetSessionStateForUserSwitch(db, data.user, data.teams);
           saveDB(db, false);
+          updateNotificationBadges();
           showToast(`Bem-vindo de volta, ${data.user.name}!`);
           switchScreen('dashboard', null);
           setTimeout(() => syncWithBackend(true), 250);
         } else {
           db.currentTeam = null;
           db.currentTeamId = null;
+          resetSessionStateForUserSwitch(db, data.user, []);
           saveDB(db, false);
+          updateNotificationBadges();
           showToast(`Olá, ${data.user.name}! Crie ou entre em um time.`);
           switchScreen('team-onboarding', null);
         }
@@ -8979,7 +9576,7 @@
             name,
             email,
             password: pass,
-            avatarUrl: avatarToSend || regAvatarSelectedDataUrl || undefined
+            avatarUrl: regAvatarSelectedDataUrl || avatarToSend || undefined
           })
         });
         const data = await res.json();
@@ -8992,21 +9589,15 @@
         const db = getDB();
         db.authToken = data.token;
         db.currentUser = data.user || { name, email };
-        if (avatarToSend) {
-          const av = resolveAvatarUrl(avatarToSend, name);
-          db.currentUser.avatar = av;
-          db.currentUser.avatarUrl = av;
+        const finalRegAv = regAvatarSelectedDataUrl || (avatarToSend ? resolveAvatarUrl(avatarToSend, name) : null);
+        if (finalRegAv) {
+          savePersistentAvatar({ name, email, id: data.user?.id }, finalRegAv);
+          db.currentUser.avatar = finalRegAv;
+          db.currentUser.avatarUrl = finalRegAv;
           if (!db.userAvatars) db.userAvatars = {};
-          db.userAvatars[name.toLowerCase()] = av;
-          if (email) db.userAvatars[email.toLowerCase()] = av;
-          if (data.user?.id) db.userAvatars[String(data.user.id).toLowerCase()] = av;
-        } else if (regAvatarSelectedDataUrl) {
-          db.currentUser.avatar = regAvatarSelectedDataUrl;
-          db.currentUser.avatarUrl = regAvatarSelectedDataUrl;
-          if (!db.userAvatars) db.userAvatars = {};
-          db.userAvatars[name.toLowerCase()] = regAvatarSelectedDataUrl;
-          if (email) db.userAvatars[email.toLowerCase()] = regAvatarSelectedDataUrl;
-          if (data.user?.id) db.userAvatars[String(data.user.id).toLowerCase()] = regAvatarSelectedDataUrl;
+          db.userAvatars[name.toLowerCase()] = finalRegAv;
+          if (email) db.userAvatars[email.toLowerCase()] = finalRegAv;
+          if (data.user?.id) db.userAvatars[String(data.user.id).toLowerCase()] = finalRegAv;
         }
         if (db.currentUser?.avatar) {
           const projMini = document.getElementById('projectUserAvatarMini');
@@ -9016,7 +9607,9 @@
         }
         db.currentTeam = null;
         db.currentTeamId = null;
+        resetSessionStateForUserSwitch(db, db.currentUser, []);
         saveDB(db, false);
+        updateNotificationBadges();
 
         showToast(`Conta criada com sucesso no PostgreSQL! Crie ou entre no seu time.`);
         switchScreen('team-onboarding', null);
@@ -9034,14 +9627,7 @@
 
     function getAllKnownTags() {
       const db = getDB();
-      const team = db.currentTeam;
-      const teamId = db.currentTeamId;
-      const teamTasks = (db.tasks || []).filter(t => {
-        if (teamId && t.projectId === teamId) return true;
-        if (team && t.team && t.team.trim().toLowerCase() === team.trim().toLowerCase()) return true;
-        if (!team && !teamId) return true;
-        return false;
-      });
+      const teamTasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
 
       const set = new Set();
       teamTasks.forEach(t => {
@@ -9052,6 +9638,7 @@
 
       if (Array.isArray(db.tags)) {
         db.tags.forEach(t => {
+          if (!isTagInCurrentTeam(t, db)) return;
           const name = (typeof t === 'string' ? t : (t?.name || '')).trim();
           if (name) set.add(name);
         });
@@ -9069,6 +9656,7 @@
 
     function renderCreateTaskTags() {
       const container = document.getElementById('createTaskTagsContainer');
+      if (typeof updateCreateTaskAiEstimate === 'function') updateCreateTaskAiEstimate();
       if (!container) return;
       if (!createTaskSelectedTags || createTaskSelectedTags.length === 0) {
         container.innerHTML = `<span style="font-size: 11px; color: #94A3B8; font-style: italic;">Nenhuma tag selecionada (toque em "+ Adicionar / Selecionar").</span>`;
@@ -9189,11 +9777,18 @@
         return;
       }
 
-      // Adiciona à lista de tags conhecidas do DB
+      // Adiciona à lista de tags conhecidas vinculada exclusivamente ao time ativo
       const db = getDB();
       if (!Array.isArray(db.tags)) db.tags = [];
-      if (!db.tags.some(t => (typeof t === 'string' ? t : t?.name) === val)) {
-        db.tags.push({ id: 'tag-' + Date.now(), name: val, color: '#3B82F6' });
+      const existsInTeam = db.tags.some(t => isTagInCurrentTeam(t, db) && String(t.name || '').trim().toLowerCase() === val.toLowerCase());
+      if (!existsInTeam) {
+        db.tags.push({
+          id: 'tag-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+          name: val,
+          color: '#3B82F6',
+          team: db.currentTeam || '',
+          teamId: db.currentTeamId || ''
+        });
         saveDB(db, false);
       }
 
@@ -9285,7 +9880,7 @@
       const ef = new Map();
       orderedIds.forEach(id => {
         const t = taskMap.get(id);
-        const dur = Math.max(Number(t?.effortHours) || 4, 1);
+        const dur = Math.max(Number(t?.effortHours) || 0.5, 0.25);
         const preds = prereqsMap.get(id) || [];
         let maxPredEf = 0;
         preds.forEach(pId => {
@@ -9308,7 +9903,7 @@
       for (let i = orderedIds.length - 1; i >= 0; i--) {
         const id = orderedIds[i];
         const t = taskMap.get(id);
-        const dur = Math.max(Number(t?.effortHours) || 4, 1);
+        const dur = Math.max(Number(t?.effortHours) || 0.5, 0.25);
         const succs = adj.get(id) || [];
         let minSuccLs = projectDuration;
         if (succs.length > 0) {
@@ -9534,10 +10129,11 @@
 
           const daysMap = { DAILY: 1, WEEKLY: 7, BIWEEKLY: 14, MONTHLY: 30, SPRINT: 14 };
           const addDays = daysMap[interval] || 7;
-          const baseDate = completedTask.dueDateIso ? new Date(completedTask.dueDateIso) : new Date();
+          const baseDate = parseLocalIsoDate(completedTask.dueDateIso || completedTask.dueDate) || new Date();
           const nextDate = new Date(baseDate.getTime() + addDays * 86400000);
           const nextDateStr = getLocalDateString(nextDate);
-          const nextDueFormatted = formatDueDateDisplay(nextDateStr, '18:00');
+          const origTimeStr = extractTaskTimeStr(completedTask, '18:00');
+          const nextDueFormatted = formatDueDateDisplay(nextDateStr, origTimeStr);
           const nextAvatar = resolveUserPhoto(nextAssignee, null);
 
           const nextTask = {
@@ -9550,7 +10146,7 @@
             avatar: nextAvatar,
             assigneeAvatar: nextAvatar,
             dueDate: nextDueFormatted,
-            dueDateIso: `${nextDateStr}T18:00:00`,
+            dueDateIso: `${nextDateStr}T${origTimeStr}:00`,
             currentOccurrence: currentOcc + 1,
             currentRotationIndex: nextRotIndex,
             rotationUserIds: rotationQueue,
@@ -9562,7 +10158,7 @@
           db.tasks.unshift(nextTask);
           saveDB(db, true);
           createNotification({
-            title: '🔄 Rodízio Round-Robin (US13)',
+            title: '🔄 Rodízio Round-Robin',
             message: `Nova ocorrência (#${nextTask.currentOccurrence}/${maxOcc}) de "${nextTask.title}" gerada e rotacionada para ${nextAssignee}!`,
             type: 'assignment',
             color: '#2563EB',
@@ -9578,17 +10174,30 @@
     }
 
     function getTeamMemberNamesList(db) {
-      const team = db.currentTeam || 'Meu Time';
       const set = new Set();
-      if (db.currentUser?.name) set.add(db.currentUser.name);
-      if (typeof projectMembersCache !== 'undefined' && Array.isArray(projectMembersCache)) {
-        projectMembersCache.forEach(m => { if (m?.name) set.add(m.name); });
+      if (!db || !db.currentUser) return [];
+      if (db.currentUser.name) set.add(db.currentUser.name);
+
+      // Se o usuário ainda não entrou nem criou nenhum time, retorna estritamente apenas ele mesmo
+      const team = db.currentTeam ? String(db.currentTeam).trim() : '';
+      const teamId = db.currentTeamId ? String(db.currentTeamId).trim() : '';
+      if (!team && !teamId) {
+        return Array.from(set);
       }
-      if (db.teamMembersByTeam && Array.isArray(db.teamMembersByTeam[team])) {
-        db.teamMembersByTeam[team].forEach(m => { if (m?.name) set.add(m.name); });
+
+      const teamKey = (teamId || team).toLowerCase().trim();
+      if (db.teamMembersByTeam) {
+        if (teamKey && Array.isArray(db.teamMembersByTeam[teamKey])) {
+          db.teamMembersByTeam[teamKey].forEach(m => { if (m?.name) set.add(m.name); });
+        }
+        if (team && Array.isArray(db.teamMembersByTeam[team])) {
+          db.teamMembersByTeam[team].forEach(m => { if (m?.name) set.add(m.name); });
+        }
       }
       (db.tasks || []).forEach(t => {
-        if ((!t.team || t.team === team) && t.assignee) set.add(t.assignee);
+        if (isTaskInCurrentTeam(t, db) && t.assignee) {
+          set.add(t.assignee);
+        }
       });
       return Array.from(set);
     }
@@ -9599,10 +10208,11 @@
       const orig = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
       if (!orig) return;
 
-      const baseDate = orig.dueDateIso ? new Date(orig.dueDateIso) : new Date();
+      const baseDate = parseLocalIsoDate(orig.dueDateIso || orig.dueDate) || new Date();
       const targetDate = new Date(baseDate.getTime() + Number(offsetDays) * 86400000);
       const dateStr = getLocalDateString(targetDate);
-      const formattedDue = formatDueDateDisplay(dateStr, '18:00');
+      const origTimeStr = extractTaskTimeStr(orig, '18:00');
+      const formattedDue = formatDueDateDisplay(dateStr, origTimeStr);
 
       const cloned = {
         ...JSON.parse(JSON.stringify(orig)),
@@ -9611,7 +10221,7 @@
         status: 'PENDING',
         completed: false,
         dueDate: formattedDue,
-        dueDateIso: `${dateStr}T18:00:00`,
+        dueDateIso: `${dateStr}T${origTimeStr}:00`,
         subtasks: (orig.subtasks || []).map((s, idx) => ({
           ...s,
           id: `sub-clone-${Date.now()}-${idx}`,
@@ -9620,19 +10230,14 @@
         lockedBy: null,
         lockedAt: null,
         version: 1,
-        _status: 'created'
+        _status: 'created',
+        _alertsSent: []
       };
 
       db.tasks.unshift(cloned);
       saveDB(db, true);
 
-      apiFetch(`/tasks/${orig.id}/clone`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dateOffsetDays: offsetDays })
-      }).catch(() => {});
-
-      showToast(`📋 Tarefa duplicada com sucesso (${offsetDays > 0 ? '+' + offsetDays + ' dias' : 'mesma data'})!`);
+      showToast(`📋 Tarefa duplicada com sucesso (${offsetDays > 0 ? '+' + offsetDays + ' dias' : 'mesma data'} às ${origTimeStr})!`);
       openTaskDetail(cloned.id);
       renderDashboard();
     }
@@ -9701,7 +10306,7 @@
         assignBox.innerHTML = `
           <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 11px;">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
-              <span style="color: #475569; font-weight: 600;">Status da Delegação (US22):</span>
+              <span style="color: #475569; font-weight: 600;">Status da Delegação:</span>
               ${statusPill}
             </div>
             ${task.declinedReason ? `<div style="margin-top: 4px; font-size: 10px; color: #DC2626; background: #FEF2F2; padding: 4px 6px; border-radius: 6px;">Motivo da recusa: ${escapeHtml(task.declinedReason)}</div>` : ''}
@@ -9815,7 +10420,31 @@
     }
 
     // --- #24 (FE-09.2), #25 (FE-09.3), #26 (FE-08.3) & #32 (FE-13.3): Tela de Criar Tarefa ---
+    let _userManuallyEditedEffort = false;
+
+    function onManualEffortInput() {
+      _userManuallyEditedEffort = true;
+    }
+
+    function formatEffortBadgeText(hoursVal, longFormat = false) {
+      const h = Number(hoursVal);
+      if (isNaN(h) || h <= 0) return longFormat ? '30 min (0.5h)' : '0.5h';
+      if (h < 1) {
+        const mins = Math.max(5, Math.round(h * 60));
+        return longFormat ? `${mins} min (${h}h)` : `${mins}m (${h}h)`;
+      }
+      if (h % 1 !== 0) {
+        const whole = Math.floor(h);
+        const mins = Math.round((h - whole) * 60);
+        if (mins > 0 && longFormat) {
+          return `${h}h (${whole}h ${mins}m)`;
+        }
+      }
+      return longFormat ? `${h} ${h === 1 ? 'hora' : 'horas'}` : `${h}h`;
+    }
+
     function initCreateTaskOnda3() {
+      _userManuallyEditedEffort = false;
       const recSel = document.getElementById('createRecurrenceSelect');
       if (recSel) recSel.value = 'NONE';
       toggleCreateRecurrenceOptions();
@@ -9839,53 +10468,584 @@
       }
     }
 
-    function computeLocalTfliteEffortEstimate() {
-      const title = (document.getElementById('createThemeInput')?.value || '').trim();
-      const desc = (document.getElementById('createDescInput')?.value || '').trim();
-      const priority = document.getElementById('createPrioritySelect')?.value || 'Média';
-      const tagsCount = (typeof createTaskSelectedTags !== 'undefined' && Array.isArray(createTaskSelectedTags)) ? createTaskSelectedTags.length : 0;
-      const subsCount = (typeof draftSubtasks !== 'undefined' && Array.isArray(draftSubtasks)) ? draftSubtasks.length : 0;
+    // =========================================================================
+    // MOTOR TENSORFLOW LITE MULTIDIMENSIONAL v2.0 (16 Parâmetros & Léxico NLP)
+    // Suporta desde micro-rotinas de 15 min (0.25h) até arquiteturas complexas
+    // =========================================================================
+    const TFLITE_EFFORT_MODEL_V2 = {
+      version: '2.0.0',
+      // 1. Parâmetros Base e Pesos Regressivos Calibrados
+      weights: {
+        baseIntercept: 0.25,          // Base mínima de 15 min (0.25h) em vez de 3.0h
+        meaningfulWordWeight: 0.12,   // Peso sub-linear por palavra relevante no título
+        descLogCharWeight: 0.14,      // Peso logarítmico para extensão da descrição
+        descBulletItemWeight: 0.25,   // Peso por item de lista/tópico na descrição
+        microRoutineDelta: -0.45,     // Redutor forte para verificações rápidas e rotinas
+        lightTaskDelta: 0.22,         // Incremento leve para tarefas administrativas/ajustes
+        mediumTaskDelta: 1.05,        // Incremento moderado para desenvolvimento/features
+        complexTaskDelta: 2.35,       // Incremento alto para arquitetura/infra/migrações
+        scopeAmplifierMultiplier: 1.3,// Multiplicador de escopo amplo ("completo", "geral")
+        scopeReducerMultiplier: 0.55, // Redutor de escopo pontual ("rápido", "simples", "só")
+        subtaskRoutineWeight: 0.15,   // ~9 min por subtarefa de checklist/verificação
+        subtaskLightWeight: 0.35,     // ~20 min por subtarefa simples
+        subtaskMediumWeight: 0.75,    // ~45 min por subtarefa técnica padrão
+        subtaskComplexWeight: 1.50,   // ~1.5h por subtarefa de engenharia pesada
+        tagRoutineWeight: 0.05,       // Tag operacional/rotina
+        tagEngineeringWeight: 0.35    // Tag de escopo técnico
+      },
+      // Multiplicadores proporcionais de prioridade (urgência != lentidão em tarefas simples)
+      priorityMultipliers: {
+        'Baixa': 0.85,
+        'Média': 1.00,
+        'Alta': 1.15,
+        'Urgente': 1.25
+      },
+      // Multiplicadores de frequência/recorrência
+      recurrenceMultipliers: {
+        'DAILY': 0.40,     // Tarefa feita todo dia tende a ser checklist/rotina rápida
+        'WEEKLY': 0.70,    // Rotina semanal
+        'BIWEEKLY': 0.85,
+        'MONTHLY': 0.95,
+        'SPRINT': 1.00,
+        'NONE': 1.00
+      },
+      stopwords: new Set([
+        'o', 'a', 'os', 'as', 'um', 'uma', 'uns', 'umas', 'de', 'do', 'da', 'dos', 'das',
+        'em', 'no', 'na', 'nos', 'nas', 'por', 'para', 'pra', 'com', 'sem', 'sob', 'sobre',
+        'e', 'ou', 'mas', 'que', 'se', 'ao', 'aos', 'à', 'às', 'pelo', 'pela', 'pelos', 'pelas',
+        'como', 'quando', 'onde', 'qual', 'quais', 'isso', 'isto', 'esse', 'essa', 'este', 'esta'
+      ]),
+      // Léxico Tier 1: Micro-tarefas, Verificações Diárias, Monitoramento e Rotinas (15m - 30m)
+      microRoutineLexicon: [
+        'verificacao', 'verificar', 'checar', 'checagem', 'check', 'checklist', 'healthcheck',
+        'health check', 'ping', 'status', 'uptime', 'monitorar', 'monitoramento', 'servidor',
+        'servidores', 'host', 'container', 'cpu', 'memoria', 'disco', 'log', 'logs', 'backup',
+        'backups', 'reiniciar', 'restart', 'reboot', 'limpar cache', 'cache', 'flush', 'ssl',
+        'certificado', 'dns', 'alerta', 'alertas', 'metrica', 'metricas', 'smoke test', 'pos-deploy',
+        'diaria', 'diario', 'diariamente', 'todo dia', 'todos os dias', 'rotina', 'cotidiano',
+        'matinal', 'turno', 'plantao', 'rapido', 'rapida', 'rapidinha', 'express', 'simples',
+        'breve', 'curto', 'curta', 'veloz', 'imediato', 'pontual', 'basico', 'basica', 'leve',
+        'aprovar', 'aprovacao', 'responder', 'resposta', 'email', 'e-mail', 'mensagem', 'whatsapp',
+        'slack', 'teams', 'avisar', 'notificar', 'lembrete', 'cobrar', 'ligar', 'ligacao',
+        'telefonema', 'agendar', 'agendamento', 'convite', 'daily', 'standup', 'check-in',
+        'checkin', 'ponto', 'fechamento diario', 'liberar acesso', 'permissao', 'resetar senha',
+        'senha', 'atualizar status', 'dar baixa', 'arquivar', 'encaminhar', 'confirmar',
+        'confirmacao', 'assinar', 'anexar', 'enviar link', 'compartilhar', 'olhar', 'conferir',
+        'conferencia', 'inspecao rapida', 'teste de folego', 'batimento'
+      ],
+      // Léxico Tier 2: Ajustes Leves, Suporte, Reuniões e Documentação Rápida (30m - 1.5h)
+      lightTaskLexicon: [
+        'ajustar', 'ajuste', 'corrigir texto', 'typo', 'ortografia', 'traducao', 'label',
+        'legenda', 'placeholder', 'tooltip', 'icone', 'cor', 'cores', 'fonte', 'espacamento',
+        'margem', 'padding', 'alinhamento', 'botao', 'link', 'banner', 'imagem', 'foto',
+        'avatar', 'logo', 'css', 'estilo', 'tema', 'variavel', 'env', 'configurar', 'configuracao',
+        'parametro', 'reuniao', 'call', 'alinhar', 'ata', 'pauta', 'apresentar', 'demo',
+        'suporte', 'chamado', 'ticket', 'atendimento', 'cliente', 'duvida', 'esclarecer',
+        'triagem', 'organizar', 'planilha', 'tabela', 'documentar', 'readme', 'wiki', 'manual',
+        'changelog', 'revisar', 'revisao', 'code review', 'pull request', 'merge', 'validar',
+        'validacao', 'homologar', 'homologacao', 'teste manual', 'orcamento', 'cotacao',
+        'nota fiscal', 'fatura', 'exportar', 'importar', 'atualizar', 'subir'
+      ],
+      // Léxico Tier 3: Implementação de Features, Bugs e Análises Técnicas (1.5h - 4.5h)
+      mediumTaskLexicon: [
+        'implementar', 'implementacao', 'desenvolver', 'desenvolvimento', 'criar tela', 'nova tela',
+        'pagina', 'componente', 'modal', 'drawer', 'formulario', 'listagem', 'filtro', 'busca',
+        'paginacao', 'ordenacao', 'endpoint', 'rota', 'controller', 'service', 'middleware',
+        'autenticacao', 'jwt', 'sessao', 'upload', 'download', 'notificacao', 'push', 'webhook',
+        'integrar', 'integracao', 'api', 'consulta', 'query', 'sql', 'indice', 'relatorio',
+        'dashboard', 'grafico', 'indicador', 'kpi', 'script', 'automacao', 'cron', 'job',
+        'worker', 'teste unitario', 'jest', 'cypress', 'corrigir bug', 'bug', 'bugfix', 'hotfix',
+        'erro', 'falha', 'crash', 'layout', 'responsivo', 'prototipo', 'wireframe', 'figma',
+        'analise', 'levantamento', 'especificacao', 'modelar', 'fluxo', 'crud'
+      ],
+      // Léxico Tier 4: Arquitetura, Migração, Segurança, IA e Sistemas Complexos (4h - 16h+)
+      complexTaskLexicon: [
+        'arquitetura', 'refatorar', 'refatoracao', 'reescrever', 'migracao', 'migrar',
+        'banco de dados', 'modelagem de dados', 'schema', 'prisma', 'sistema completo',
+        'modulo completo', 'plataforma', 'microsservico', 'microsservicos', 'mensageria',
+        'kafka', 'rabbitmq', 'redis', 'pipeline', 'ci/cd', 'docker', 'kubernetes', 'k8s',
+        'cluster', 'terraform', 'infraestrutura', 'seguranca', 'auditoria', 'pentest',
+        'vulnerabilidade', 'criptografia', 'lgpd', 'oauth2', 'sso', 'rbac', 'performance',
+        'otimizacao', 'escalabilidade', 'concorrencia', 'paralelismo', 'offline-first',
+        'sincronizacao', 'machine learning', 'inteligencia artificial', 'rede neural',
+        'tensorflow', 'tflite', 'treinamento', 'dataset', 'regressao', 'algoritmo', 'grafo',
+        'dag', 'caminho critico', 'cpm', 'pert', 'gantt', 'mapa mental', 'motor de regras'
+      ],
+      scopeAmplifiers: [
+        'completo', 'completa', 'geral', 'todos', 'todas', 'inteiro', 'inteira', 'do zero',
+        'ponta a ponta', 'end-to-end', 'multiplos', 'multiplas', 'varios', 'varias', 'massivo',
+        'profundo', 'avancado', 'avancada', 'global', 'estrutural', ' definitiva', 'definitivo'
+      ],
+      scopeReducers: [
+        'apenas', 'somente', 'so ', 'pequeno', 'pequena', 'minimo', 'minima', 'basico', 'basica',
+        'pontual', 'rapido', 'rapida', 'simples', 'parcial', 'inicial', 'rascunho', 'mvp',
+        'preliminar', 'provisorio', 'rapidinha', 'ligeiro', 'breve', 'micro'
+      ]
+    };
 
-      const words = title ? title.split(/\s+/).length : 1;
-      const descChars = desc.length;
-      const pWeight = priority === 'Urgente' ? 4 : priority === 'Alta' ? 3 : priority === 'Baixa' ? 1 : 2;
+    function normalizeForTfliteNlp(str) {
+      if (!str) return '';
+      return String(str)
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+    }
 
-      // Pesos do modelo linear TFLite (ML-08.1 / FE-08.2)
-      const raw = 1.2 + (words * 0.28) + (descChars * 0.008) + (subsCount * 1.35) + (pWeight * 0.75) + (tagsCount * 0.45);
-      return Math.max(1, Math.min(40, Math.round(raw * 2) / 2));
+    function parseExplicitDurationHoursFromText(normText) {
+      if (!normText) return null;
+      if (/\b(meia hora|1\/2 hora|trinta minutos)\b/.test(normText)) return 0.5;
+      if (/\b(um quarto de hora|quinze minutos)\b/.test(normText)) return 0.25;
+      const minMatch = normText.match(/\b(\d+(?:[.,]\d+)?)\s*(min|minuto|minutos|mins|m)\b/);
+      if (minMatch) {
+        const mins = parseFloat(minMatch[1].replace(',', '.'));
+        if (!isNaN(mins) && mins > 0 && mins <= 600) {
+          return Math.max(0.15, Math.round((mins / 60) * 4) / 4);
+        }
+      }
+      const hourMatch = normText.match(/\b(\d+(?:[.,]\d+)?)\s*(h|hr|hrs|hora|horas)\b/);
+      if (hourMatch) {
+        const hrs = parseFloat(hourMatch[1].replace(',', '.'));
+        if (!isNaN(hrs) && hrs > 0 && hrs <= 200) {
+          return hrs;
+        }
+      }
+      return null;
+    }
+
+    function countLexiconMatches(normText, lexicon) {
+      if (!normText) return 0;
+      let hits = 0;
+      for (let i = 0; i < lexicon.length; i++) {
+        const term = lexicon[i];
+        if (term.includes(' ')) {
+          if (normText.includes(term)) hits++;
+        } else {
+          const rx = new RegExp(`(^|\\W)${term}(\\W|$)`, 'i');
+          if (rx.test(normText)) hits++;
+        }
+      }
+      return hits;
+    }
+
+    function analyzeTaskEffortTflite(customContext = null) {
+      const ctx = customContext || {};
+      const rawTitle = (ctx.title !== undefined ? ctx.title : (document.getElementById('createThemeInput')?.value || '')).trim();
+      const rawDesc = (ctx.desc !== undefined ? ctx.desc : (document.getElementById('createDescInput')?.value || '')).trim();
+      const priority = ctx.priority !== undefined ? ctx.priority : (document.getElementById('createPrioritySelect')?.value || 'Média');
+      const recurrence = ctx.recurrence !== undefined ? ctx.recurrence : (document.getElementById('createRecurrenceSelect')?.value || 'NONE');
+      const tagsList = ctx.tags !== undefined ? ctx.tags : ((typeof createTaskSelectedTags !== 'undefined' && Array.isArray(createTaskSelectedTags)) ? createTaskSelectedTags : []);
+      const subsList = ctx.subtasks !== undefined ? ctx.subtasks : ((typeof draftSubtasks !== 'undefined' && Array.isArray(draftSubtasks)) ? draftSubtasks : []);
+
+      const normTitle = normalizeForTfliteNlp(rawTitle);
+      const normDesc = normalizeForTfliteNlp(rawDesc);
+      const fullNormText = `${normTitle} ${normDesc}`.trim();
+
+      // Estado inicial vazio (antes de o usuário digitar)
+      if (!normTitle && !normDesc && subsList.length === 0 && tagsList.length === 0) {
+        const emptyBase = recurrence === 'DAILY' ? 0.25 : 0.5;
+        return {
+          estimatedHours: emptyBase,
+          formattedShort: formatEffortBadgeText(emptyBase, false),
+          formattedLong: formatEffortBadgeText(emptyBase, true),
+          category: recurrence === 'DAILY' ? 'Rotina Diária' : 'Aguardando Escopo',
+          confidence: 70,
+          reasons: ['Preencha o título/descrição para calibrar os 16 parâmetros do TensorFlow Lite']
+        };
+      }
+
+      // 1. Detecção de tempo explícito no texto (ex: "15 min", "meia hora", "2h")
+      const explicitHours = parseExplicitDurationHoursFromText(fullNormText);
+
+      // 2. Contagem de termos significativos no título (ignorando preposições/stopwords)
+      const allWords = normTitle ? normTitle.split(/\s+/).filter(Boolean) : [];
+      const meaningfulWords = allWords.filter(w => w.length > 2 && !TFLITE_EFFORT_MODEL_V2.stopwords.has(w));
+      const wordCount = meaningfulWords.length;
+
+      // 3. Análise estrutural da descrição (tamanho logarítmico + tópicos/checklists)
+      const descChars = rawDesc.length;
+      const descBullets = (rawDesc.match(/(^|\n)\s*[-*•\d+.)]/g) || []).length;
+
+      // 4. Classificação Semântica NLP em 4 camadas (Micro, Leve, Média, Complexa)
+      const microHits = countLexiconMatches(fullNormText, TFLITE_EFFORT_MODEL_V2.microRoutineLexicon);
+      const lightHits = countLexiconMatches(fullNormText, TFLITE_EFFORT_MODEL_V2.lightTaskLexicon);
+      const mediumHits = countLexiconMatches(fullNormText, TFLITE_EFFORT_MODEL_V2.mediumTaskLexicon);
+      const complexHits = countLexiconMatches(fullNormText, TFLITE_EFFORT_MODEL_V2.complexTaskLexicon);
+
+      // 5. Modificadores de amplitude de escopo
+      const ampHits = countLexiconMatches(fullNormText, TFLITE_EFFORT_MODEL_V2.scopeAmplifiers);
+      const redHits = countLexiconMatches(fullNormText, TFLITE_EFFORT_MODEL_V2.scopeReducers);
+
+      // 6. Detecção de rotina diária/recorrente (via seletor ou via texto: "todo dia", "diária", "daily")
+      const hasDailyText = /\b(diaria|diario|diariamente|todo dia|todos os dias|toda manha|toda tarde|toda noite|rotina|daily|standup|check diario|verificacao diaria)\b/.test(fullNormText);
+      const hasWeeklyText = /\b(semanal|semanalmente|toda semana)\b/.test(fullNormText);
+      const effectiveRecurrence = (recurrence && recurrence !== 'NONE')
+        ? recurrence
+        : (hasDailyText ? 'DAILY' : (hasWeeklyText ? 'WEEKLY' : 'NONE'));
+
+      const isQuickRoutine = (microHits > 0 && complexHits === 0 && mediumHits === 0) || (effectiveRecurrence === 'DAILY' && complexHits === 0);
+
+      // 7. Cálculo contextual das Subtarefas
+      let subtasksEffort = 0;
+      subsList.forEach(s => {
+        const subNorm = normalizeForTfliteNlp(typeof s === 'string' ? s : (s?.title || ''));
+        const subMicro = countLexiconMatches(subNorm, TFLITE_EFFORT_MODEL_V2.microRoutineLexicon);
+        const subComplex = countLexiconMatches(subNorm, TFLITE_EFFORT_MODEL_V2.complexTaskLexicon);
+        const subLight = countLexiconMatches(subNorm, TFLITE_EFFORT_MODEL_V2.lightTaskLexicon);
+        if (isQuickRoutine || subMicro > 0) {
+          subtasksEffort += TFLITE_EFFORT_MODEL_V2.weights.subtaskRoutineWeight; // 0.15h (~9 min)
+        } else if (subComplex > 0) {
+          subtasksEffort += TFLITE_EFFORT_MODEL_V2.weights.subtaskComplexWeight; // 1.5h
+        } else if (subLight > 0) {
+          subtasksEffort += TFLITE_EFFORT_MODEL_V2.weights.subtaskLightWeight;   // 0.35h
+        } else {
+          subtasksEffort += TFLITE_EFFORT_MODEL_V2.weights.subtaskMediumWeight;  // 0.75h
+        }
+      });
+
+      // 8. Cálculo contextual das Tags
+      let tagsEffort = 0;
+      tagsList.forEach(tg => {
+        const tagNorm = normalizeForTfliteNlp(typeof tg === 'string' ? tg : (tg?.name || ''));
+        if (/\b(rotina|diario|diaria|check|rapido|ops|suporte|simples)\b/.test(tagNorm)) {
+          tagsEffort += TFLITE_EFFORT_MODEL_V2.weights.tagRoutineWeight;
+        } else {
+          tagsEffort += TFLITE_EFFORT_MODEL_V2.weights.tagEngineeringWeight;
+        }
+      });
+
+      // 9. Combinação Tensorial de Base + Semântica
+      const W = TFLITE_EFFORT_MODEL_V2.weights;
+      let category = 'Tarefa Operacional';
+      let rawHours = W.baseIntercept;
+
+      if (explicitHours !== null) {
+        rawHours = explicitHours + (subtasksEffort * 0.6);
+        category = 'Tempo Explícito Detectado';
+      } else if (isQuickRoutine) {
+        // Tarefas rápidas / verificações diárias (ex: "verificação diária do servidor")
+        category = effectiveRecurrence === 'DAILY' ? 'Rotina Diária Rápida' : 'Verificação / Operação Rápida';
+        const routineBase = effectiveRecurrence === 'DAILY' ? 0.25 : 0.35;
+        const descAdd = descChars > 120 ? 0.25 : (descChars > 40 ? 0.1 : 0);
+        rawHours = routineBase + (lightHits * 0.15) + descAdd + subtasksEffort + (tagsEffort * 0.4);
+        if (redHits > 0 || microHits >= 2) rawHours = Math.min(rawHours, 0.25 + subtasksEffort);
+      } else if (complexHits > 0) {
+        category = 'Arquitetura / Alta Complexidade';
+        rawHours = 1.5
+          + (complexHits * W.complexTaskDelta)
+          + (mediumHits * W.mediumTaskDelta * 0.7)
+          + (Math.sqrt(wordCount) * W.meaningfulWordWeight * 1.4)
+          + (Math.log1p(descChars) * W.descLogCharWeight * 1.3)
+          + (descBullets * W.descBulletItemWeight)
+          + subtasksEffort
+          + tagsEffort;
+      } else if (mediumHits > 0) {
+        category = 'Implementação / Escopo Técnico';
+        rawHours = 0.85
+          + (mediumHits * W.mediumTaskDelta)
+          + (lightHits * W.lightTaskDelta)
+          - (microHits * 0.25)
+          + (Math.sqrt(wordCount) * W.meaningfulWordWeight)
+          + (Math.log1p(descChars) * W.descLogCharWeight)
+          + (descBullets * W.descBulletItemWeight)
+          + subtasksEffort
+          + tagsEffort;
+      } else if (lightHits > 0) {
+        category = 'Ajuste Leve / Administrativo';
+        rawHours = 0.40
+          + (lightHits * W.lightTaskDelta)
+          - (microHits * 0.15)
+          + (Math.sqrt(wordCount) * 0.08)
+          + (descChars > 80 ? Math.log1p(descChars) * 0.08 : 0)
+          + subtasksEffort
+          + (tagsEffort * 0.6);
+      } else {
+        // Texto genérico curto sem termos pesados
+        category = wordCount <= 3 && descChars < 30 ? 'Tarefa Simples / Rápida' : 'Escopo Geral';
+        rawHours = 0.35
+          + (Math.sqrt(Math.max(1, wordCount)) * W.meaningfulWordWeight)
+          + (descChars > 0 ? Math.log1p(descChars) * 0.09 : 0)
+          + (descBullets * W.descBulletItemWeight)
+          + subtasksEffort
+          + tagsEffort;
+      }
+
+      // 10. Aplicação de Modificadores de Amplitude, Recorrência e Prioridade
+      if (explicitHours === null) {
+        if (ampHits > 0) rawHours *= Math.min(1.65, Math.pow(W.scopeAmplifierMultiplier, ampHits));
+        if (redHits > 0) rawHours *= Math.max(0.35, Math.pow(W.scopeReducerMultiplier, redHits));
+
+        const recMult = TFLITE_EFFORT_MODEL_V2.recurrenceMultipliers[effectiveRecurrence] || 1.0;
+        if (!isQuickRoutine && recMult < 1.0) {
+          rawHours *= recMult;
+        }
+
+        const prioMult = TFLITE_EFFORT_MODEL_V2.priorityMultipliers[priority] || 1.0;
+        // Para rotinas rápidas, prioridade alta significa urgência de execução imediata, não horas extras de duração
+        if (isQuickRoutine) {
+          rawHours *= (priority === 'Urgente' ? 1.05 : 1.0);
+        } else {
+          rawHours *= prioMult;
+        }
+      }
+
+      // 11. Aprendizado Histórico Local do Time (Blend com tarefas similares do mesmo time)
+      try {
+        const db = getDB();
+        if (db && Array.isArray(db.tasks) && meaningfulWords.length >= 2 && explicitHours === null) {
+          const teamTasks = db.tasks.filter(t => isTaskInCurrentTeam(t, db) && Number(t.effortHours) > 0);
+          const similar = teamTasks.filter(t => {
+            const tWords = normalizeForTfliteNlp(t.title || '').split(/\s+/);
+            const overlap = meaningfulWords.filter(w => tWords.includes(w)).length;
+            return overlap >= Math.min(2, meaningfulWords.length);
+          });
+          if (similar.length > 0) {
+            const avgHist = similar.reduce((acc, t) => acc + Number(t.effortHours), 0) / similar.length;
+            rawHours = (rawHours * 0.78) + (avgHist * 0.22);
+          }
+        }
+      } catch (e) {}
+
+      // 12. Quantização inteligente: passos de 0.25h (15m) abaixo de 1h; passos de 0.5h acima de 1h
+      let finalHours = 0.5;
+      if (rawHours <= 0.32) {
+        finalHours = 0.25; // 15 min
+      } else if (rawHours < 1.0) {
+        finalHours = Math.round(rawHours * 4) / 4; // 0.25, 0.50, 0.75
+      } else if (rawHours <= 10.0) {
+        finalHours = Math.round(rawHours * 2) / 2; // passos de 0.5h
+      } else {
+        finalHours = Math.round(rawHours);        // passos de 1.0h para épicos
+      }
+      finalHours = Math.max(0.25, Math.min(80, finalHours));
+
+      // 13. Explicação e Confiança
+      let confidence = 82;
+      if (explicitHours !== null) confidence = 98;
+      else {
+        if (microHits + lightHits + mediumHits + complexHits > 0) confidence += 8;
+        if (descChars > 25) confidence += 4;
+        if (subsList.length > 0) confidence += 3;
+        if (effectiveRecurrence !== 'NONE') confidence += 2;
+      }
+      confidence = Math.min(99, confidence);
+
+      const reasons = [];
+      if (explicitHours !== null) reasons.push(`tempo explícito (${formatEffortBadgeText(explicitHours, true)})`);
+      if (isQuickRoutine) reasons.push(effectiveRecurrence === 'DAILY' ? 'frequência diária/rotina (-60%)' : 'verificação rápida');
+      if (complexHits > 0) reasons.push(`${complexHits} termo(s) de alta complexidade`);
+      else if (mediumHits > 0) reasons.push(`${mediumHits} termo(s) de implementação`);
+      else if (lightHits > 0) reasons.push(`escopo leve/ajuste`);
+      if (subsList.length > 0) reasons.push(`${subsList.length} subtarefa(s) (+${subtasksEffort.toFixed(2)}h)`);
+      if (reasons.length === 0) reasons.push(`${wordCount} palavra(s)-chave analisadas`);
+
+      return {
+        estimatedHours: finalHours,
+        formattedShort: formatEffortBadgeText(finalHours, false),
+        formattedLong: formatEffortBadgeText(finalHours, true),
+        category,
+        confidence,
+        reasons
+      };
+    }
+
+    function computeLocalTfliteEffortEstimate(customContext = null) {
+      return analyzeTaskEffortTflite(customContext).estimatedHours;
     }
 
     function updateCreateTaskAiEstimate() {
       const btn = document.getElementById('btnAiEffortSuggest');
-      if (!btn) return;
-      const est = computeLocalTfliteEffortEstimate();
-      btn.innerText = `🧠 IA TFLite: ~${est.toFixed(1)}h (Aplicar)`;
-      btn.dataset.estimate = String(est);
-    }
-
-    function applyAiEffortSuggestion() {
-      const est = computeLocalTfliteEffortEstimate();
+      const hint = document.getElementById('aiEffortBreakdownHint');
       const input = document.getElementById('createEffortInput');
-      if (input) {
-        input.value = String(est);
-        showToast(`🧠 Estimativa preditiva TFLite (${est}h) aplicada ao esforço!`);
+      const analysis = analyzeTaskEffortTflite();
+
+      if (btn) {
+        btn.innerText = `🧠 IA TFLite: ~${analysis.formattedShort} (Aplicar)`;
+        btn.dataset.estimate = String(analysis.estimatedHours);
+      }
+
+      if (hint) {
+        hint.innerHTML = `🧠 <strong>${analysis.category}:</strong> ~<strong>${analysis.formattedLong}</strong> • ${analysis.reasons.join(' • ')} <span style="color:#2563EB; font-weight:700;">(${analysis.confidence}% conf.)</span>`;
+      }
+
+      // Atualiza automaticamente o campo de esforço enquanto o usuário não tiver digitado um valor manual fixo
+      if (input && !_userManuallyEditedEffort) {
+        input.value = String(analysis.estimatedHours);
       }
     }
 
+    function applyAiEffortSuggestion() {
+      const analysis = analyzeTaskEffortTflite();
+      const input = document.getElementById('createEffortInput');
+      _userManuallyEditedEffort = false;
+      if (input) {
+        input.value = String(analysis.estimatedHours);
+        showToast(`🧠 IA TFLite: ${analysis.formattedLong} (${analysis.category}) aplicado!`);
+      }
+    }
+
+    function applyEditModalAiEffortSuggestion() {
+      const title = document.getElementById('editFullTaskTitle')?.value || '';
+      const desc = document.getElementById('editFullTaskDesc')?.value || '';
+      const priority = document.getElementById('editFullTaskPriority')?.value || 'Média';
+      const db = getDB();
+      const task = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
+      const analysis = analyzeTaskEffortTflite({
+        title,
+        desc,
+        priority,
+        recurrence: task?.recurrencePattern || 'NONE',
+        tags: typeof editingTaskTags !== 'undefined' ? editingTaskTags : (task?.tags || []),
+        subtasks: task?.subtasks || []
+      });
+      const input = document.getElementById('editFullTaskEffort');
+      if (input) {
+        input.value = String(analysis.estimatedHours);
+        showToast(`🧠 IA TFLite: ${analysis.formattedLong} (${analysis.category}) aplicado!`);
+      }
+    }
+
+    function parseAbsenceLocalDate(dateStr, isEnd = false) {
+      if (!dateStr) return new Date();
+      const s = String(dateStr).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        return new Date(`${s}T${isEnd ? '23:59:59' : '00:00:00'}`);
+      }
+      const d = new Date(s);
+      if (isEnd) d.setHours(23, 59, 59, 999);
+      else d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function isAbsenceInCurrentTeam(a, db) {
+      if (!a || !db || !db.currentUser) return false;
+      const curTeam = String(db.currentTeam || '').trim().toLowerCase();
+      const curTeamId = String(db.currentTeamId || '').trim().toLowerCase();
+      if (!curTeam && !curTeamId) return false;
+
+      const absTeam = String(a.team || '').trim().toLowerCase();
+      const absTeamId = String(a.teamId || '').trim().toLowerCase();
+
+      // Exige vínculo explícito com o time ativo (impede vazamento de registros antigos ou de outros times)
+      if (!absTeam && !absTeamId) return false;
+      const teamMatches =
+        (curTeamId && absTeamId && curTeamId === absTeamId) ||
+        (curTeam && absTeam && curTeam === absTeam);
+      if (!teamMatches) return false;
+
+      // Confirma que o integrante pertence ao time ativo
+      const validMembers = getTeamMemberNamesList(db).map(m => String(m).trim().toLowerCase());
+      const targetUser = String(a.userName || '').trim().toLowerCase();
+      return validMembers.includes(targetUser);
+    }
+
     function isMemberOnLeaveLocal(memberName, db, targetDate = new Date()) {
-      const absences = Array.isArray(db.absences) ? db.absences : [];
-      const ts = targetDate.getTime();
+      const absences = (Array.isArray(db.absences) ? db.absences : []).filter(a => isAbsenceInCurrentTeam(a, db));
+      const nowTs = new Date().getTime();
+      const targetTs = (targetDate instanceof Date && !isNaN(targetDate.getTime())) ? targetDate.getTime() : nowTs;
+      const winStart = Math.min(nowTs, targetTs);
+      const winEnd = Math.max(nowTs, targetTs);
+
       return absences.find(a => {
         if (!a.userName || a.userName.trim().toLowerCase() !== String(memberName).trim().toLowerCase()) return false;
-        const start = new Date(a.startDate).setHours(0, 0, 0, 0);
-        const end = new Date(a.endDate).setHours(23, 59, 59, 999);
-        return ts >= start && ts <= end;
+        const start = parseAbsenceLocalDate(a.startDate, false).getTime();
+        const end = parseAbsenceLocalDate(a.endDate, true).getTime();
+        return (nowTs >= start && nowTs <= end) || (targetTs >= start && targetTs <= end) || (winStart <= end && winEnd >= start);
       }) || null;
     }
 
+    let _pendingAbsenceAssignContext = null;
+
+    function openAbsenceConfirmationModal(memberName, absence, context = 'create') {
+      _pendingAbsenceAssignContext = context;
+      const modal = document.getElementById('modalConfirmAbsenceAssign');
+      const descEl = document.getElementById('confirmAbsenceAssignDesc');
+      if (!modal) return;
+
+      const typeLabels = {
+        VACATION: '🏖️ Férias',
+        DAY_OFF: '🌴 Folga / Recesso',
+        MEDICAL: '🏥 Licença Médica',
+        UNAVAILABLE: '⏳ Indisponibilidade'
+      };
+      const label = typeLabels[absence?.type] || '🏖️ Férias / Ausência';
+      const period = (absence?.startDate && absence?.endDate)
+        ? `de <strong>${escapeHtml(absence.startDate)}</strong> até <strong>${escapeHtml(absence.endDate)}</strong>`
+        : 'neste período';
+      const reasonText = absence?.reason ? `<br><span style="font-size: 11px; color: #64748B;">Motivo: "${escapeHtml(absence.reason)}"</span>` : '';
+      const memberPhoto = resolveUserPhoto(memberName);
+
+      if (descEl) {
+        descEl.innerHTML = `
+          <div style="display: inline-flex; align-items: center; gap: 8px; background: #FFFBEB; border: 1px solid #FDE68A; padding: 6px 12px; border-radius: 9999px; margin-bottom: 8px;">
+            <img src="${memberPhoto}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #F59E0B;">
+            <strong style="color: #92400E; font-size: 12.5px;">${escapeHtml(memberName)}</strong>
+            <span style="background: #FEF3C7; color: #B45309; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 9999px;">${label}</span>
+          </div>
+          <div>
+            Este integrante está registrado com <strong>${label}</strong> ${period}.${reasonText}
+            <div style="margin-top: 8px; font-weight: 600; color: #334155;">Deseja atribuir a tarefa para ${escapeHtml(memberName)} mesmo assim ou realocar para outro membro disponível?</div>
+          </div>
+        `;
+      }
+
+      modal.style.display = 'flex';
+      modal.classList.add('active');
+    }
+
+    function handleAbsenceModalCancel() {
+      _pendingAbsenceAssignContext = null;
+      window._bypassAbsenceCheckOnce = false;
+      closeModal('modalConfirmAbsenceAssign');
+    }
+
+    function handleAbsenceModalConfirmProceed() {
+      const ctx = _pendingAbsenceAssignContext;
+      _pendingAbsenceAssignContext = null;
+      closeModal('modalConfirmAbsenceAssign');
+      window._bypassAbsenceCheckOnce = true;
+      if (ctx === 'edit') {
+        saveFullTaskEdit();
+      } else {
+        handleCreateTaskSubmit();
+      }
+    }
+
+    function handleAbsenceModalAutoReassign() {
+      const ctx = _pendingAbsenceAssignContext;
+      const db = getDB();
+      const stats = getMemberCapacityStatsLocal(db);
+      const available = stats.filter(s => !s.absence).sort((a, b) => a.allocatedHours - b.allocatedHours);
+
+      if (available.length === 0) {
+        showToast('⚠️ Todos os integrantes da equipe estão com férias ou folga registrada no período!');
+        return;
+      }
+
+      const best = available[0];
+      _pendingAbsenceAssignContext = null;
+      closeModal('modalConfirmAbsenceAssign');
+
+      if (ctx === 'edit') {
+        const assigneeEl = document.getElementById('editFullTaskAssignee');
+        if (assigneeEl) assigneeEl.value = best.name;
+        window._bypassAbsenceCheckOnce = true;
+        saveFullTaskEdit();
+      } else {
+        const select = document.getElementById('createAssigneeSelect');
+        if (select) {
+          select.value = best.name;
+          renderCreateAssigneeCapacityPreview();
+        }
+        window._bypassAbsenceCheckOnce = true;
+        handleCreateTaskSubmit();
+      }
+      showToast(`✨ Tarefa realocada automaticamente para ${best.name} (${best.allocatedHours}h/40h)!`);
+    }
+
     function getMemberCapacityStatsLocal(db) {
-      const team = db.currentTeam || 'Meu Time';
-      const tasks = (db.tasks || []).filter(t => (!t.team || t.team === team || t.team === 'Meu Time') && t.status !== 'COMPLETED');
+      const team = db.currentTeam || '';
+      const tasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db) && t.status !== 'COMPLETED');
       const members = getTeamMemberNamesList(db);
 
       return members.map(name => {
@@ -9916,19 +11076,22 @@
 
       container.innerHTML = `
         <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; font-size: 10px;">
-          <div style="font-weight: 700; color: #475569; margin-bottom: 5px;">📊 Ocupação Semanal da Equipe (FE-09.3):</div>
+          <div style="font-weight: 700; color: #475569; margin-bottom: 5px;">📊 Ocupação Semanal da Equipe:</div>
           <div style="display: flex; flex-direction: column; gap: 5px;">
             ${stats.map(s => {
               const isSel = s.name === selected;
               const barColor = s.absence ? '#94A3B8' : s.percent >= 85 ? '#EF4444' : s.percent >= 70 ? '#F59E0B' : '#10B981';
+              const memberPhoto = resolveUserPhoto(s.name);
+              const absenceLabel = s.absence ? (s.absence.type === 'DAY_OFF' ? '🌴 Folga' : s.absence.type === 'MEDICAL' ? '🏥 Licença' : '🏖️ Férias') : '';
               return `
                 <div onclick="document.getElementById('createAssigneeSelect').value='${escapeHtml(s.name)}'; renderCreateAssigneeCapacityPreview();" style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 2px 4px; border-radius: 6px; background: ${isSel ? '#EFF6FF' : 'transparent'};">
-                  <span style="width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: ${isSel ? '800' : '600'}; color: ${isSel ? '#1D4ED8' : '#334155'};">${escapeHtml(s.name)}</span>
+                  <img src="${memberPhoto}" style="width: 16px; height: 16px; border-radius: 50%; object-fit: cover; border: 1px solid #CBD5E1; flex-shrink: 0;">
+                  <span style="width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: ${isSel ? '800' : '600'}; color: ${isSel ? '#1D4ED8' : '#334155'};">${escapeHtml(s.name)}</span>
                   <div style="flex: 1; height: 5px; background: #E2E8F0; border-radius: 9999px; overflow: hidden;">
                     <div style="width: ${s.percent}%; height: 100%; background: ${barColor};"></div>
                   </div>
                   <span style="min-width: 68px; text-align: right; font-weight: 700; color: ${barColor};">
-                    ${s.absence ? '🏖️ Férias' : `${s.allocatedHours}h/${s.maxHours}h (${s.percent}%)`}
+                    ${s.absence ? absenceLabel : `${s.allocatedHours}h/${s.maxHours}h (${s.percent}%)`}
                   </span>
                 </div>
               `;
@@ -9981,6 +11144,10 @@
     // --- #23 (FE-22.3): Modal de Gestão de Férias & Ausências ---
     function openAbsencesModal() {
       const db = getDB();
+      if (!db.currentTeam && !db.currentTeamId) {
+        showToast('Crie ou entre em um time primeiro para gerenciar férias e ausências da equipe.');
+        return;
+      }
       const members = getTeamMemberNamesList(db);
       const sel = document.getElementById('absenceMemberSelect');
       if (sel) {
@@ -9995,7 +11162,10 @@
 
       renderAbsencesListUI();
       const modal = document.getElementById('modalUserAbsences');
-      if (modal) modal.classList.add('active');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+      }
     }
 
     function handleSaveUserAbsence() {
@@ -10011,11 +11181,18 @@
       }
 
       const db = getDB();
+      if (!db.currentTeam && !db.currentTeamId) {
+        showToast('Crie ou entre em um time antes de registrar férias.');
+        return;
+      }
       if (!Array.isArray(db.absences)) db.absences = [];
       const newAbs = {
         id: 'abs-' + Date.now(),
         userId: userName,
         userName,
+        team: db.currentTeam || null,
+        teamId: db.currentTeamId || null,
+        createdByUserId: db.currentUser?.id || null,
         type,
         startDate,
         endDate,
@@ -10053,21 +11230,27 @@
       const container = document.getElementById('absencesListContainer');
       if (!container) return;
       const db = getDB();
-      const list = Array.isArray(db.absences) ? db.absences : [];
+      const list = (Array.isArray(db.absences) ? db.absences : []).filter(a => isAbsenceInCurrentTeam(a, db));
       if (list.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 12px; color: #94A3B8; font-size: 11px;">Nenhuma ausência ou férias ativa registrada.</div>`;
+        container.innerHTML = `<div style="text-align: center; padding: 12px; color: #94A3B8; font-size: 11px;">Nenhuma ausência ou férias ativa registrada nesta equipe.</div>`;
         return;
       }
-      const typeLabels = { VACATION: '🏖️ Férias', MEDICAL: '🏥 Licença Médica', UNAVAILABLE: '⏳ Indisponível' };
-      container.innerHTML = list.map(a => `
+      const typeLabels = { VACATION: '🏖️ Férias', DAY_OFF: '🌴 Folga / Recesso', MEDICAL: '🏥 Licença Médica', UNAVAILABLE: '⏳ Indisponível' };
+      container.innerHTML = list.map(a => {
+        const memberPhoto = resolveUserPhoto(a.userName);
+        return `
         <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 10.5px;">
-          <div>
-            <strong style="color: #0F172A;">${escapeHtml(a.userName)}</strong> • <span style="color: #0D9488; font-weight: 700;">${typeLabels[a.type] || a.type}</span>
-            <div style="color: #64748B; font-size: 9.5px;">${a.startDate} até ${a.endDate} — ${escapeHtml(a.reason || '')}</div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="${memberPhoto}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #CBD5E1; flex-shrink: 0;">
+            <div>
+              <strong style="color: #0F172A;">${escapeHtml(a.userName)}</strong> • <span style="color: #0D9488; font-weight: 700;">${typeLabels[a.type] || a.type}</span>
+              <div style="color: #64748B; font-size: 9.5px;">${a.startDate} até ${a.endDate} — ${escapeHtml(a.reason || '')}</div>
+            </div>
           </div>
           <button type="button" onclick="removeUserAbsenceUI('${a.id}')" style="background: none; border: none; color: #EF4444; font-weight: 700; cursor: pointer;">✕</button>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     // --- #33 (FE-14.2) & #34 (FE-14.3): Modal de Planning Poker & Estimativa PERT ---
@@ -10090,7 +11273,10 @@
 
       renderPlanningPokerSessionUI(task);
       const modal = document.getElementById('modalPlanningPoker');
-      if (modal) modal.classList.add('active');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+      }
     }
 
     function castPokerVoteUI(points) {
@@ -10151,14 +11337,20 @@
         return;
       }
 
-      votesBox.innerHTML = votes.map(v => `
+      votesBox.innerHTML = votes.map(v => {
+        const voterPhoto = resolveUserPhoto(v.userName);
+        return `
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-bottom: 1px dashed #E2E8F0;">
-          <span style="font-weight: 700; color: #1E293B;">👤 ${escapeHtml(v.userName)}</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: #1E293B;">
+            <img src="${voterPhoto}" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1px solid #CBD5E1;">
+            ${escapeHtml(v.userName)}
+          </span>
           <span style="background: ${pokerRevealed ? '#DBEAFE' : '#1E293B'}; color: ${pokerRevealed ? '#1E40AF' : '#FFFFFF'}; font-weight: 800; padding: 2px 8px; border-radius: 6px; font-size: 11px;">
             ${pokerRevealed ? `${v.points}h` : '🂠 Votou'}
           </span>
         </div>
-      `).join('');
+      `;
+      }).join('');
 
       const pert = computePertFromVotes(votes);
       pertBox.innerHTML = `
@@ -10253,7 +11445,7 @@
       if (extWarnings.length > 0) {
         headerBanner += `
           <div style="margin: 0 16px 10px 16px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: 7px 10px; font-size: 10px; color: #92400E;">
-            ⚠️ <strong>Alerta Preditivo de Dependência Externa (US23):</strong> ${extWarnings.map(w => escapeHtml(w.title)).join(', ')}
+            ⚠️ <strong>Alerta Preditivo de Dependência Externa:</strong> ${extWarnings.map(w => escapeHtml(w.title)).join(', ')}
           </div>
         `;
       }
@@ -10347,25 +11539,32 @@
           const crit = dag.isCritical.get(id);
           const subs = Array.isArray(t.subtasks) ? t.subtasks : [];
           const preds = (dag.prereqsMap.get(id) || []).map(pId => taskMap.get(pId)?.title || pId);
+          const respPhoto = resolveUserPhoto(t.assignee || t.assigneeName, t.avatar || t.assigneeAvatar);
 
           return `
             <div style="margin-left: 14px; padding-left: 12px; border-left: 2px solid ${crit ? '#EF4444' : '#93C5FD'}; margin-bottom: 10px; position: relative;">
               <div onclick="openTaskDetail('${t.id}')" style="background: ${crit ? '#FEF2F2' : '#EFF6FF'}; border: 1.5px solid ${crit ? '#FCA5A5' : '#BFDBFE'}; border-radius: 10px; padding: 8px 10px; cursor: pointer;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
                   <strong style="font-size: 11.5px; color: ${crit ? '#991B1B' : '#1E3A8A'};">${crit ? '🔥 ' : '🔹 '}${escapeHtml(t.title)}</strong>
-                  <span style="font-size: 9px; font-weight: 700; color: #475569;">${t.effortHours || 4}h • ${escapeHtml(t.assignee || 'Membro')}</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; color: #475569; flex-shrink: 0;">
+                    <img src="${respPhoto}" style="width: 15px; height: 15px; border-radius: 50%; object-fit: cover; border: 1px solid #CBD5E1;">
+                    ${t.effortHours || 4}h • ${escapeHtml(t.assignee || 'Membro')}
+                  </span>
                 </div>
                 ${preds.length > 0 ? `<div style="font-size: 9.5px; color: #DC2626; margin-top: 2px;">🔗 Depende de: ${preds.map(p => escapeHtml(p)).join(', ')}</div>` : ''}
               </div>
               ${subs.length > 0 ? `
                 <div style="margin-left: 14px; margin-top: 5px; display: flex; flex-direction: column; gap: 4px;">
-                  ${subs.map(s => `
+                  ${subs.map(s => {
+                    const subPhoto = s.assigneeName ? resolveUserPhoto(s.assigneeName) : null;
+                    return `
                     <div style="display: flex; align-items: center; gap: 6px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 4px 8px; font-size: 10px; color: #334155;">
                       <span>${s.completed ? '✅' : '▫️'}</span>
                       <span style="flex: 1; ${s.completed ? 'text-decoration:line-through;color:#94A3B8;' : ''}">${escapeHtml(s.title)}</span>
-                      ${s.assigneeName ? `<span style="font-size: 9px; color: #1D4ED8; font-weight: 700;">👤 ${escapeHtml(s.assigneeName)}</span>` : ''}
+                      ${s.assigneeName ? `<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 9px; color: #1D4ED8; font-weight: 700;"><img src="${subPhoto}" style="width: 13px; height: 13px; border-radius: 50%; object-fit: cover;"> ${escapeHtml(s.assigneeName)}</span>` : ''}
                     </div>
-                  `).join('')}
+                  `;
+                  }).join('')}
                 </div>
               ` : ''}
             </div>
@@ -10492,7 +11691,10 @@
       updateAutoRuleJsonPreview();
       renderAutomationRulesListUI();
       const modal = document.getElementById('modalAutomations');
-      if (modal) modal.classList.add('active');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+      }
     }
 
     function applyAutomationPreset(presetKey) {
