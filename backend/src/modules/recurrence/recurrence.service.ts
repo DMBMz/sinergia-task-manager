@@ -64,7 +64,21 @@ export class RecurrenceRoundRobinService {
     }
 
     const nextDueDate = this.getNextDueDate(task.dueDate, task.recurrenceInterval);
-    const teamMembers = repository.getAllUsers();
+    // Busca estritamente membros vinculados ao projeto/time da tarefa (nunca usuários globais de outros times)
+    const projectMembersList = Array.from((repository as any).projectMembers?.values?.() || []) as any[];
+    const matchingMemberUserIds = new Set(
+      projectMembersList
+        .filter(pm =>
+          (task.projectId && pm.projectId === task.projectId) ||
+          (task.team && (repository as any).projects?.get?.(pm.projectId)?.name?.toLowerCase() === task.team.toLowerCase())
+        )
+        .map(pm => pm.userId)
+    );
+    let teamMembers = repository.getAllUsers().filter(u => matchingMemberUserIds.has(u.id));
+    if (teamMembers.length === 0 && task.assigneeId) {
+      const currentAssigneeUser = repository.getUserById(task.assigneeId);
+      if (currentAssigneeUser) teamMembers = [currentAssigneeUser];
+    }
     const nextAssignee = this.selectNextAssignee(task.assigneeId, teamMembers, nextDueDate);
 
     // Cria a nova instância recorrente da tarefa

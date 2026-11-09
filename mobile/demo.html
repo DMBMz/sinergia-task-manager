@@ -1988,7 +1988,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div style="display: flex; align-items: center; gap: 6px;">
               <span style="font-size: 12px; font-weight: 700;">Responsável</span>
-              <button type="button" onclick="autoSuggestAssigneeUI()" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugerir automaticamente o membro com menor carga e sem férias">✨ Auto-Alocar IA</button>
+              <button type="button" id="btnAutoAssignAiCreate" onclick="autoSuggestAssigneeUI()" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugerir automaticamente o membro com menor carga e sem férias">✨ Auto-Alocar IA</button>
             </div>
             <select id="createAssigneeSelect" onchange="renderCreateAssigneeCapacityPreview()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 11.5px; background: #FFFFFF; font-weight: 600; color: #1E293B; max-width: 170px;">
               <option value="">Carregando usuários...</option>
@@ -2633,7 +2633,7 @@
                 <option value="OVERDUE">🚨 Tarefa em Atraso (OVERDUE)</option>
               </select>
               <div style="display: grid; grid-template-columns: 1.1fr 0.9fr 1fr; gap: 4px;">
-                <select id="autoCondFieldSelect" onchange="updateAutoRuleJsonPreview()" style="padding: 4px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
+                <select id="autoCondFieldSelect" onchange="onAutoCondFieldChange()" style="padding: 4px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
                   <option value="priority">Prioridade</option>
                   <option value="status">Status</option>
                   <option value="effortHours">Esforço (h)</option>
@@ -2645,8 +2645,9 @@
                   <option value="NOT_EQUALS">Diferente (≠)</option>
                   <option value="CONTAINS">Contém</option>
                   <option value="GREATER_THAN">Maior que (&gt;)</option>
+                  <option value="LESS_THAN">Menor que (&lt;)</option>
                 </select>
-                <input type="text" id="autoCondValInput" value="URGENT" oninput="updateAutoRuleJsonPreview()" placeholder="Valor" style="padding: 4px 6px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
+                <input type="text" id="autoCondValInput" value="URGENT" oninput="updateAutoRuleJsonPreview()" placeholder="Ex: Urgente, Alta..." style="padding: 4px 6px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
               </div>
             </div>
 
@@ -2654,7 +2655,7 @@
             <div style="background: #F5F3FF; border: 1px solid #DDD6FE; border-radius: 8px; padding: 8px; margin-bottom: 6px;">
               <div style="font-size: 10px; font-weight: 800; color: #5B21B6; margin-bottom: 4px;">⚡ ENTÃO (EXECUTAR AÇÃO):</div>
               <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 4px;">
-                <select id="autoActionTypeSelect" onchange="updateAutoRuleJsonPreview()" style="padding: 5px; border: 1px solid #C4B5FD; border-radius: 6px; font-size: 10px; font-weight: 700; background: #FFFFFF; color: #0F172A;">
+                <select id="autoActionTypeSelect" onchange="onAutoActionTypeChange()" style="padding: 5px; border: 1px solid #C4B5FD; border-radius: 6px; font-size: 10px; font-weight: 700; background: #FFFFFF; color: #0F172A;">
                   <option value="SEND_NOTIFICATION">🔔 Enviar Notificação</option>
                   <option value="CHANGE_PRIORITY">🔥 Alterar Prioridade</option>
                   <option value="CHANGE_STATUS">🔄 Alterar Status</option>
@@ -2662,7 +2663,7 @@
                   <option value="ADD_TAG">🏷️ Adicionar Tag</option>
                   <option value="ARCHIVE">📦 Arquivar / Concluir</option>
                 </select>
-                <input type="text" id="autoActionValInput" value="ADMIN" oninput="updateAutoRuleJsonPreview()" placeholder="Alvo (ex: ADMIN, URGENT)" style="padding: 5px 6px; border: 1px solid #C4B5FD; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
+                <input type="text" id="autoActionValInput" value="ADMIN" oninput="updateAutoRuleJsonPreview()" placeholder="Alvo (ex: ADMIN, Nome da Tag)" style="padding: 5px 6px; border: 1px solid #C4B5FD; border-radius: 6px; font-size: 10px; background: #FFFFFF;">
               </div>
             </div>
 
@@ -2846,7 +2847,7 @@
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                   <span style="font-size: 11px; font-weight: 700; color: #475569;">Esforço (h):</span>
-                  <button type="button" onclick="applyEditModalAiEffortSuggestion()" style="background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; border-radius: 5px; padding: 1px 5px; font-size: 9px; font-weight: 700; cursor: pointer;" title="Recalcular esforço via IA TensorFlow Lite">🧠 IA TFLite</button>
+                  <button type="button" id="btnEditModalAiEffort" onclick="applyEditModalAiEffortSuggestion()" style="background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; border-radius: 5px; padding: 1px 5px; font-size: 9px; font-weight: 700; cursor: pointer;" title="Recalcular esforço via IA TensorFlow Lite">🧠 IA TFLite</button>
                 </div>
                 <input type="number" id="editFullTaskEffort" min="0.5" max="200" step="0.5" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: #0F172A; background: #FFFFFF;">
               </div>
@@ -3853,6 +3854,96 @@
       }
     }
 
+    const PERSISTENT_NOTIFS_KEY = 'sinergia_persistent_notifications_v2';
+    const PERSISTENT_SEEN_EVENTS_KEY = 'sinergia_user_seen_events_v1';
+
+    function getPersistentNotifsVault() {
+      try {
+        const raw = localStorage.getItem(PERSISTENT_NOTIFS_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {}
+      return [];
+    }
+
+    function savePersistentNotifsVault(list) {
+      try {
+        const trimmed = Array.isArray(list) ? list.slice(0, 400) : [];
+        localStorage.setItem(PERSISTENT_NOTIFS_KEY, JSON.stringify(trimmed));
+      } catch (e) {}
+    }
+
+    function getCurrentUserIdentityKeys(user) {
+      if (!user) return { id: '', email: '', name: '', primaryKey: '' };
+      const id = user.id ? String(user.id).trim().toLowerCase() : '';
+      const email = user.email ? String(user.email).trim().toLowerCase() : '';
+      const name = user.name ? String(user.name).trim().toLowerCase() : '';
+      const primaryKey = id || email || name || 'user';
+      return { id, email, name, primaryKey };
+    }
+
+    function getUserSeenEventsMap(userKey) {
+      if (!userKey) return {};
+      try {
+        const raw = localStorage.getItem(PERSISTENT_SEEN_EVENTS_KEY);
+        const all = raw ? JSON.parse(raw) : {};
+        return (all && typeof all[userKey] === 'object' && all[userKey]) ? all[userKey] : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function markUserSeenEvent(userKey, eventKey) {
+      if (!userKey || !eventKey) return;
+      try {
+        const raw = localStorage.getItem(PERSISTENT_SEEN_EVENTS_KEY);
+        const all = (raw ? JSON.parse(raw) : {}) || {};
+        if (!all[userKey] || typeof all[userKey] !== 'object') all[userKey] = {};
+        all[userKey][eventKey] = Date.now();
+        localStorage.setItem(PERSISTENT_SEEN_EVENTS_KEY, JSON.stringify(all));
+      } catch (e) {}
+    }
+
+    function isCurrentUserAdminOfTeam(db, teamName = null, teamId = null) {
+      if (!db || !db.currentUser) return false;
+      const uName = String(db.currentUser.name || '').trim().toLowerCase();
+      const uEmail = String(db.currentUser.email || '').trim().toLowerCase();
+      const uId = String(db.currentUser.id || '').trim().toLowerCase();
+      const tName = String(teamName || db.currentTeam || '').trim().toLowerCase();
+      const tId = String(teamId || db.currentTeamId || '').trim().toLowerCase();
+
+      if (Array.isArray(db.userTeams)) {
+        const foundTeam = db.userTeams.find(t =>
+          (tId && t && t.id && String(t.id).trim().toLowerCase() === tId) ||
+          (tName && t && t.name && String(t.name).trim().toLowerCase() === tName)
+        );
+        if (foundTeam && foundTeam.role) {
+          return String(foundTeam.role).toUpperCase() === 'ADMIN';
+        }
+      }
+
+      if (db.teamMembersByTeam) {
+        const list = (tId && db.teamMembersByTeam[tId]) || (tName && db.teamMembersByTeam[tName]) || (teamName && db.teamMembersByTeam[teamName]) || [];
+        if (Array.isArray(list) && list.length > 0) {
+          const me = list.find(m =>
+            (uId && m.id && String(m.id).trim().toLowerCase() === uId) ||
+            (uEmail && m.email && String(m.email).trim().toLowerCase() === uEmail) ||
+            (uName && m.name && String(m.name).trim().toLowerCase() === uName)
+          );
+          if (me && me.role) {
+            return String(me.role).toUpperCase() === 'ADMIN';
+          }
+        }
+      }
+
+      if (typeof getCurrentUserTeamRole === 'function' && (!teamName || tName === String(db.currentTeam || '').trim().toLowerCase())) {
+        return getCurrentUserTeamRole() === 'ADMIN';
+      }
+      return false;
+    }
+
     function getUserParticipatingTeamsSet(db) {
       const names = new Set();
       const ids = new Set();
@@ -3880,75 +3971,188 @@
       return { names, ids };
     }
 
+    function isNotificationReadByCurrentUser(n, db) {
+      if (!n || !db || !db.currentUser) return false;
+      const { id, email, name, primaryKey } = getCurrentUserIdentityKeys(db.currentUser);
+      if (n.readBy && typeof n.readBy === 'object') {
+        return Boolean(
+          (primaryKey && n.readBy[primaryKey]) ||
+          (id && n.readBy[id]) ||
+          (email && n.readBy[email]) ||
+          (name && n.readBy[name])
+        );
+      }
+      return Boolean(n.read);
+    }
+
+    function isNotificationClearedByCurrentUser(n, db) {
+      if (!n || !db || !db.currentUser) return false;
+      const { id, email, name, primaryKey } = getCurrentUserIdentityKeys(db.currentUser);
+      if (n.clearedBy && typeof n.clearedBy === 'object') {
+        return Boolean(
+          (primaryKey && n.clearedBy[primaryKey]) ||
+          (id && n.clearedBy[id]) ||
+          (email && n.clearedBy[email]) ||
+          (name && n.clearedBy[name])
+        );
+      }
+      return false;
+    }
+
     function isNotificationForCurrentUser(n, db) {
       if (!n || !db || !db.currentUser) return false;
+      if (isNotificationClearedByCurrentUser(n, db)) return false;
 
-      const myId = db.currentUser.id ? String(db.currentUser.id).trim().toLowerCase() : '';
-      const myEmail = db.currentUser.email ? String(db.currentUser.email).trim().toLowerCase() : '';
-      const myName = db.currentUser.name ? String(db.currentUser.name).trim().toLowerCase() : '';
+      const { id: myId, email: myEmail, name: myName } = getCurrentUserIdentityKeys(db.currentUser);
 
-      // Exige vínculo explícito com o usuário logado (descarta notificações antigas sem dono ou de outra conta)
-      const nUserId = n.userId ? String(n.userId).trim().toLowerCase() : '';
-      const nEmail = n.userEmail ? String(n.userEmail).trim().toLowerCase() : '';
-      const nName = n.userName ? String(n.userName).trim().toLowerCase() : '';
-
-      if (!nUserId && !nEmail && !nName) return false;
-      if (nUserId && myId && nUserId !== myId) return false;
-      if (nEmail && myEmail && nEmail !== myEmail) return false;
-      if (!nUserId && !nEmail && nName && myName && nName !== myName) return false;
-
-      // Verifica se a notificação pertence a um time do qual este usuário realmente participa
+      // 1. Verifica se a notificação pertence a um time do qual este usuário realmente participa
       const { names, ids } = getUserParticipatingTeamsSet(db);
       if (names.size === 0 && ids.size === 0) return false;
 
-      const nTeam = n.team ? String(n.team).trim().toLowerCase() : '';
-      const nTeamId = n.teamId ? String(n.teamId).trim().toLowerCase() : '';
+      let nTeam = n.team ? String(n.team).trim().toLowerCase() : '';
+      let nTeamId = n.teamId ? String(n.teamId).trim().toLowerCase() : '';
+      const taskObj = n.taskId ? (db.tasks || []).find(t => String(t.id) === String(n.taskId)) : null;
+
+      if (!nTeam && taskObj && taskObj.team) nTeam = String(taskObj.team).trim().toLowerCase();
+      if (!nTeamId && taskObj && taskObj.projectId) nTeamId = String(taskObj.projectId).trim().toLowerCase();
 
       if (nTeam || nTeamId) {
         const matchTeam = (nTeam && names.has(nTeam)) || (nTeamId && ids.has(nTeamId));
         if (!matchTeam) return false;
-      } else if (n.taskId) {
-        const taskObj = (db.tasks || []).find(t => String(t.id) === String(n.taskId));
-        if (!taskObj) return false;
-        const tTeam = taskObj.team ? String(taskObj.team).trim().toLowerCase() : '';
-        const tProj = taskObj.projectId ? String(taskObj.projectId).trim().toLowerCase() : '';
-        if (!((tTeam && names.has(tTeam)) || (tProj && ids.has(tProj)))) return false;
       } else {
         return false;
       }
 
-      return true;
+      // 2. ADMIN do time recebe TODAS as notificações do time (mesmo geradas enquanto estava deslogado!)
+      if (isCurrentUserAdminOfTeam(db, nTeam, nTeamId)) {
+        return true;
+      }
+
+      // 3. Notificação direcionada especificamente ao usuário (mesmo que tenha sido criada por outro membro enquanto estava deslogado)
+      const targetId = n.targetUserId ? String(n.targetUserId).trim().toLowerCase() : '';
+      const targetEmail = n.targetUserEmail ? String(n.targetUserEmail).trim().toLowerCase() : '';
+      const targetName = n.targetUserName ? String(n.targetUserName).trim().toLowerCase() : '';
+
+      if (targetId || targetEmail || targetName) {
+        if (targetId && myId && targetId === myId) return true;
+        if (targetEmail && myEmail && targetEmail === myEmail) return true;
+        if (targetName && myName && targetName === myName) return true;
+        // Se também for para vários alvos (targetUsers)
+        if (Array.isArray(n.targetUsers)) {
+          const hit = n.targetUsers.some(u => String(u || '').trim().toLowerCase() === myName || String(u || '').trim().toLowerCase() === myId);
+          if (hit) return true;
+        }
+        return false;
+      }
+
+      if (Array.isArray(n.targetUsers) && n.targetUsers.length > 0) {
+        return n.targetUsers.some(u => {
+          const k = String(u || '').trim().toLowerCase();
+          return (myName && k === myName) || (myId && k === myId) || (myEmail && k === myEmail);
+        });
+      }
+
+      if (n.broadcastTeam) return true;
+
+      // 4. Verifica se a tarefa vinculada pertence/está atribuída ao usuário logado
+      if (taskObj) {
+        const tAssignee = String(taskObj.assignee || taskObj.assigneeName || '').trim().toLowerCase();
+        const tAssigneeId = String(taskObj.assigneeId || '').trim().toLowerCase();
+        const tCreator = String(taskObj.creatorName || '').trim().toLowerCase();
+        const tCreatorId = String(taskObj.createdById || '').trim().toLowerCase();
+        if ((myName && (tAssignee === myName || tCreator === myName)) || (myId && (tAssigneeId === myId || tCreatorId === myId))) {
+          return true;
+        }
+        if (Array.isArray(taskObj.subtasks) && myName) {
+          if (taskObj.subtasks.some(s => String(s.assigneeName || '').trim().toLowerCase() === myName)) return true;
+        }
+      }
+
+      // 5. Fallback de vínculo direto com quem originou/recebeu na sessão
+      const nUserId = n.userId ? String(n.userId).trim().toLowerCase() : '';
+      const nEmail = n.userEmail ? String(n.userEmail).trim().toLowerCase() : '';
+      const nName = n.userName ? String(n.userName).trim().toLowerCase() : '';
+      if (nUserId && myId && nUserId === myId) return true;
+      if (nEmail && myEmail && nEmail === myEmail) return true;
+      if (nName && myName && nName === myName) return true;
+
+      return false;
     }
 
-    function createNotification({ id = null, title, message, type = 'task', color = '#2563EB', taskId = null, urgency = 'info', team = null, teamId = null }) {
+    function mergePersistentNotificationsIntoDB(db) {
+      if (!db) return [];
+      const vault = getPersistentNotifsVault();
+      const currentList = Array.isArray(db.notifications) ? db.notifications : [];
+      const byId = new Map();
+
+      [...currentList, ...vault].forEach(n => {
+        if (!n || !n.id) return;
+        const key = String(n.rawId || n.id);
+        if (!byId.has(key)) {
+          byId.set(key, n);
+        } else {
+          const existing = byId.get(key);
+          existing.readBy = { ...(n.readBy || {}), ...(existing.readBy || {}) };
+          existing.clearedBy = { ...(n.clearedBy || {}), ...(existing.clearedBy || {}) };
+        }
+      });
+
+      const merged = Array.from(byId.values()).sort((a, b) => {
+        return new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime();
+      });
+
+      savePersistentNotifsVault(merged);
+      db.notifications = merged;
+      return merged;
+    }
+
+    function createNotification({
+      id = null,
+      title,
+      message,
+      type = 'task',
+      color = '#2563EB',
+      taskId = null,
+      urgency = 'info',
+      team = null,
+      teamId = null,
+      targetUserName = null,
+      targetUserId = null,
+      targetUserEmail = null,
+      targetUsers = null,
+      broadcastTeam = false,
+      silentToast = false
+    }) {
       const db = getDB();
       if (!db.currentUser) return null;
       if (!db.currentTeam && !db.currentTeamId && !team && !teamId) return null;
-      if (!db.notifications) db.notifications = [];
+
+      mergePersistentNotificationsIntoDB(db);
 
       const taskObj = taskId ? (db.tasks || []).find(t => String(t.id) === String(taskId)) : null;
       const notifTeam = team || (taskObj && taskObj.team) || db.currentTeam || null;
       const notifTeamId = teamId || (taskObj && taskObj.projectId) || db.currentTeamId || null;
 
-      // Só cria a notificação se o usuário participar do time correspondente
-      const { names, ids } = getUserParticipatingTeamsSet(db);
-      const belongsToMyTeams =
-        (notifTeam && names.has(String(notifTeam).trim().toLowerCase())) ||
-        (notifTeamId && ids.has(String(notifTeamId).trim().toLowerCase()));
-      if (!belongsToMyTeams) return null;
+      // Infere automaticamente o destinatário da tarefa se não foi passado explicitamente
+      const effectiveTargetName = targetUserName || (taskObj ? (taskObj.assignee || taskObj.assigneeName || null) : null);
+      const effectiveTargetId = targetUserId || (taskObj ? (taskObj.assigneeId || null) : null);
 
-      const userKey = String(db.currentUser.id || db.currentUser.email || db.currentUser.name || 'user').trim().toLowerCase();
-      const notifId = id ? `${userKey}_${id}` : ('notif-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
-      if (db.notifications.some(n => n.id === notifId || (id && n.rawId === id && isNotificationForCurrentUser(n, db)))) {
+      const rawKey = id || ('notif-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
+      if (db.notifications.some(n => n.id === rawKey || n.rawId === rawKey)) {
         return null;
       }
 
       const notif = {
-        id: notifId,
-        rawId: id || notifId,
+        id: rawKey,
+        rawId: rawKey,
         userId: db.currentUser.id || null,
         userEmail: (db.currentUser.email || '').trim().toLowerCase() || null,
         userName: db.currentUser.name || null,
+        targetUserName: effectiveTargetName || null,
+        targetUserId: effectiveTargetId || null,
+        targetUserEmail: targetUserEmail || null,
+        targetUsers: Array.isArray(targetUsers) ? targetUsers : null,
+        broadcastTeam: Boolean(broadcastTeam),
         team: notifTeam,
         teamId: notifTeamId,
         title,
@@ -3958,22 +4162,213 @@
         taskId,
         urgency,
         read: false,
+        readBy: {},
+        clearedBy: {},
         timestamp: new Date().toISOString()
       };
 
       db.notifications.unshift(notif);
+      savePersistentNotifsVault(db.notifications);
       saveDB(db, false);
       updateNotificationBadges();
 
-      const silenced = isQuietHoursActive();
-      if (!silenced) {
-        showToast(`${title}: ${message}`);
-        triggerNativePushNotification(notif);
-      } else {
-        console.log('[Notif] Silenciada por período ativo');
+      // Exibe toast/push imediatamente se esta notificação também for relevante para o usuário logado no momento
+      if (!silentToast && isNotificationForCurrentUser(notif, db)) {
+        const silenced = isQuietHoursActive();
+        if (!silenced) {
+          showToast(`${title}: ${message}`);
+          triggerNativePushNotification(notif);
+        } else {
+          console.log('[Notif] Silenciada por período ativo');
+        }
       }
 
       return notif;
+    }
+
+    // Reconcilia eventos ocorridos enquanto o usuário (ou o ADMIN) estava deslogado!
+    function reconcileLoggedOutNotifications(db, triggerPushForNew = false) {
+      if (!db || !db.currentUser) return 0;
+      mergePersistentNotificationsIntoDB(db);
+
+      const { id: myId, name: myName, primaryKey } = getCurrentUserIdentityKeys(db.currentUser);
+      if (!primaryKey) return 0;
+
+      const seenEvents = getUserSeenEventsMap(primaryKey);
+      const { names: myTeamNames, ids: myTeamIds } = getUserParticipatingTeamsSet(db);
+      if (myTeamNames.size === 0 && myTeamIds.size === 0) return 0;
+
+      let generatedCount = 0;
+      const newNotifsToPush = [];
+
+      const allTeamTasks = (db.tasks || []).filter(t => {
+        if (!t) return false;
+        const tTeam = t.team ? String(t.team).trim().toLowerCase() : '';
+        const tProj = t.projectId ? String(t.projectId).trim().toLowerCase() : '';
+        return (tTeam && myTeamNames.has(tTeam)) || (tProj && myTeamIds.has(tProj));
+      });
+
+      allTeamTasks.forEach(task => {
+        const taskTeam = task.team || db.currentTeam || 'Meu Time';
+        const taskTeamId = task.projectId || db.currentTeamId || null;
+        const isAdminHere = isCurrentUserAdminOfTeam(db, taskTeam, taskTeamId);
+        const tAssignee = String(task.assignee || task.assigneeName || '').trim().toLowerCase();
+        const tAssigneeId = String(task.assigneeId || '').trim().toLowerCase();
+        const tCreator = String(task.creatorName || '').trim().toLowerCase();
+        const isAssignedToMe = (myName && tAssignee === myName) || (myId && tAssigneeId && tAssigneeId === myId);
+        const isSubtaskAssignedToMe = myName && Array.isArray(task.subtasks) && task.subtasks.some(s => String(s.assigneeName || '').trim().toLowerCase() === myName);
+        const isCreatedByMe = myName && tCreator === myName;
+
+        // 1. Notificação de Tarefa Atribuída / Criada (para o responsável, co-responsável de subtarefa ou Admin da equipe)
+        if (isAssignedToMe || isSubtaskAssignedToMe || isAdminHere) {
+          const assignEventKey = `assign_${task.id}_${tAssignee}`;
+          if (!seenEvents[assignEventKey]) {
+            markUserSeenEvent(primaryKey, assignEventKey);
+            const isRec = String(task.id || '').startsWith('task-rec-') || (task.isRecurring && Number(task.currentOccurrence) > 1);
+            const notifTitle = isRec
+              ? '🔄 Rodízio Round-Robin'
+              : (isAssignedToMe ? '📋 Nova Tarefa Atribuída a Você' : `📋 Nova Tarefa na Equipe (${task.assignee || 'Membro'})`);
+            const notifMsg = isRec
+              ? `Ocorrência #${task.currentOccurrence || 1} de "${task.title}" foi atribuída em rodízio para ${task.assignee || 'você'}.`
+              : (isAssignedToMe
+                  ? `A tarefa "${task.title}" foi atribuída a você no time "${taskTeam}" (Prazo: ${task.dueDate || 'Hoje'}).`
+                  : `A tarefa "${task.title}" foi atribuída a ${task.assignee || 'Membro'} no time "${taskTeam}".`);
+
+            const created = createNotification({
+              id: `reconcile_${assignEventKey}`,
+              title: notifTitle,
+              message: notifMsg,
+              type: 'assignment',
+              color: '#2563EB',
+              taskId: task.id,
+              team: taskTeam,
+              teamId: taskTeamId,
+              targetUserName: isAssignedToMe ? db.currentUser.name : (task.assignee || null),
+              silentToast: true
+            });
+            if (created) {
+              generatedCount++;
+              newNotifsToPush.push(created);
+            }
+          }
+        }
+
+        // 2. Notificação de Conclusão de Tarefa (para Admin ou Criador/Responsável)
+        if (task.status === 'COMPLETED' && (isAdminHere || isAssignedToMe || isCreatedByMe)) {
+          const compEventKey = `completed_${task.id}`;
+          if (!seenEvents[compEventKey]) {
+            markUserSeenEvent(primaryKey, compEventKey);
+            const created = createNotification({
+              id: `reconcile_${compEventKey}`,
+              title: '✅ Tarefa Concluída na Equipe',
+              message: `A tarefa "${task.title}" (Responsável: ${task.assignee || 'Membro'}) foi marcada como concluída!`,
+              type: 'completion',
+              color: '#10B981',
+              taskId: task.id,
+              team: taskTeam,
+              teamId: taskTeamId,
+              targetUserName: db.currentUser.name,
+              silentToast: true
+            });
+            if (created) {
+              generatedCount++;
+              newNotifsToPush.push(created);
+            }
+          }
+        }
+
+        // 3. Notificação de Recusa ou Aceite de Delegação (US22) para Admin e Criador
+        if ((task.assignmentStatus === 'DECLINED' || task.assignmentStatus === 'ACCEPTED') && (isAdminHere || isCreatedByMe)) {
+          if (task.assignmentStatus === 'DECLINED' || (task.declinedReason)) {
+            const respKey = `assign_resp_${task.id}_${task.assignmentStatus}`;
+            if (!seenEvents[respKey]) {
+              markUserSeenEvent(primaryKey, respKey);
+              const created = createNotification({
+                id: `reconcile_${respKey}`,
+                title: '⚠️ Atribuição Recusada',
+                message: `${task.assignee || 'O responsável'} recusou a tarefa "${task.title}". Motivo: ${task.declinedReason || 'Conflito de agenda'}`,
+                type: 'assignment',
+                color: '#EF4444',
+                taskId: task.id,
+                team: taskTeam,
+                teamId: taskTeamId,
+                targetUserName: db.currentUser.name,
+                silentToast: true
+              });
+              if (created) {
+                generatedCount++;
+                newNotifsToPush.push(created);
+              }
+            }
+          }
+        }
+
+        // 4. Comentários e Menções @ enviadas enquanto o usuário ou Admin estava deslogado
+        (task.comments || []).forEach(c => {
+          if (!c) return;
+          const authorLower = String(c.author || '').trim().toLowerCase();
+          if (myName && authorLower === myName) return;
+
+          const textLower = String(c.text || '').toLowerCase();
+          const mentionsMe = myName && (
+            textLower.includes('@' + myName) ||
+            (Array.isArray(c.mentions) && c.mentions.some(m => String(m || '').trim().toLowerCase() === myName))
+          );
+
+          if (mentionsMe || isAssignedToMe || isAdminHere) {
+            const commKey = `comm_${task.id}_${c.id || c.timestamp}_${authorLower}`;
+            if (!seenEvents[commKey]) {
+              markUserSeenEvent(primaryKey, commKey);
+              const created = createNotification({
+                id: `reconcile_${commKey}`,
+                title: mentionsMe ? '💬 Nova Menção @' : `💬 Novo Comentário em "${task.title}"`,
+                message: `${c.author || 'Membro'} comentou em "${task.title}": "${c.text || 'Anexo enviado'}"`,
+                type: 'mention',
+                color: '#8B5CF6',
+                taskId: task.id,
+                team: taskTeam,
+                teamId: taskTeamId,
+                targetUserName: db.currentUser.name,
+                urgency: mentionsMe ? 'urgente' : 'info',
+                silentToast: true
+              });
+              if (created) {
+                generatedCount++;
+                newNotifsToPush.push(created);
+              }
+            }
+          }
+        });
+      });
+
+      // Verifica também se há notificações no cofre que este usuário ainda não recebeu push nesta conta
+      const vaultNotifsForMe = (db.notifications || []).filter(n => isNotificationForCurrentUser(n, db) && !isNotificationReadByCurrentUser(n, db));
+      vaultNotifsForMe.forEach(n => {
+        const nSeenKey = `notif_pushed_${n.rawId || n.id}`;
+        if (!seenEvents[nSeenKey]) {
+          markUserSeenEvent(primaryKey, nSeenKey);
+          if (!newNotifsToPush.some(x => x.id === n.id)) {
+            newNotifsToPush.push(n);
+          }
+        }
+      });
+
+      if (newNotifsToPush.length > 0) {
+        savePersistentNotifsVault(db.notifications);
+        saveDB(db, false);
+        updateNotificationBadges();
+        if (triggerPushForNew && !isQuietHoursActive()) {
+          const latest = newNotifsToPush[0];
+          if (newNotifsToPush.length === 1) {
+            showToast(`${latest.title}: ${latest.message}`);
+          } else {
+            showToast(`🔔 Você tem ${newNotifsToPush.length} novas notificações recebidas!`);
+          }
+          newNotifsToPush.slice(0, 3).forEach(notif => triggerNativePushNotification(notif));
+        }
+      }
+
+      return generatedCount;
     }
 
     function checkProgressiveDeadlines() {
@@ -4110,8 +4505,9 @@
 
     function updateNotificationBadges() {
       const db = getDB();
+      mergePersistentNotificationsIntoDB(db);
       const myNotifs = (db.notifications || []).filter(n => isNotificationForCurrentUser(n, db));
-      const unreadCount = myNotifs.filter(n => !n.read).length;
+      const unreadCount = myNotifs.filter(n => !isNotificationReadByCurrentUser(n, db)).length;
 
       ['notifBadge', 'notifBadgeProj'].forEach(id => {
         const el = document.getElementById(id);
@@ -4134,6 +4530,8 @@
     let currentNotifFilter = 'all';
 
     function openNotificationCenter() {
+      const db = getDB();
+      reconcileLoggedOutNotifications(db, false);
       updateNotificationBadges();
       renderNotificationsFeed();
       document.getElementById('modalNotificationCenter').style.display = 'flex';
@@ -4150,6 +4548,7 @@
 
     function renderNotificationsFeed() {
       const db = getDB();
+      mergePersistentNotificationsIntoDB(db);
       const container = document.getElementById('dynamicNotifFeed');
       if (!container) return;
 
@@ -4175,13 +4574,14 @@
       }
 
       container.innerHTML = filtered.map(n => {
+        const isRead = isNotificationReadByCurrentUser(n, db);
         const timeFormatted = formatRelativeTime(n.timestamp);
         const icon = n.type === 'deadline' ? ICONS.clock(18, n.color || '#2563EB') :
                      n.type === 'mention' ? ICONS.chat(18, n.color || '#8B5CF6') :
                      n.type === 'completion' ? ICONS.party(18, n.color || '#10B981') :
                      ICONS.clipboard(18, n.color || '#2563EB');
         return `
-          <div class="notif-card ${!n.read ? 'unread' : ''}" onclick="handleNotifClick('${n.id}', '${n.taskId || ''}')" style="border-left: 4px solid ${n.color || '#2563EB'};">
+          <div class="notif-card ${!isRead ? 'unread' : ''}" onclick="handleNotifClick('${n.id}', '${n.taskId || ''}')" style="border-left: 4px solid ${n.color || '#2563EB'};">
             <div style="margin-top: 2px; display: flex; align-items: center; justify-content: center;">${icon}</div>
             <div style="flex: 1;">
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
@@ -4191,7 +4591,7 @@
               <p style="font-size: 11px; color: #475569; line-height: 1.3;">${n.message}</p>
               ${n.taskId ? `<span style="display: inline-block; margin-top: 4px; font-size: 9px; font-weight: 700; color: #2563EB;">Abrir tarefa <svg class="svg-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>` : ''}
             </div>
-            ${!n.read ? '<span style="width: 8px; height: 8px; border-radius: 50%; background: #2563EB; flex-shrink: 0; margin-top: 6px;"></span>' : ''}
+            ${!isRead ? '<span style="width: 8px; height: 8px; border-radius: 50%; background: #2563EB; flex-shrink: 0; margin-top: 6px;"></span>' : ''}
           </div>
         `;
       }).join('');
@@ -4199,9 +4599,13 @@
 
     function handleNotifClick(notifId, taskId) {
       const db = getDB();
+      mergePersistentNotificationsIntoDB(db);
+      const { primaryKey } = getCurrentUserIdentityKeys(db.currentUser);
       const notif = (db.notifications || []).find(n => n.id === notifId && isNotificationForCurrentUser(n, db));
       if (notif) {
-        notif.read = true;
+        if (!notif.readBy || typeof notif.readBy !== 'object') notif.readBy = {};
+        if (primaryKey) notif.readBy[primaryKey] = true;
+        savePersistentNotifsVault(db.notifications);
         saveDB(db, false);
         updateNotificationBadges();
       }
@@ -4215,9 +4619,15 @@
 
     function markAllNotificationsAsRead() {
       const db = getDB();
+      mergePersistentNotificationsIntoDB(db);
+      const { primaryKey } = getCurrentUserIdentityKeys(db.currentUser);
       (db.notifications || []).forEach(n => {
-        if (isNotificationForCurrentUser(n, db)) n.read = true;
+        if (isNotificationForCurrentUser(n, db)) {
+          if (!n.readBy || typeof n.readBy !== 'object') n.readBy = {};
+          if (primaryKey) n.readBy[primaryKey] = true;
+        }
       });
+      savePersistentNotifsVault(db.notifications);
       saveDB(db, false);
       updateNotificationBadges();
       renderNotificationsFeed();
@@ -4226,11 +4636,19 @@
 
     function clearAllNotifications() {
       const db = getDB();
-      db.notifications = (db.notifications || []).filter(n => !isNotificationForCurrentUser(n, db));
+      mergePersistentNotificationsIntoDB(db);
+      const { primaryKey } = getCurrentUserIdentityKeys(db.currentUser);
+      (db.notifications || []).forEach(n => {
+        if (isNotificationForCurrentUser(n, db)) {
+          if (!n.clearedBy || typeof n.clearedBy !== 'object') n.clearedBy = {};
+          if (primaryKey) n.clearedBy[primaryKey] = true;
+        }
+      });
+      savePersistentNotifsVault(db.notifications);
       saveDB(db, false);
       updateNotificationBadges();
       renderNotificationsFeed();
-      showToast('Notificações limpas.');
+      showToast('Notificações limpas para sua conta.');
     }
 
     function formatRelativeTime(iso) {
@@ -4309,15 +4727,8 @@
       }
 
       const db = getDB();
-      // Higieniza notificações e ausências de sessões anteriores sem isolamento de usuário/time
+      mergePersistentNotificationsIntoDB(db);
       let sanitizedBoot = false;
-      if (Array.isArray(db.notifications)) {
-        const filteredNotifs = db.notifications.filter(n => isNotificationForCurrentUser(n, db));
-        if (filteredNotifs.length !== db.notifications.length) {
-          db.notifications = filteredNotifs;
-          sanitizedBoot = true;
-        }
-      }
       if (Array.isArray(db.absences)) {
         const filteredAbs = db.absences.filter(a => a && (a.team || a.teamId));
         if (filteredAbs.length !== db.absences.length) {
@@ -4327,6 +4738,7 @@
       }
       if (sanitizedBoot) saveDB(db, false);
 
+      reconcileLoggedOutNotifications(db, false);
       updateNotificationBadges();
       checkProgressiveDeadlines();
 
@@ -4682,12 +5094,17 @@
       if (task.status === 'COMPLETED') {
         showToast('🎉 Tarefa marcada como concluída!');
         if (typeof handleTaskCompletedOnda3Hooks === 'function') handleTaskCompletedOnda3Hooks(task, db);
+        saveDB(db, false);
+        renderDashboard();
         createNotification({
+          id: `comp_notif_${task.id}`,
           title: 'Tarefa Concluída!',
-          message: `"${task.title}" foi concluída e movida para a seção Concluídas.`,
+          message: `"${task.title}" (${task.assignee || 'Membro'}) foi concluída e movida para a seção Concluídas.`,
           type: 'completion',
           color: '#10B981',
-          taskId: task.id
+          taskId: task.id,
+          targetUserName: task.assignee || task.creatorName || null,
+          broadcastTeam: true
         });
       } else {
         showToast('Tarefa reaberta como pendente.');
@@ -4700,9 +5117,14 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             status: task.status,
+            priority: normalizePriorityToEnum(task.priority),
+            tags: task.tags || [],
             version: task.version - 1,
             subtasks: task.subtasks,
-            userId: db.currentUser?.id || 'me'
+            userId: db.currentUser?.id || 'me',
+            skipServerRecurrence: true,
+            recurrenceInterval: task.status === 'COMPLETED' ? null : task.recurrenceInterval,
+            isRecurring: task.status === 'COMPLETED' ? false : task.isRecurring
           })
         }).then(res => {
           if (res.ok) {
@@ -4921,8 +5343,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: task.status,
+          priority: normalizePriorityToEnum(task.priority),
+          tags: task.tags || [],
           subtasks: task.subtasks,
-          version: task.version || 1
+          version: task.version || 1,
+          skipServerRecurrence: true,
+          recurrenceInterval: task.status === 'COMPLETED' ? null : task.recurrenceInterval,
+          isRecurring: task.status === 'COMPLETED' ? false : task.isRecurring
         })
       }).catch(() => {});
     }
@@ -5987,6 +6414,11 @@
       if (statusEl) statusEl.value = task.status || 'PENDING';
 
       document.getElementById('editFullTaskEffort').value = task.effortHours || 4;
+      const editAiBtn = document.getElementById('btnEditModalAiEffort');
+      if (editAiBtn && typeof getTeamSettings === 'function') {
+        const ts = getTeamSettings(db, task.team || db.currentTeam);
+        editAiBtn.style.display = ts.aiAutoAssign === false ? 'none' : 'inline-flex';
+      }
 
       // Popula Assignees
       const assigneeSelect = document.getElementById('editFullTaskAssignee');
@@ -6089,12 +6521,18 @@
         const pred = (db.tasks || []).find(t => String(t.id) === predId);
         return pred && pred.status !== 'COMPLETED';
       });
+      const blockPolicyEnabled = (typeof getTeamSettings === 'function')
+        ? getTeamSettings(db, task.team || db.currentTeam).blockPendingDependencies !== false
+        : true;
       let effectiveStatus = newStatus;
-      if (hasUnfinishedDep && effectiveStatus !== 'COMPLETED') {
+      if (blockPolicyEnabled && hasUnfinishedDep && effectiveStatus !== 'COMPLETED') {
         effectiveStatus = 'BLOCKED';
-      } else if (!hasUnfinishedDep && effectiveStatus === 'BLOCKED') {
+      } else if ((!hasUnfinishedDep || !blockPolicyEnabled) && effectiveStatus === 'BLOCKED') {
         effectiveStatus = 'PENDING';
       }
+
+      const prevStatusBeforeEdit = task.status;
+      const prevAssigneeBeforeEdit = task.assignee;
 
       task.title = newTitle;
       task.description = newDesc;
@@ -6108,6 +6546,15 @@
       task.tags = [...editingTaskTags];
       task.subtasks = [...editingTaskSubtasks];
       task.dependencies = nextDeps;
+
+      if (typeof evaluateLocalAutomations === 'function') {
+        if (prevStatusBeforeEdit !== task.status) {
+          evaluateLocalAutomations('STATUS_CHANGED', task, db);
+        }
+        if (prevAssigneeBeforeEdit !== task.assignee) {
+          evaluateLocalAutomations('ASSIGNED_TO_ME', task, db);
+        }
+      }
 
       // Sincroniza adições/remoções de dependências no backend em segundo plano
       const prevDepIds = new Set(prevDeps.map(d => String(d.dependsOnTaskId || d)));
@@ -6398,8 +6845,13 @@
 
         const allDone = task.subtasks.length > 0 && task.subtasks.every(s => s.completed);
         if (allDone && task.status !== 'COMPLETED') {
+          if (typeof checkTaskBlockedByDependencies === 'function' && checkTaskBlockedByDependencies(task, db)) {
+            sub.completed = false;
+            return;
+          }
           task.status = 'COMPLETED';
           showToast('Todas as sub-tarefas concluídas! Tarefa finalizada!');
+          if (typeof handleTaskCompletedOnda3Hooks === 'function') handleTaskCompletedOnda3Hooks(task, db);
         } else if (!allDone && task.status === 'COMPLETED') {
           task.status = 'PENDING';
         }
@@ -6409,6 +6861,21 @@
         updateTaskCompleteButton(task);
         refreshOpenTaskDetail(task);
         renderDashboard();
+
+        if (isOnline) {
+          apiFetch(`/tasks/${task.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              status: task.status,
+              subtasks: task.subtasks,
+              version: task.version || 1,
+              skipServerRecurrence: true,
+              recurrenceInterval: task.status === 'COMPLETED' ? null : task.recurrenceInterval,
+              isRecurring: task.status === 'COMPLETED' ? false : task.isRecurring
+            })
+          }).catch(() => {});
+        }
       }
     }
 
@@ -6471,14 +6938,32 @@
         showToast('Parabéns! Tarefa concluída com sucesso!');
         if (typeof handleTaskCompletedOnda3Hooks === 'function') handleTaskCompletedOnda3Hooks(task, db);
         createNotification({
+          id: `comp_notif_${task.id}`,
           title: 'Conclusão Antecipada!',
           message: `Você concluiu a tarefa "${task.title}"! Que tal puxar novas tarefas do backlog ou apoiar um colega?`,
           type: 'completion',
           color: '#10B981',
-          taskId: task.id
+          taskId: task.id,
+          targetUserName: task.assignee || task.creatorName || null,
+          broadcastTeam: true
         });
       } else {
         showToast('Tarefa reaberta como pendente.');
+      }
+
+      if (isOnline) {
+        apiFetch(`/tasks/${task.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: task.status,
+            subtasks: task.subtasks,
+            version: task.version || 1,
+            skipServerRecurrence: true,
+            recurrenceInterval: task.status === 'COMPLETED' ? null : task.recurrenceInterval,
+            isRecurring: task.status === 'COMPLETED' ? false : task.isRecurring
+          })
+        }).catch(() => {});
       }
     }
 
@@ -7518,7 +8003,8 @@
           _alertsSent: []
         };
 
-        if (Array.isArray(newTask.dependencies) && newTask.dependencies.length > 0) {
+        const teamPolicyCreate = (typeof getTeamSettings === 'function') ? getTeamSettings(db, currentTeam) : { blockPendingDependencies: true };
+        if (teamPolicyCreate.blockPendingDependencies !== false && Array.isArray(newTask.dependencies) && newTask.dependencies.length > 0) {
           const hasUnfinishedInitPred = newTask.dependencies.some(d => {
             const pred = (db.tasks || []).find(t => String(t.id) === String(d.dependsOnTaskId || d));
             return pred && pred.status !== 'COMPLETED';
@@ -7536,7 +8022,14 @@
         if (!db.tasks) db.tasks = [];
         db.tasks.unshift(newTask);
 
-        // Garante que todas as novas tags são registradas em db.tags vinculadas exclusivamente ao time ativo
+        // Executa o motor de automações ANTES de registrar tags, salvar no banco local e enviar ao backend,
+        // garantindo que tags adicionadas ou prioridades alteradas pela automação fiquem salvas na tarefa!
+        if (typeof evaluateLocalAutomations === 'function') {
+          evaluateLocalAutomations('TASK_CREATED', newTask, db);
+          if (newTask.assignee) evaluateLocalAutomations('ASSIGNED_TO_ME', newTask, db);
+        }
+
+        // Garante que todas as novas tags (incluindo as adicionadas por automação) são registradas em db.tags do time ativo
         if (newTask.tags && newTask.tags.length > 0) {
           if (!Array.isArray(db.tags)) db.tags = [];
           newTask.tags.forEach(tg => {
@@ -7585,7 +8078,8 @@
             if (resData && resData.data && Array.isArray(resData.data.tags) && resData.data.tags.length > 0) {
               const serverTags = resData.data.tags.map(t => typeof t === 'string' ? t : (t?.name || t?.title || '')).filter(Boolean);
               if (serverTags.length > 0) {
-                newTask.tags = serverTags;
+                const mergedSet = new Set([...(Array.isArray(newTask.tags) ? newTask.tags : []), ...serverTags]);
+                newTask.tags = Array.from(mergedSet);
               }
             }
             newTask._status = 'synced';
@@ -7626,20 +8120,21 @@
 
         // Notificação de Atribuição (Requisito Página 6 do PDF)
         createNotification({
+          id: `created_${newTask.id}`,
           title: 'Nova Tarefa Criada',
           message: `A tarefa "${title}" foi criada no time "${currentTeam}" atribuída a ${selectedAssignee} com prazo para ${dueDateFormatted}.`,
           type: 'assignment',
           color: '#2563EB',
-          taskId: newTask.id
+          taskId: newTask.id,
+          team: currentTeam,
+          teamId: db.currentTeamId || null,
+          targetUserName: selectedAssignee,
+          targetUserId: newTask.assigneeId || null,
+          broadcastTeam: false
         });
 
         // Avalia e agenda alertas progressivos para a nova tarefa
-        // Avalia e agenda alertas progressivos para a nova tarefa
         checkProgressiveDeadlines();
-        if (typeof evaluateLocalAutomations === 'function') {
-          evaluateLocalAutomations('TASK_CREATED', newTask, db);
-          if (newTask.assignee) evaluateLocalAutomations('ASSIGNED_TO_ME', newTask, db);
-        }
 
         // Retorna ao Dashboard e atualiza lista
         switchScreen('dashboard', null);
@@ -7844,36 +8339,133 @@
 
     // --- FLUXO 2: CRIAR TIME REAL ---
     let editingTeamSettingsMode = false;
+    const PERSISTENT_TEAM_SETTINGS_KEY = 'sinergia_persistent_team_settings_v1';
+
+    function getPersistentTeamSettingsMap() {
+      try {
+        const raw = localStorage.getItem(PERSISTENT_TEAM_SETTINGS_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') return parsed;
+        }
+      } catch (e) {}
+      return {};
+    }
+
+    function savePersistentTeamSettings(teamName, teamId, settings, db) {
+      if (!settings) return;
+      const map = getPersistentTeamSettingsMap();
+      const cleanName = teamName ? String(teamName).trim() : '';
+      const cleanLower = cleanName.toLowerCase();
+      const cleanId = teamId ? String(teamId).trim() : '';
+      const cleanIdLower = cleanId.toLowerCase();
+
+      if (cleanName) map[cleanName] = settings;
+      if (cleanLower) map[cleanLower] = settings;
+      if (cleanId) map[cleanId] = settings;
+      if (cleanIdLower) map[cleanIdLower] = settings;
+
+      try {
+        localStorage.setItem(PERSISTENT_TEAM_SETTINGS_KEY, JSON.stringify(map));
+      } catch (e) {}
+
+      if (db) {
+        if (!db.teamSettingsByTeam) db.teamSettingsByTeam = {};
+        if (cleanName) db.teamSettingsByTeam[cleanName] = settings;
+        if (cleanLower) db.teamSettingsByTeam[cleanLower] = settings;
+        if (cleanId) db.teamSettingsByTeam[cleanId] = settings;
+        if (cleanIdLower) db.teamSettingsByTeam[cleanIdLower] = settings;
+      }
+    }
 
     function getTeamSettings(db, teamName) {
-      const tName = teamName || db?.currentTeam || 'Meu Time';
+      const tName = String(teamName || db?.currentTeam || 'Meu Time').trim();
+      const tLower = tName.toLowerCase();
+      const tId = (!teamName || tLower === String(db?.currentTeam || '').trim().toLowerCase()) && db?.currentTeamId
+        ? String(db.currentTeamId).trim()
+        : '';
+      const tIdLower = tId.toLowerCase();
+
       if (!db.teamSettingsByTeam) db.teamSettingsByTeam = {};
-      if (!db.teamSettingsByTeam[tName]) {
-        db.teamSettingsByTeam[tName] = {
-          description: 'Desenvolvimento colaborativo Sinergia',
-          weeklyCapacityHours: 40,
-          sprintCycle: 'BIWEEKLY',
-          defaultInviteRole: 'EDIT',
-          aiAutoAssign: true,
-          requireAssignmentAccept: true,
-          blockPendingDependencies: true,
-          autoUrgentNotify: true
-        };
+      const persisted = getPersistentTeamSettingsMap();
+
+      const found =
+        (tId && (db.teamSettingsByTeam[tId] || persisted[tId])) ||
+        (tIdLower && (db.teamSettingsByTeam[tIdLower] || persisted[tIdLower])) ||
+        db.teamSettingsByTeam[tName] ||
+        persisted[tName] ||
+        db.teamSettingsByTeam[tLower] ||
+        persisted[tLower] ||
+        null;
+
+      if (found && typeof found === 'object') {
+        db.teamSettingsByTeam[tName] = found;
+        if (tId) db.teamSettingsByTeam[tId] = found;
+        return found;
       }
-      return db.teamSettingsByTeam[tName];
+
+      const defaultSettings = {
+        description: 'Desenvolvimento colaborativo Sinergia',
+        weeklyCapacityHours: 40,
+        sprintCycle: 'BIWEEKLY',
+        defaultInviteRole: 'EDIT',
+        aiAutoAssign: true,
+        requireAssignmentAccept: true,
+        blockPendingDependencies: true,
+        autoUrgentNotify: true
+      };
+      db.teamSettingsByTeam[tName] = defaultSettings;
+      return defaultSettings;
     }
 
     function readTeamSettingsFromModalUI() {
+      const aiEl = document.getElementById('newTeamPolicyAiToggle');
+      const accEl = document.getElementById('newTeamPolicyAcceptToggle');
+      const dagEl = document.getElementById('newTeamPolicyDagBlockToggle');
+      const autoEl = document.getElementById('newTeamPolicyAutoUrgentToggle');
       return {
         description: (document.getElementById('newTeamDescInput')?.value || '').trim() || 'Projeto Sinergia',
         weeklyCapacityHours: parseInt(document.getElementById('newTeamWeeklyHoursSelect')?.value || '40', 10) || 40,
         sprintCycle: document.getElementById('newTeamSprintCycleSelect')?.value || 'BIWEEKLY',
         defaultInviteRole: document.getElementById('newTeamDefaultRoleSelect')?.value || 'EDIT',
-        aiAutoAssign: document.getElementById('newTeamPolicyAiToggle')?.checked !== false,
-        requireAssignmentAccept: document.getElementById('newTeamPolicyAcceptToggle')?.checked !== false,
-        blockPendingDependencies: document.getElementById('newTeamPolicyDagBlockToggle')?.checked !== false,
-        autoUrgentNotify: document.getElementById('newTeamPolicyAutoUrgentToggle')?.checked !== false
+        aiAutoAssign: aiEl ? Boolean(aiEl.checked) : false,
+        requireAssignmentAccept: accEl ? Boolean(accEl.checked) : false,
+        blockPendingDependencies: dagEl ? Boolean(dagEl.checked) : false,
+        autoUrgentNotify: autoEl ? Boolean(autoEl.checked) : false
       };
+    }
+
+    function syncTeamSettingsPoliciesAndAutomations(db, teamName, teamId, teamSettings) {
+      if (!db || !teamSettings) return;
+      savePersistentTeamSettings(teamName, teamId, teamSettings, db);
+      currentInviteRole = teamSettings.defaultInviteRole || 'EDIT';
+
+      const tKey = String(teamId || teamName || db.currentTeamId || db.currentTeam || 'default').trim().toLowerCase();
+      const defaultRuleId = `auto-default-${tKey}`;
+      if (!Array.isArray(db.automationRules)) db.automationRules = [];
+
+      if (teamSettings.autoUrgentNotify === false) {
+        // Remove qualquer regra padrão ou herdada se o preset de automação urgente foi desativado
+        db.automationRules = db.automationRules.filter(r => {
+          if (!r) return false;
+          const rId = String(r.id || '');
+          if (rId === 'auto-001' || rId === defaultRuleId || r._isDefaultPreset) return false;
+          return true;
+        });
+      } else {
+        if (typeof ensureDefaultAutomationRules === 'function') {
+          ensureDefaultAutomationRules(db);
+        }
+      }
+
+      // Se o bloqueio por dependências foi desativado, desbloqueia tarefas que estavam como BLOCKED neste time
+      if (teamSettings.blockPendingDependencies === false && Array.isArray(db.tasks)) {
+        db.tasks.forEach(t => {
+          if (isTaskInCurrentTeam(t, db) && t.status === 'BLOCKED') {
+            t.status = 'PENDING';
+          }
+        });
+      }
     }
 
     function openEditCurrentTeamSettings() {
@@ -7901,13 +8493,13 @@
       if (drSel) drSel.value = settings.defaultInviteRole || 'EDIT';
 
       const aiCb = document.getElementById('newTeamPolicyAiToggle');
-      if (aiCb) aiCb.checked = settings.aiAutoAssign !== false;
+      if (aiCb) aiCb.checked = Boolean(settings.aiAutoAssign);
       const accCb = document.getElementById('newTeamPolicyAcceptToggle');
-      if (accCb) accCb.checked = settings.requireAssignmentAccept !== false;
+      if (accCb) accCb.checked = Boolean(settings.requireAssignmentAccept);
       const dagCb = document.getElementById('newTeamPolicyDagBlockToggle');
-      if (dagCb) dagCb.checked = settings.blockPendingDependencies !== false;
+      if (dagCb) dagCb.checked = Boolean(settings.blockPendingDependencies);
       const autoCb = document.getElementById('newTeamPolicyAutoUrgentToggle');
-      if (autoCb) autoCb.checked = settings.autoUrgentNotify !== false;
+      if (autoCb) autoCb.checked = Boolean(settings.autoUrgentNotify);
 
       document.getElementById('modalCreateTeam').style.display = 'flex';
     }
@@ -7920,6 +8512,8 @@
       if (titleEl) titleEl.innerText = 'Criar & Configurar Novo Time';
       if (subEl) subEl.innerText = 'Defina o nome e as configurações base do seu time ou projeto:';
       if (btnEl) btnEl.innerText = 'Criar e Começar';
+      const nameIn = document.getElementById('newTeamNameInput');
+      if (nameIn) nameIn.value = '';
       const descIn = document.getElementById('newTeamDescInput');
       if (descIn) descIn.value = '';
       const whSel = document.getElementById('newTeamWeeklyHoursSelect');
@@ -7953,14 +8547,13 @@
       const teamSettings = readTeamSettingsFromModalUI();
       if (editingTeamSettingsMode) {
         const curTeam = db.currentTeam || name;
-        if (!db.teamSettingsByTeam) db.teamSettingsByTeam = {};
-        db.teamSettingsByTeam[curTeam] = teamSettings;
-        db.teamSettingsByTeam[name] = teamSettings;
-        currentInviteRole = teamSettings.defaultInviteRole || 'EDIT';
+        syncTeamSettingsPoliciesAndAutomations(db, curTeam, db.currentTeamId, teamSettings);
+        savePersistentTeamSettings(name, db.currentTeamId, teamSettings, db);
         saveDB(db, false);
         closeModal('modalCreateTeam');
         renderProjectMembersTab(false);
         renderTimeline();
+        renderDashboard();
         showToast(`⚙️ Configurações da equipe "${curTeam}" (${teamSettings.weeklyCapacityHours}h/sem) salvas!`);
         return;
       }
@@ -8004,15 +8597,9 @@
         db.allUsers = creatorOnlyList;
         projectMembersCache = [...creatorOnlyList];
         cachedAvailableUsers = [...creatorOnlyList];
-        saveDB(db, false);
 
         closeModal('modalCreateTeam');
-        if (!db.teamSettingsByTeam) db.teamSettingsByTeam = {};
-        db.teamSettingsByTeam[data.team.name] = teamSettings;
-        currentInviteRole = teamSettings.defaultInviteRole || 'EDIT';
-        if (teamSettings.autoUrgentNotify && typeof ensureDefaultAutomationRules === 'function') {
-          ensureDefaultAutomationRules(db);
-        }
+        syncTeamSettingsPoliciesAndAutomations(db, data.team.name, data.team.id, teamSettings);
         saveDB(db, false);
         showToast(`Time "${data.team.name}" criado com sucesso (${teamSettings.weeklyCapacityHours}h/sem)!`);
         switchScreen('dashboard', null);
@@ -8706,10 +9293,8 @@
         });
       }
 
-      // Mantém no feed apenas notificações pertencentes a este usuário e aos seus times
-      if (Array.isArray(db.notifications)) {
-        db.notifications = db.notifications.filter(n => isNotificationForCurrentUser(n, db));
-      }
+      // Preserva o cofre multiusuário de notificações para que notificações recebidas deslogado nunca sejam apagadas na troca de conta
+      mergePersistentNotificationsIntoDB(db);
 
       // Filtra tags mantendo exclusivamente aquelas criadas nos times em que o novo usuário participa
       if (Array.isArray(db.tags)) {
@@ -8845,6 +9430,7 @@
 
             // Processa tarefas criadas e atualizadas no servidor
             const serverTasks = [...(data.changes.tasks.created || []), ...(data.changes.tasks.updated || [])];
+            const validTeamMembersLower = new Set(getTeamMemberNamesList(db).map(m => String(m).trim().toLowerCase()));
             for (const st of serverTasks) {
               const localIndex = db.tasks.findIndex(lt => lt.id === st.id);
               const belongsToTeam = !db.currentTeam || !st.team || 
@@ -8852,6 +9438,22 @@
                                     (db.currentTeamId && st.projectId === db.currentTeamId);
 
               if (!belongsToTeam) continue;
+
+              // Evita duplicata fantasma gerada pelo servidor em tarefas de rodízio quando o cliente já gerou a próxima ocorrência para um membro real do time
+              if (localIndex === -1 && st.recurrenceInterval && Number(st.currentOccurrence) > 1) {
+                const stAssName = String(st.assigneeName || (typeof st.assignee === 'string' ? st.assignee : st.assignee?.name) || '').trim().toLowerCase();
+                const duplicateRecExists = db.tasks.some(lt =>
+                  lt.id !== st.id &&
+                  String(lt.title || '').trim().toLowerCase() === String(st.title || '').trim().toLowerCase() &&
+                  Number(lt.currentOccurrence) === Number(st.currentOccurrence) &&
+                  lt.status !== 'COMPLETED'
+                );
+                const isExternalNonTeamUser = validTeamMembersLower.size > 0 && stAssName && !validTeamMembersLower.has(stAssName);
+                if (duplicateRecExists || isExternalNonTeamUser) {
+                  apiFetch(`/tasks/${st.id}`, { method: 'DELETE' }).catch(() => {});
+                  continue;
+                }
+              }
 
               const priorityText = normalizePriorityToDisplay(st.priority);
               const { bg: pBg, col: pCol } = getPriorityColors(priorityText);
@@ -9016,23 +9618,28 @@
                     db.notifiedMentions.push(mentionKey);
                     hasChanges = true;
 
-                    // Apenas exibe toast se o comentário for recente (últimos 30 minutos)
-                    const isRecent = !c.timestamp || (Date.now() - Number(c.timestamp)) < 30 * 60 * 1000;
-                    if (isRecent) {
-                      createNotification({
-                        id: 'notif-' + mentionKey,
-                        title: 'Nova Menção @',
-                        message: `${c.author} mencionou você na tarefa "${task.title}": "${c.text}"`,
-                        type: 'mention',
-                        color: '#8B5CF6',
-                        taskId: task.id,
-                        urgency: 'urgente'
-                      });
-                      db.notifications = getDB().notifications;
-                    }
+                    // Notifica mesmo que o comentário tenha ocorrido enquanto o usuário estava deslogado
+                    createNotification({
+                      id: 'notif-' + mentionKey,
+                      title: 'Nova Menção @',
+                      message: `${c.author} mencionou você na tarefa "${task.title}": "${c.text}"`,
+                      type: 'mention',
+                      color: '#8B5CF6',
+                      taskId: task.id,
+                      team: task.team || db.currentTeam,
+                      teamId: task.projectId || db.currentTeamId,
+                      targetUserName: db.currentUser?.name || null,
+                      urgency: 'urgente'
+                    });
+                    db.notifications = getDB().notifications;
                   }
                 });
               });
+            }
+
+            // Reconcilia e dispara todas as notificações geradas enquanto o usuário ou Admin estava deslogado
+            if (typeof reconcileLoggedOutNotifications === 'function') {
+              reconcileLoggedOutNotifications(db, true);
             }
 
             if (hasChanges) {
@@ -9872,6 +10479,7 @@
           db.currentTeamId = data.teams[0].id;
           resetSessionStateForUserSwitch(db, data.user, data.teams);
           saveDB(db, false);
+          reconcileLoggedOutNotifications(db, true);
           updateNotificationBadges();
           showToast(`Bem-vindo de volta, ${data.user.name}!`);
           switchScreen('dashboard', null);
@@ -9881,6 +10489,7 @@
           db.currentTeamId = null;
           resetSessionStateForUserSwitch(db, data.user, []);
           saveDB(db, false);
+          reconcileLoggedOutNotifications(db, false);
           updateNotificationBadges();
           showToast(`Olá, ${data.user.name}! Crie ou entre em um time.`);
           switchScreen('team-onboarding', null);
@@ -10351,6 +10960,10 @@
     }
 
     function sortTasksTopologicallyIfEnabled(pendingTasks, allTeamTasks) {
+      const db = getDB();
+      const blockPolicyEnabled = (typeof getTeamSettings === 'function')
+        ? getTeamSettings(db, db.currentTeam).blockPendingDependencies !== false
+        : true;
       const dag = computeLocalDagAndCpm(allTeamTasks || pendingTasks);
       // Atualiza flag isCritical em tempo real para exibir badge CPM
       (pendingTasks || []).forEach(t => {
@@ -10359,9 +10972,9 @@
           const pTask = (allTeamTasks || []).find(x => String(x.id) === String(pId));
           return pTask && pTask.status !== 'COMPLETED';
         });
-        if (hasUnfinishedPred && t.status !== 'COMPLETED') {
+        if (blockPolicyEnabled && hasUnfinishedPred && t.status !== 'COMPLETED') {
           t.status = 'BLOCKED';
-        } else if (t.status === 'BLOCKED' && !hasUnfinishedPred) {
+        } else if (t.status === 'BLOCKED' && (!hasUnfinishedPred || !blockPolicyEnabled)) {
           t.status = 'PENDING';
         }
         t.isCritical = Boolean(dag.isCritical.get(String(t.id)));
@@ -10381,6 +10994,10 @@
     // --- #21 (FE-10.3): Bloqueio de Transição e Gestão de Dependências ---
     function checkTaskBlockedByDependencies(task, db) {
       if (!task) return false;
+      if (typeof getTeamSettings === 'function') {
+        const ts = getTeamSettings(db, task.team || db?.currentTeam);
+        if (ts && ts.blockPendingDependencies === false) return false;
+      }
       const deps = Array.isArray(task.dependencies) ? task.dependencies : [];
       if (deps.length === 0) return false;
 
@@ -10435,7 +11052,10 @@
       task.dependencies.push(depObj);
 
       const predTask = (db.tasks || []).find(t => String(t.id) === String(dependsOnTaskId));
-      if (predTask && predTask.status !== 'COMPLETED' && task.status !== 'COMPLETED') {
+      const blockPolicyEnabled = (typeof getTeamSettings === 'function')
+        ? getTeamSettings(db, task.team || db.currentTeam).blockPendingDependencies !== false
+        : true;
+      if (blockPolicyEnabled && predTask && predTask.status !== 'COMPLETED' && task.status !== 'COMPLETED') {
         task.status = 'BLOCKED';
       }
 
@@ -10510,15 +11130,42 @@
 
       // 2. Rodízio Automático Round-Robin para tarefas recorrentes (#32 FE-13.3 / US13)
       const interval = completedTask.recurrenceInterval;
-      if (completedTask.isRecurring && interval && interval !== 'NONE') {
+      if (completedTask.isRecurring && interval && interval !== 'NONE' && !completedTask._recurrenceGenerated) {
+        completedTask._recurrenceGenerated = true;
         const currentOcc = Number(completedTask.currentOccurrence) || 1;
         const maxOcc = Number(completedTask.maxOccurrences) || 12;
         if (currentOcc < maxOcc) {
-          const rotationQueue = (Array.isArray(completedTask.rotationUserIds) && completedTask.rotationUserIds.length > 0)
-            ? completedTask.rotationUserIds
-            : getTeamMemberNamesList(db);
-          const nextRotIndex = ((Number(completedTask.currentRotationIndex) || 0) + 1) % Math.max(rotationQueue.length, 1);
-          const nextAssignee = rotationQueue[nextRotIndex] || completedTask.assignee || 'Membro';
+          const validTeamMembers = getTeamMemberNamesList(db);
+          const validLowerMap = new Map(validTeamMembers.map(m => [String(m).trim().toLowerCase(), m]));
+
+          // Filtra a fila de rodízio estritamente para integrantes reais do time ativo (impede perfis externos como "Davi Miguel")
+          let rotationQueue = [];
+          if (Array.isArray(completedTask.rotationUserIds) && completedTask.rotationUserIds.length > 0) {
+            completedTask.rotationUserIds.forEach(uName => {
+              const match = validLowerMap.get(String(uName || '').trim().toLowerCase());
+              if (match && !rotationQueue.includes(match)) rotationQueue.push(match);
+            });
+          }
+          validTeamMembers.forEach(m => {
+            if (!rotationQueue.includes(m)) rotationQueue.push(m);
+          });
+          if (rotationQueue.length === 0) {
+            rotationQueue = [completedTask.assignee || db.currentUser?.name || 'Membro'];
+          }
+
+          const curAssigneeLower = String(completedTask.assignee || completedTask.assigneeName || '').trim().toLowerCase();
+          const foundCurIdx = rotationQueue.findIndex(m => String(m).trim().toLowerCase() === curAssigneeLower);
+          const baseRotIndex = foundCurIdx >= 0 ? foundCurIdx : (Number(completedTask.currentRotationIndex) || 0);
+          const nextRotIndex = (baseRotIndex + 1) % Math.max(rotationQueue.length, 1);
+          const nextAssignee = rotationQueue[nextRotIndex] || rotationQueue[0] || completedTask.assignee || 'Membro';
+
+          // Busca objeto do membro no time ativo para atribuir o assigneeId correto (nunca herdando o ID do usuário anterior)
+          const teamKey = String(db.currentTeamId || db.currentTeam || '').trim().toLowerCase();
+          const teamObjs = (db.teamMembersByTeam && (db.teamMembersByTeam[teamKey] || db.teamMembersByTeam[db.currentTeam])) || projectMembersCache || [];
+          const nextMemberObj = Array.isArray(teamObjs)
+            ? teamObjs.find(u => u && u.name && String(u.name).trim().toLowerCase() === String(nextAssignee).trim().toLowerCase())
+            : null;
+          const nextAssigneeId = nextMemberObj?.id || null;
 
           const daysMap = { DAILY: 1, WEEKLY: 7, BIWEEKLY: 14, MONTHLY: 30, SPRINT: 14 };
           const addDays = daysMap[interval] || 7;
@@ -10527,7 +11174,12 @@
           const nextDateStr = getLocalDateString(nextDate);
           const origTimeStr = extractTaskTimeStr(completedTask, '18:00');
           const nextDueFormatted = formatDueDateDisplay(nextDateStr, origTimeStr);
-          const nextAvatar = resolveUserPhoto(nextAssignee, null);
+          const nextAvatar = resolveUserPhoto(nextAssignee, nextMemberObj?.avatarUrl || nextMemberObj?.avatar || null);
+
+          const requireAccept = (typeof getTeamSettings === 'function')
+            ? getTeamSettings(db, completedTask.team || db.currentTeam).requireAssignmentAccept !== false
+            : true;
+          const isNextMe = db.currentUser?.name && String(nextAssignee).trim().toLowerCase() === String(db.currentUser.name).trim().toLowerCase();
 
           const nextTask = {
             ...completedTask,
@@ -10536,26 +11188,43 @@
             completed: false,
             assignee: nextAssignee,
             assigneeName: nextAssignee,
+            assigneeId: nextAssigneeId,
             avatar: nextAvatar,
             assigneeAvatar: nextAvatar,
+            assignmentStatus: (requireAccept && !isNextMe) ? 'PENDING' : 'ACCEPTED',
+            declinedReason: null,
             dueDate: nextDueFormatted,
             dueDateIso: `${nextDateStr}T${origTimeStr}:00`,
+            isRecurring: true,
+            recurrenceInterval: interval,
             currentOccurrence: currentOcc + 1,
             currentRotationIndex: nextRotIndex,
             rotationUserIds: rotationQueue,
+            _recurrenceGenerated: false,
             subtasks: (completedTask.subtasks || []).map(s => ({ ...s, id: 'sub-' + Date.now() + Math.random(), completed: false })),
             comments: [],
             version: 1,
             _status: 'created'
           };
+
+          // Desativa recorrência na instância já concluída para que o servidor nunca gere outra cópia duplicada em cima dela
+          completedTask.isRecurring = false;
+          completedTask.recurrenceInterval = null;
+
           db.tasks.unshift(nextTask);
           saveDB(db, true);
           createNotification({
+            id: `rot_${nextTask.id}`,
             title: '🔄 Rodízio Round-Robin',
             message: `Nova ocorrência (#${nextTask.currentOccurrence}/${maxOcc}) de "${nextTask.title}" gerada e rotacionada para ${nextAssignee}!`,
             type: 'assignment',
             color: '#2563EB',
-            taskId: nextTask.id
+            taskId: nextTask.id,
+            team: nextTask.team || db.currentTeam,
+            teamId: nextTask.projectId || db.currentTeamId,
+            targetUserName: nextAssignee,
+            targetUserId: nextAssigneeId,
+            broadcastTeam: false
           });
           showToast(`🔄 Próxima ocorrência atribuída em rodízio para ${nextAssignee}!`);
         }
@@ -10569,7 +11238,7 @@
     function getTeamMemberNamesList(db) {
       const set = new Set();
       if (!db || !db.currentUser) return [];
-      if (db.currentUser.name) set.add(db.currentUser.name);
+      if (db.currentUser.name) set.add(db.currentUser.name.trim());
 
       // Se o usuário ainda não entrou nem criou nenhum time, retorna estritamente apenas ele mesmo
       const team = db.currentTeam ? String(db.currentTeam).trim() : '';
@@ -10579,19 +11248,33 @@
       }
 
       const teamKey = (teamId || team).toLowerCase().trim();
+      let foundExplicitTeamMembers = false;
       if (db.teamMembersByTeam) {
-        if (teamKey && Array.isArray(db.teamMembersByTeam[teamKey])) {
-          db.teamMembersByTeam[teamKey].forEach(m => { if (m?.name) set.add(m.name); });
+        if (teamKey && Array.isArray(db.teamMembersByTeam[teamKey]) && db.teamMembersByTeam[teamKey].length > 0) {
+          db.teamMembersByTeam[teamKey].forEach(m => {
+            if (m?.name && String(m.name).trim()) {
+              set.add(String(m.name).trim());
+              foundExplicitTeamMembers = true;
+            }
+          });
         }
-        if (team && Array.isArray(db.teamMembersByTeam[team])) {
-          db.teamMembersByTeam[team].forEach(m => { if (m?.name) set.add(m.name); });
+        if (team && Array.isArray(db.teamMembersByTeam[team]) && db.teamMembersByTeam[team].length > 0) {
+          db.teamMembersByTeam[team].forEach(m => {
+            if (m?.name && String(m.name).trim()) {
+              set.add(String(m.name).trim());
+              foundExplicitTeamMembers = true;
+            }
+          });
         }
       }
-      (db.tasks || []).forEach(t => {
-        if (isTaskInCurrentTeam(t, db) && t.assignee) {
-          set.add(t.assignee);
-        }
-      });
+      if (!foundExplicitTeamMembers && Array.isArray(projectMembersCache) && projectMembersCache.length > 0) {
+        projectMembersCache.forEach(m => {
+          if (m?.name && String(m.name).trim()) {
+            set.add(String(m.name).trim());
+            foundExplicitTeamMembers = true;
+          }
+        });
+      }
       return Array.from(set);
     }
 
@@ -10636,10 +11319,31 @@
     }
 
     // --- #23 (FE-22.3): Aceite / Recusa de Atribuição de Tarefa (US22) ---
+    function isCurrentUserTaskAssignee(task, db) {
+      if (!task || !db || !db.currentUser) return false;
+      const myName = String(db.currentUser.name || '').trim().toLowerCase();
+      const myId = String(db.currentUser.id || '').trim().toLowerCase();
+      const taskAssName = String(task.assignee || task.assigneeName || '').trim().toLowerCase();
+      const taskAssId = String(task.assigneeId || '').trim().toLowerCase();
+
+      if (myName && taskAssName) {
+        return myName === taskAssName;
+      }
+      if (myId && taskAssId) {
+        return myId === taskAssId;
+      }
+      return false;
+    }
+
     function respondTaskAssignmentUI(status) {
       const db = getDB();
       const task = (db.tasks || []).find(t => String(t.id) === String(activeTaskId));
       if (!task) return;
+
+      if (!isCurrentUserTaskAssignee(task, db)) {
+        showToast(`🔒 Apenas o responsável pela tarefa (${task.assignee || 'Responsável'}) pode aceitar ou recusar esta atribuição!`);
+        return;
+      }
 
       let declinedReason = null;
       if (status === 'DECLINED') {
@@ -10655,17 +11359,27 @@
       apiFetch(`/tasks/${task.id}/assignment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, declinedReason })
+        body: JSON.stringify({
+          status,
+          declinedReason,
+          userId: db.currentUser?.id || null,
+          userName: db.currentUser?.name || null
+        })
       }).catch(() => {});
 
       createNotification({
+        id: `assign_resp_${task.id}_${status}_${Date.now()}`,
         title: status === 'ACCEPTED' ? '✅ Atribuição Aceita' : '⚠️ Atribuição Recusada',
         message: status === 'ACCEPTED'
           ? `${task.assignee || 'O responsável'} confirmou o aceite da tarefa "${task.title}".`
           : `${task.assignee || 'O responsável'} recusou a tarefa "${task.title}". Motivo: ${declinedReason}`,
         type: 'assignment',
         color: status === 'ACCEPTED' ? '#10B981' : '#EF4444',
-        taskId: task.id
+        taskId: task.id,
+        team: task.team || db.currentTeam,
+        teamId: task.projectId || db.currentTeamId,
+        targetUserName: task.creatorName || task.assignee || null,
+        broadcastTeam: true
       });
 
       refreshOpenTaskDetail(task);
@@ -10677,6 +11391,7 @@
       if (!task) return;
       const db = getDB();
       const members = getTeamMemberNamesList(db);
+      const teamSettings = (typeof getTeamSettings === 'function') ? getTeamSettings(db, task.team || db.currentTeam) : { requireAssignmentAccept: true, blockPendingDependencies: true };
 
       // 1. Popula seletor de co-responsável do checklist (#22 FE-21.3)
       const coSelect = document.getElementById('inlineSubtaskAssigneeSelect');
@@ -10688,27 +11403,45 @@
       // 2. Renderiza status e botões de Aceite / Recusa (#23 FE-22.3)
       const assignBox = document.getElementById('detailAssignmentActionBox');
       if (assignBox) {
-        const aStatus = task.assignmentStatus || 'ACCEPTED';
-        let statusPill = `<span style="background: #DCFCE7; color: #15803D; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">✅ Aceita pelo responsável</span>`;
-        if (aStatus === 'PENDING') {
-          statusPill = `<span style="background: #FEF3C7; color: #B45309; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">⏳ Aguardando Aceite</span>`;
-        } else if (aStatus === 'DECLINED') {
-          statusPill = `<span style="background: #FEE2E2; color: #DC2626; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">❌ Recusada</span>`;
-        }
+        if (teamSettings.requireAssignmentAccept === false && task.assignmentStatus !== 'DECLINED') {
+          assignBox.style.display = 'none';
+          assignBox.innerHTML = '';
+        } else {
+          assignBox.style.display = 'block';
+          const aStatus = task.assignmentStatus || 'ACCEPTED';
+          const isAssignee = isCurrentUserTaskAssignee(task, db);
+          let statusPill = `<span style="background: #DCFCE7; color: #15803D; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">✅ Aceita pelo responsável</span>`;
+          if (aStatus === 'PENDING') {
+            statusPill = `<span style="background: #FEF3C7; color: #B45309; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">⏳ Aguardando Aceite</span>`;
+          } else if (aStatus === 'DECLINED') {
+            statusPill = `<span style="background: #FEE2E2; color: #DC2626; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">❌ Recusada</span>`;
+          }
 
-        assignBox.innerHTML = `
-          <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 11px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
-              <span style="color: #475569; font-weight: 600;">Status da Delegação:</span>
-              ${statusPill}
+          const actionsHtml = isAssignee
+            ? `
+              <div style="display: flex; gap: 6px; margin-top: 7px;">
+                <button type="button" onclick="respondTaskAssignmentUI('ACCEPTED')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1px solid #86EFAC; background: ${aStatus === 'ACCEPTED' ? '#DCFCE7' : '#FFFFFF'}; color: #15803D; font-size: 10.5px; font-weight: 700; cursor: pointer;">✅ Confirmar Aceite</button>
+                <button type="button" onclick="respondTaskAssignmentUI('DECLINED')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1px solid #FCA5A5; background: ${aStatus === 'DECLINED' ? '#FEE2E2' : '#FFFFFF'}; color: #DC2626; font-size: 10.5px; font-weight: 700; cursor: pointer;">❌ Recusar / Redistribuir</button>
+              </div>
+            `
+            : `
+              <div style="margin-top: 7px; padding: 6px 8px; border-radius: 6px; background: #F1F5F9; border: 1px dashed #CBD5E1; color: #64748B; font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                <span>🔒</span>
+                <span>Somente o responsável designado (<strong>${escapeHtml(task.assignee || 'Responsável')}</strong>) pode aceitar ou recusar esta tarefa.</span>
+              </div>
+            `;
+
+          assignBox.innerHTML = `
+            <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 11px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="color: #475569; font-weight: 600;">Status da Delegação:</span>
+                ${statusPill}
+              </div>
+              ${task.declinedReason ? `<div style="margin-top: 4px; font-size: 10px; color: #DC2626; background: #FEF2F2; padding: 4px 6px; border-radius: 6px;">Motivo da recusa: ${escapeHtml(task.declinedReason)}</div>` : ''}
+              ${actionsHtml}
             </div>
-            ${task.declinedReason ? `<div style="margin-top: 4px; font-size: 10px; color: #DC2626; background: #FEF2F2; padding: 4px 6px; border-radius: 6px;">Motivo da recusa: ${escapeHtml(task.declinedReason)}</div>` : ''}
-            <div style="display: flex; gap: 6px; margin-top: 7px;">
-              <button type="button" onclick="respondTaskAssignmentUI('ACCEPTED')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1px solid #86EFAC; background: ${aStatus === 'ACCEPTED' ? '#DCFCE7' : '#FFFFFF'}; color: #15803D; font-size: 10.5px; font-weight: 700; cursor: pointer;">✅ Confirmar Aceite</button>
-              <button type="button" onclick="respondTaskAssignmentUI('DECLINED')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1px solid #FCA5A5; background: ${aStatus === 'DECLINED' ? '#FEE2E2' : '#FFFFFF'}; color: #DC2626; font-size: 10.5px; font-weight: 700; cursor: pointer;">❌ Recusar / Redistribuir</button>
-            </div>
-          </div>
-        `;
+          `;
+        }
       }
 
       // 3. Renderiza informações de Recorrência & Fila Round-Robin (#32 FE-13.3)
@@ -10774,11 +11507,17 @@
         }
       }
 
+      const depBlockingEnabled = teamSettings.blockPendingDependencies !== false;
+
       if (depBadgeEl) {
-        if (hasBlocking && task.status !== 'COMPLETED') {
+        if (hasBlocking && task.status !== 'COMPLETED' && depBlockingEnabled) {
           depBadgeEl.innerText = '🔒 Bloqueada';
           depBadgeEl.style.background = '#FEE2E2';
           depBadgeEl.style.color = '#991B1B';
+        } else if (hasBlocking && task.status !== 'COMPLETED' && !depBlockingEnabled) {
+          depBadgeEl.innerText = '⚠️ Pré-requisito pendente (Livre)';
+          depBadgeEl.style.background = '#FEF3C7';
+          depBadgeEl.style.color = '#B45309';
         } else {
           depBadgeEl.innerText = deps.length > 0 ? '✅ Pré-requisitos OK' : 'Livre';
           depBadgeEl.style.background = '#DCFCE7';
@@ -10787,7 +11526,7 @@
       }
 
       if (depBannerEl) {
-        if (hasBlocking && task.status !== 'COMPLETED') {
+        if (hasBlocking && task.status !== 'COMPLETED' && depBlockingEnabled) {
           depBannerEl.style.display = 'block';
           depBannerEl.innerHTML = `
             <div style="background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 6px 8px; font-size: 10.5px; color: #991B1B; font-weight: 600;">
@@ -10829,7 +11568,22 @@
       const recSel = document.getElementById('createRecurrenceSelect');
       if (recSel) recSel.value = 'NONE';
       toggleCreateRecurrenceOptions();
-      updateCreateTaskAiEstimate();
+
+      const db = getDB();
+      const teamSettings = typeof getTeamSettings === 'function' ? getTeamSettings(db, db.currentTeam) : { aiAutoAssign: true };
+      const aiBtn = document.getElementById('btnAutoAssignAiCreate');
+      const effortBtn = document.getElementById('btnAiEffortSuggest');
+      const effortHint = document.getElementById('aiEffortBreakdownHint');
+      if (teamSettings.aiAutoAssign === false) {
+        if (aiBtn) aiBtn.style.display = 'none';
+        if (effortBtn) effortBtn.style.display = 'none';
+        if (effortHint) effortHint.style.display = 'none';
+      } else {
+        if (aiBtn) aiBtn.style.display = 'inline-block';
+        if (effortBtn) effortBtn.style.display = 'inline-block';
+        if (effortHint) effortHint.style.display = 'block';
+        updateCreateTaskAiEstimate();
+      }
       setTimeout(() => renderCreateAssigneeCapacityPreview(), 120);
     }
 
@@ -11231,17 +11985,28 @@
     }
 
     function updateCreateTaskAiEstimate() {
+      const db = getDB();
+      const teamSettings = typeof getTeamSettings === 'function' ? getTeamSettings(db, db.currentTeam) : { aiAutoAssign: true };
       const btn = document.getElementById('btnAiEffortSuggest');
       const hint = document.getElementById('aiEffortBreakdownHint');
       const input = document.getElementById('createEffortInput');
+
+      if (teamSettings.aiAutoAssign === false) {
+        if (btn) btn.style.display = 'none';
+        if (hint) hint.style.display = 'none';
+        return;
+      }
+
       const analysis = analyzeTaskEffortTflite();
 
       if (btn) {
+        btn.style.display = 'inline-block';
         btn.innerText = `🧠 IA TFLite: ~${analysis.formattedShort} (Aplicar)`;
         btn.dataset.estimate = String(analysis.estimatedHours);
       }
 
       if (hint) {
+        hint.style.display = 'block';
         hint.innerHTML = `🧠 <strong>${analysis.category}:</strong> ~<strong>${analysis.formattedLong}</strong> • ${analysis.reasons.join(' • ')} <span style="color:#2563EB; font-weight:700;">(${analysis.confidence}% conf.)</span>`;
       }
 
@@ -11480,6 +12245,11 @@
 
     function autoSuggestAssigneeUI() {
       const db = getDB();
+      const teamSettings = typeof getTeamSettings === 'function' ? getTeamSettings(db, db.currentTeam) : { aiAutoAssign: true };
+      if (teamSettings.aiAutoAssign === false) {
+        showToast('ℹ️ A Auto-Alocação IA está desativada nas configurações deste time.');
+        return;
+      }
       const stats = getMemberCapacityStatsLocal(db);
       const available = stats.filter(s => !s.absence).sort((a, b) => a.allocatedHours - b.allocatedHours);
 
@@ -11498,16 +12268,19 @@
     }
 
     function buildCreateTaskOnda3Fields(selectedAssignee, user) {
+      const db = getDB();
+      const teamSettings = typeof getTeamSettings === 'function' ? getTeamSettings(db, db.currentTeam) : { requireAssignmentAccept: true };
       const recSel = document.getElementById('createRecurrenceSelect');
       const maxOccInput = document.getElementById('createMaxOccurrencesInput');
       const interval = recSel ? recSel.value : 'NONE';
       const isRecurring = Boolean(interval && interval !== 'NONE');
       const maxOccurrences = maxOccInput ? (parseInt(maxOccInput.value, 10) || 4) : 4;
-      const rotationUserIds = isRecurring ? getTeamMemberNamesList(getDB()) : [];
+      const rotationUserIds = isRecurring ? getTeamMemberNamesList(db) : [];
       const isOtherMember = selectedAssignee && user?.name && selectedAssignee.trim().toLowerCase() !== user.name.trim().toLowerCase();
+      const requireAccept = teamSettings.requireAssignmentAccept !== false;
 
       return {
-        assignmentStatus: isOtherMember ? 'PENDING' : 'ACCEPTED',
+        assignmentStatus: (isOtherMember && requireAccept) ? 'PENDING' : 'ACCEPTED',
         isRecurring,
         recurrenceInterval: isRecurring ? interval : null,
         maxOccurrences: isRecurring ? maxOccurrences : null,
@@ -12030,21 +12803,164 @@
     // ==========================================
     // SPRINT 2 ONDA 4 (#35 BE-15.2 & #36 FE-15.3): ENGINE DE AUTOMAÇÃO "SE / ENTÃO" E EDITOR VISUAL/JSON (US15)
     // ==========================================
+    const PERSISTENT_AUTOMATION_RULES_KEY = 'sinergia_persistent_automation_rules_v1';
+
+    function loadPersistentAutomationRules() {
+      try {
+        const raw = localStorage.getItem(PERSISTENT_AUTOMATION_RULES_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function savePersistentAutomationRules(rules) {
+      try {
+        if (!Array.isArray(rules)) return;
+        localStorage.setItem(PERSISTENT_AUTOMATION_RULES_KEY, JSON.stringify(rules));
+      } catch {}
+    }
+
+    function isRuleInCurrentTeam(r, db) {
+      if (!r || !db) return false;
+      const curTeam = String(db.currentTeam || '').trim().toLowerCase();
+      const curTeamId = String(db.currentTeamId || '').trim().toLowerCase();
+      const rTeam = String(r.team || '').trim().toLowerCase();
+      const rProj = String(r.projectId || '').trim().toLowerCase();
+      if (curTeam && rTeam && curTeam === rTeam) return true;
+      if (curTeamId && rProj && curTeamId === rProj) return true;
+      // Regras criadas pelo usuário localmente quando o projectId ainda era o default proj-sinergia-001
+      if (!r.isDefaultUrgentPreset && !String(r.id).startsWith('auto-001') && !rTeam && rProj === 'proj-sinergia-001') {
+        return true;
+      }
+      if (!rTeam && (!rProj || rProj === 'proj-sinergia-001')) {
+        return !curTeamId || curTeamId === 'proj-sinergia-001';
+      }
+      return false;
+    }
+
     function ensureDefaultAutomationRules(db) {
       if (!Array.isArray(db.automationRules)) {
-        db.automationRules = [
-          {
-            id: 'auto-001',
-            projectId: db.currentTeamId || 'proj-sinergia-001',
+        db.automationRules = [];
+      }
+      // Mescla regras salvas no cofre persistente de automações para nunca perder regras criadas pelo usuário
+      const persistedRules = loadPersistentAutomationRules();
+      if (persistedRules.length > 0) {
+        const mapById = new Map();
+        persistedRules.forEach(pr => {
+          if (pr && pr.id) mapById.set(String(pr.id), pr);
+        });
+        db.automationRules.forEach(dr => {
+          if (dr && dr.id) {
+            const prev = mapById.get(String(dr.id));
+            mapById.set(String(dr.id), { ...prev, ...dr, team: dr.team || prev?.team || '' });
+          }
+        });
+        db.automationRules = Array.from(mapById.values());
+      }
+
+      const teamName = db.currentTeam || '';
+      const teamId = db.currentTeamId || '';
+      if (!teamName && !teamId) {
+        return [];
+      }
+      const settings = typeof getTeamSettings === 'function' ? getTeamSettings(db, teamName) : { autoUrgentNotify: true };
+      const hasUrgentPreset = db.automationRules.some(r =>
+        (String(r.id).startsWith('auto-001') || r.isDefaultUrgentPreset) && isRuleInCurrentTeam(r, db)
+      );
+
+      if (settings.autoUrgentNotify !== false) {
+        if (!hasUrgentPreset) {
+          db.automationRules.unshift({
+            id: teamId ? `auto-001-${teamId}` : 'auto-001',
+            projectId: teamId || 'proj-sinergia-001',
+            team: teamName,
+            isDefaultUrgentPreset: true,
             name: 'Se Prioridade URGENTE, Notificar Gestor Imediatamente',
             trigger: 'TASK_CREATED',
             conditionsJson: JSON.stringify({ field: 'priority', operator: 'EQUALS', value: 'URGENT' }),
             actionsJson: JSON.stringify([{ action: 'SEND_NOTIFICATION', targetRole: 'ADMIN', targetValue: 'ADMIN' }]),
             isActive: true
-          }
-        ];
+          });
+        }
+      } else {
+        // Se o time foi criado ou configurado SEM o pre-set de Automação Urgente, remove a regra default desse time
+        db.automationRules = db.automationRules.filter(r => {
+          const isDefault = String(r.id).startsWith('auto-001') || r.isDefaultUrgentPreset;
+          if (isDefault && isRuleInCurrentTeam(r, db)) return false;
+          return true;
+        });
       }
-      return db.automationRules;
+
+      savePersistentAutomationRules(db.automationRules);
+      return db.automationRules.filter(r => isRuleInCurrentTeam(r, db));
+    }
+
+    function onAutoCondFieldChange() {
+      const fSel = document.getElementById('autoCondFieldSelect');
+      const valIn = document.getElementById('autoCondValInput');
+      if (!fSel || !valIn) return;
+      const field = fSel.value;
+      if (field === 'priority') {
+        valIn.placeholder = 'Ex: Urgente, Alta, Média, Baixa';
+        if (!valIn.value || valIn.value === 'COMPLETED' || valIn.value === 'PENDING') {
+          valIn.value = 'Urgente';
+        }
+      } else if (field === 'status') {
+        valIn.placeholder = 'Ex: COMPLETED, PENDING, IN_PROGRESS';
+        if (!valIn.value || valIn.value === 'URGENT' || valIn.value === 'Urgente') {
+          valIn.value = 'COMPLETED';
+        }
+      } else if (field === 'effortHours') {
+        valIn.placeholder = 'Ex: 4, 8';
+      } else if (field === 'assignee') {
+        valIn.placeholder = 'Nome do membro';
+      } else {
+        valIn.placeholder = 'Texto do título';
+      }
+      updateAutoRuleJsonPreview();
+    }
+
+    function onAutoActionTypeChange() {
+      const actSel = document.getElementById('autoActionTypeSelect');
+      const actValIn = document.getElementById('autoActionValInput');
+      if (!actSel || !actValIn) return;
+      const actionType = actSel.value;
+      const curVal = (actValIn.value || '').trim();
+      const systemDefaults = ['ADMIN', 'URGENT', 'Urgente', 'COMPLETED', 'IN_PROGRESS'];
+
+      if (actionType === 'ADD_TAG') {
+        actValIn.placeholder = 'Digite o nome da Tag (ex: Urgente, Crítico)';
+        if (!curVal || curVal === 'ADMIN' || curVal === 'COMPLETED' || curVal === 'IN_PROGRESS') {
+          actValIn.value = 'Urgente';
+        }
+      } else if (actionType === 'SEND_NOTIFICATION') {
+        actValIn.placeholder = 'Alvo (ex: ADMIN ou nome do membro)';
+        if (!curVal || systemDefaults.includes(curVal)) {
+          actValIn.value = 'ADMIN';
+        }
+      } else if (actionType === 'CHANGE_PRIORITY') {
+        actValIn.placeholder = 'Ex: Urgente, Alta, Média, Baixa';
+        if (!curVal || curVal === 'ADMIN' || curVal === 'COMPLETED') {
+          actValIn.value = 'Urgente';
+        }
+      } else if (actionType === 'CHANGE_STATUS') {
+        actValIn.placeholder = 'Ex: IN_PROGRESS, COMPLETED, PENDING';
+        if (!curVal || curVal === 'ADMIN' || curVal === 'URGENT' || curVal === 'Urgente') {
+          actValIn.value = 'IN_PROGRESS';
+        }
+      } else if (actionType === 'ASSIGN_USER') {
+        actValIn.placeholder = 'Nome do integrante do time';
+        if (curVal === 'ADMIN' || curVal === 'URGENT') {
+          actValIn.value = '';
+        }
+      } else if (actionType === 'ARCHIVE') {
+        actValIn.placeholder = 'COMPLETED';
+        actValIn.value = 'COMPLETED';
+      }
+      updateAutoRuleJsonPreview();
     }
 
     function openAutomationsModal() {
@@ -12052,13 +12968,37 @@
       ensureDefaultAutomationRules(db);
       saveDB(db, false);
 
-      // Tenta sincronizar regras do backend em background
+      // Tenta sincronizar regras do backend em background apenas do time ativo
       apiFetch('/automations')
         .then(r => (r.ok ? r.json() : null))
         .then(res => {
           if (res && Array.isArray(res.data) && res.data.length > 0) {
             const curDb = getDB();
-            curDb.automationRules = res.data;
+            const settings = typeof getTeamSettings === 'function' ? getTeamSettings(curDb, curDb.currentTeam) : { autoUrgentNotify: true };
+            const existingById = new Map((curDb.automationRules || []).map(r => [String(r.id), r]));
+            res.data.forEach(serverRule => {
+              if (!serverRule || !serverRule.id) return;
+              // Ignora a regra default global auto-001 se o time desativou o pre-set
+              if (String(serverRule.id).startsWith('auto-001') && settings.autoUrgentNotify === false) return;
+              const prevLocal = existingById.get(String(serverRule.id));
+              // Se já existe localmente, preserva o vínculo de time local
+              if (prevLocal) {
+                existingById.set(String(serverRule.id), {
+                  ...serverRule,
+                  team: prevLocal.team || serverRule.team || curDb.currentTeam || '',
+                  projectId: prevLocal.projectId || serverRule.projectId || curDb.currentTeamId || 'proj-sinergia-001'
+                });
+                return;
+              }
+              // Só importa regras novas do servidor se pertencerem ao projeto/time atual
+              if (curDb.currentTeamId && serverRule.projectId && String(serverRule.projectId) !== String(curDb.currentTeamId)) return;
+              existingById.set(String(serverRule.id), {
+                ...serverRule,
+                team: serverRule.team || curDb.currentTeam || ''
+              });
+            });
+            curDb.automationRules = Array.from(existingById.values());
+            ensureDefaultAutomationRules(curDb);
             saveDB(curDb, false);
             renderAutomationRulesListUI();
           }
@@ -12113,13 +13053,17 @@
     }
 
     function buildCurrentAutoRulePayload() {
-      const name = (document.getElementById('autoRuleNameInput')?.value || '').trim() || 'Regra Se/Então Personalizada';
+      const rawName = (document.getElementById('autoRuleNameInput')?.value || '').trim();
       const trigger = document.getElementById('autoRuleTriggerSelect')?.value || 'TASK_CREATED';
       const field = document.getElementById('autoCondFieldSelect')?.value || 'priority';
       const operator = document.getElementById('autoCondOpSelect')?.value || 'EQUALS';
       const value = (document.getElementById('autoCondValInput')?.value || '').trim();
       const actionType = document.getElementById('autoActionTypeSelect')?.value || 'SEND_NOTIFICATION';
-      const actionVal = (document.getElementById('autoActionValInput')?.value || '').trim() || 'ADMIN';
+      let actionVal = (document.getElementById('autoActionValInput')?.value || '').trim();
+      if (!actionVal) {
+        actionVal = actionType === 'ADD_TAG' ? 'Urgente' : (actionType === 'CHANGE_PRIORITY' ? 'URGENT' : (actionType === 'ARCHIVE' ? 'COMPLETED' : 'ADMIN'));
+      }
+      const name = rawName || `Se ${field}=${value || 'Sempre'} ➔ ${actionType} (${actionVal})`;
 
       const conditionsObj = { field, operator, value };
       const actionsArr = [
@@ -12188,6 +13132,7 @@
       const newRule = {
         id: 'auto-' + Date.now(),
         projectId: db.currentTeamId || 'proj-sinergia-001',
+        team: db.currentTeam || '',
         name: payload.name,
         trigger: payload.trigger,
         conditionsJson: payload.conditionsJson,
@@ -12198,6 +13143,7 @@
       };
 
       db.automationRules.unshift(newRule);
+      savePersistentAutomationRules(db.automationRules);
       saveDB(db, false);
 
       apiFetch('/automations', {
@@ -12218,6 +13164,7 @@
       const r = rules.find(x => String(x.id) === String(ruleId));
       if (!r) return;
       r.isActive = !r.isActive;
+      savePersistentAutomationRules(db.automationRules);
       saveDB(db, false);
 
       apiFetch(`/automations/${ruleId}/toggle`, {
@@ -12234,6 +13181,7 @@
       const db = getDB();
       ensureDefaultAutomationRules(db);
       db.automationRules = db.automationRules.filter(x => String(x.id) !== String(ruleId));
+      savePersistentAutomationRules(db.automationRules);
       saveDB(db, false);
 
       apiFetch(`/automations/${ruleId}`, { method: 'DELETE' }).catch(() => {});
@@ -12296,28 +13244,50 @@
       }).join('');
     }
 
+    function normalizeAutoConditionValue(field, val) {
+      const s = String(val ?? '').trim().toLowerCase();
+      if (field === 'priority') {
+        if (s === 'urgent' || s === 'urgente' || s === 'crítica' || s === 'critica') return 'urgent';
+        if (s === 'high' || s === 'alta') return 'high';
+        if (s === 'medium' || s === 'média' || s === 'media') return 'medium';
+        if (s === 'low' || s === 'baixa') return 'low';
+      } else if (field === 'status') {
+        if (s === 'completed' || s === 'concluída' || s === 'concluida' || s === 'done') return 'completed';
+        if (s === 'pending' || s === 'pendente' || s === 'todo') return 'pending';
+        if (s === 'in_progress' || s === 'em andamento' || s === 'andamento') return 'in_progress';
+        if (s === 'blocked' || s === 'bloqueada' || s === 'bloqueado') return 'blocked';
+      }
+      return s;
+    }
+
     function evaluateLocalAutomations(trigger, task, db) {
       if (!task || !db) return;
       const rules = ensureDefaultAutomationRules(db).filter(r => r.isActive && r.trigger === trigger);
       if (rules.length === 0) return;
 
-      const normPriority = normalizePriorityToEnum(task.priority);
+      let anyMutated = false;
+      const pendingNotifs = [];
 
       rules.forEach(rule => {
         let matched = true;
         try {
           const cond = JSON.parse(rule.conditionsJson || '{}');
           if (cond && cond.field) {
-            let actual = task[cond.field];
-            if (cond.field === 'priority') actual = normPriority;
-            const actualStr = String(actual ?? '').toLowerCase();
-            const expectedStr = String(cond.value ?? '').toLowerCase();
+            const actualRaw = task[cond.field];
+            const actualStr = normalizeAutoConditionValue(cond.field, actualRaw);
+            const expectedStr = normalizeAutoConditionValue(cond.field, cond.value);
             const op = cond.operator || 'EQUALS';
-            if (op === 'EQUALS') matched = actualStr === expectedStr || String(task[cond.field] ?? '').toLowerCase() === expectedStr;
-            else if (op === 'NOT_EQUALS') matched = actualStr !== expectedStr;
-            else if (op === 'CONTAINS') matched = actualStr.includes(expectedStr);
-            else if (op === 'GREATER_THAN') matched = Number(actual) > Number(cond.value);
-            else if (op === 'LESS_THAN') matched = Number(actual) < Number(cond.value);
+            if (op === 'EQUALS') {
+              matched = actualStr === expectedStr || String(actualRaw ?? '').trim().toLowerCase() === String(cond.value ?? '').trim().toLowerCase();
+            } else if (op === 'NOT_EQUALS') {
+              matched = actualStr !== expectedStr;
+            } else if (op === 'CONTAINS') {
+              matched = actualStr.includes(expectedStr) || String(actualRaw ?? '').toLowerCase().includes(String(cond.value ?? '').toLowerCase());
+            } else if (op === 'GREATER_THAN') {
+              matched = Number(actualRaw) > Number(cond.value);
+            } else if (op === 'LESS_THAN') {
+              matched = Number(actualRaw) < Number(cond.value);
+            }
           }
         } catch {
           matched = false;
@@ -12329,14 +13299,19 @@
           const rawActs = JSON.parse(rule.actionsJson || '[]');
           const actions = Array.isArray(rawActs) ? rawActs : [rawActs];
           actions.forEach(act => {
-            const val = act.targetValue || act.targetRole || act.value || '';
+            const val = String(act.targetValue ?? act.targetRole ?? act.value ?? '').trim();
             if (act.action === 'SEND_NOTIFICATION') {
-              createNotification({
+              pendingNotifs.push({
+                id: `auto_notif_${rule.id}_${task.id}_${Date.now()}`,
                 title: `⚡ Automação Disparada: ${rule.name}`,
-                message: `Gatilho [${trigger}] acionou notificação automática (${val}) para a tarefa "${task.title}".`,
+                message: `Gatilho [${trigger}] acionou notificação automática (${val || 'ADMIN'}) para a tarefa "${task.title}".`,
                 type: 'task',
                 color: '#7C3AED',
-                taskId: task.id
+                taskId: task.id,
+                team: task.team || db.currentTeam || null,
+                teamId: task.projectId || db.currentTeamId || null,
+                targetUserName: (val && val.toUpperCase() !== 'ADMIN') ? val : null,
+                broadcastTeam: true
               });
               showToast(`⚡ Automação Se/Então disparada: ${rule.name}`);
             } else if (act.action === 'CHANGE_PRIORITY' && val) {
@@ -12344,22 +13319,62 @@
               const { bg, col } = getPriorityColors(task.priority);
               task.priorityBg = bg;
               task.priorityColor = col;
+              anyMutated = true;
               showToast(`⚡ Automação: Prioridade alterada para ${task.priority}!`);
             } else if (act.action === 'CHANGE_STATUS' && val) {
-              task.status = String(val).toUpperCase();
+              const normSt = normalizeAutoConditionValue('status', val).toUpperCase();
+              task.status = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED'].includes(normSt) ? normSt : String(val).toUpperCase();
+              anyMutated = true;
               showToast(`⚡ Automação: Status alterado para ${task.status}!`);
+            } else if (act.action === 'ARCHIVE') {
+              task.status = 'COMPLETED';
+              anyMutated = true;
+              showToast(`⚡ Automação: Tarefa "${task.title}" concluída/arquivada automaticamente!`);
             } else if (act.action === 'ADD_TAG' && val) {
               if (!Array.isArray(task.tags)) task.tags = [];
-              if (!task.tags.includes(val)) task.tags.push(val);
+              const alreadyHas = task.tags.some(tg => String(tg || '').trim().toLowerCase() === val.toLowerCase());
+              if (!alreadyHas) {
+                task.tags.push(val);
+              }
+              if (!Array.isArray(db.tags)) db.tags = [];
+              if (!db.tags.some(t => isTagInCurrentTeam(t, db) && String(t.name || '').trim().toLowerCase() === val.toLowerCase())) {
+                db.tags.push({
+                  id: 'tag-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+                  name: val,
+                  color: '#7C3AED',
+                  team: task.team || db.currentTeam || '',
+                  teamId: task.projectId || db.currentTeamId || ''
+                });
+              }
+              anyMutated = true;
               showToast(`⚡ Automação: Tag "${val}" adicionada automaticamente!`);
             } else if (act.action === 'ASSIGN_USER' && val) {
               task.assignee = val;
               task.assigneeName = val;
+              const resolvedPhoto = resolveUserPhoto(val, null);
+              task.avatar = resolvedPhoto;
+              task.assigneeAvatar = resolvedPhoto;
+              anyMutated = true;
               showToast(`⚡ Automação: Tarefa atribuída para ${val}!`);
             }
           });
         } catch {}
       });
+
+      if (anyMutated) {
+        task._status = (task._status === 'created') ? 'created' : 'updated';
+        saveDB(db, false);
+      }
+
+      if (pendingNotifs.length > 0) {
+        // Salva db antes de chamar createNotification (pois createNotification lê de getDB())
+        saveDB(db, false);
+        pendingNotifs.forEach(n => createNotification(n));
+        const freshDb = getDB();
+        if (freshDb && Array.isArray(freshDb.notifications)) {
+          db.notifications = freshDb.notifications;
+        }
+      }
     }
 
     // Compatibilidade com chamadas legadas

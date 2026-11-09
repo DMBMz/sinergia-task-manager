@@ -195,10 +195,12 @@ export class TasksController {
       return res.status(404).json({ success: false, error: 'Tarefa não encontrada.' });
     }
 
-    // Sprint 2 Onda 2: Ao concluir tarefa, desbloqueia dependentes e processa recorrência Round-Robin
+    // Sprint 2 Onda 2: Ao concluir tarefa, desbloqueia dependentes e processa recorrência Round-Robin (se não tiver sido gerada pelo cliente)
     if (result.task && updateData.status === 'COMPLETED') {
       TaskDependencyGuard.onTaskCompleted(id).catch(err => console.error('[Guard Error]', err));
-      RecurrenceRoundRobinService.handleTaskCompletion(id).catch(err => console.error('[Recurrence Error]', err));
+      if (!req.body.skipServerRecurrence) {
+        RecurrenceRoundRobinService.handleTaskCompletion(id).catch(err => console.error('[Recurrence Error]', err));
+      }
     }
 
     // Sprint 2 Onda 4: Dispara gatilhos de automação em atualização (BE-15.2)
@@ -358,7 +360,7 @@ export class TasksController {
   // ==========================================
   async respondAssignment(req: Request, res: Response) {
     const { id } = req.params;
-    const { status, declinedReason } = req.body;
+    const { status, declinedReason, userId, userName } = req.body;
 
     if (!status || !['ACCEPTED', 'DECLINED'].includes(status)) {
       return res.status(400).json({ success: false, error: 'Status deve ser ACCEPTED ou DECLINED.' });
@@ -367,6 +369,20 @@ export class TasksController {
     const task = repository.getTask(id);
     if (!task) {
       return res.status(404).json({ success: false, error: 'Tarefa não encontrada.' });
+    }
+
+    // US22: Apenas o responsável designado pela tarefa pode aceitar ou recusar a atribuição
+    if (userName || userId) {
+      const taskAssigneeName = String((task as any).assigneeName || (task as any).assignee || '').trim().toLowerCase();
+      const reqUserName = String(userName || '').trim().toLowerCase();
+      const nameMismatch = taskAssigneeName && reqUserName && taskAssigneeName !== reqUserName;
+      const idMismatch = !taskAssigneeName && task.assigneeId && userId && String(task.assigneeId) !== String(userId);
+      if (nameMismatch || idMismatch) {
+        return res.status(403).json({
+          success: false,
+          error: 'Apenas o responsável designado pela tarefa pode aceitar ou recusar esta atribuição.'
+        });
+      }
     }
 
     const updated = repository.updateTask(id, task.version, {

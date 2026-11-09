@@ -61,8 +61,24 @@ export class AutomationEngineService {
       return operator === 'NOT_EQUALS' && expected !== null && expected !== '';
     }
 
-    const actualStr = String(actual).toLowerCase().trim();
-    const expectedStr = String(expected ?? '').toLowerCase().trim();
+    const normalizeFieldVal = (field: string, val: any): string => {
+      const s = String(val ?? '').toLowerCase().trim();
+      if (field === 'priority') {
+        if (s === 'urgent' || s === 'urgente' || s === 'crítica' || s === 'critica') return 'urgent';
+        if (s === 'high' || s === 'alta') return 'high';
+        if (s === 'medium' || s === 'média' || s === 'media') return 'medium';
+        if (s === 'low' || s === 'baixa') return 'low';
+      } else if (field === 'status') {
+        if (s === 'completed' || s === 'concluída' || s === 'concluida' || s === 'done') return 'completed';
+        if (s === 'pending' || s === 'pendente' || s === 'todo') return 'pending';
+        if (s === 'in_progress' || s === 'em andamento' || s === 'andamento') return 'in_progress';
+        if (s === 'blocked' || s === 'bloqueada' || s === 'bloqueado') return 'blocked';
+      }
+      return s;
+    };
+
+    const actualStr = normalizeFieldVal(cond.field, actual);
+    const expectedStr = normalizeFieldVal(cond.field, expected);
 
     switch (operator) {
       case 'EQUALS':
