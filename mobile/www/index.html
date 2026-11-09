@@ -1700,43 +1700,25 @@
           <div id="detailAssignmentActionBox" style="margin-bottom: 12px;"></div>
           <div id="detailRecurrenceInfoBox" style="display: none; margin-bottom: 12px;"></div>
 
-          <!-- Sub-tarefas (US01) -->
+          <!-- Sub-tarefas (US01) - Visualização e Check (Adição exclusiva no menu Editar) -->
           <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
               <strong>Sub-tarefas</strong>
               <span style="color: #64748B; font-size: 10px;" id="subtasksCounterText">0/0 concluídas</span>
             </div>
 
             <!-- Lista Dinâmica de Subtarefas -->
             <div id="dynamicSubtasksList" style="display: flex; flex-direction: column; gap: 6px;"></div>
-
-            <!-- Formulário Inline para Nova Subtarefa -->
-            <div style="display: flex; gap: 6px; margin-top: 10px;">
-              <input type="text" id="inlineSubtaskInput" placeholder="+ Digite uma sub-tarefa..." onkeydown="if(event.key==='Enter'){event.preventDefault(); handleAddSubtaskInline();}" style="flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px;">
-              <button type="button" onclick="handleAddSubtaskInline()" style="padding: 6px 12px; background: #2563EB; color: #FFFFFF; font-size: 11px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer;">Adicionar</button>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 10.5px; color: #64748B;">
-              <span>Co-responsável do item:</span>
-              <select id="inlineSubtaskAssigneeSelect" style="padding: 3px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 10.5px; background: #F8FAFC; color: #1E293B; max-width: 175px;">
-                <option value="">Mesmo da tarefa</option>
-              </select>
-            </div>
           </div>
 
-          <div style="display: contents;"><!-- Sprint 2 Onda 3 (#21 FE-10.3): Dependências & Pré-requisitos (Bloqueio de Transição e Grafo DAG) -->
+          <div style="display: contents;"><!-- Sprint 2 Onda 3 (#21 FE-10.3): Dependências & Pré-requisitos (Visualização; edição via botão Editar) -->
           <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
               <strong style="display: inline-flex; align-items: center; gap: 5px;">🔗 Dependências (Pré-requisitos)</strong>
               <span id="detailDepsStatusBadge" style="font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 9999px; background: #DCFCE7; color: #15803D;">Livre</span>
             </div>
             <div id="detailDependenciesBanner" style="display: none; margin-bottom: 8px;"></div>
-            <div id="detailDependenciesList" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;"></div>
-            <div style="display: flex; gap: 6px; align-items: center;">
-              <select id="detailAddDepSelect" style="flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; background: #F8FAFC; color: #1E293B; min-width: 0;">
-                <option value="">+ Selecionar tarefa pré-requisito...</option>
-              </select>
-              <button type="button" onclick="handleAddTaskDependencyUI()" style="padding: 6px 10px; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; font-size: 10.5px; font-weight: 700; border-radius: 8px; cursor: pointer; white-space: nowrap;">+ Vincular</button>
-            </div>
+            <div id="detailDependenciesList" style="display: flex; flex-direction: column; gap: 6px;"></div>
             </div>
           </div>
 
@@ -2021,12 +2003,12 @@
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
               <span style="font-size: 12px; font-weight: 700;">Esforço (horas)</span>
-              <button type="button" id="btnAiEffortSuggest" onclick="applyAiEffortSuggestion()" style="background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugestão preditiva TensorFlow Lite baseada no escopo, recorrência, semântica e subtarefas">🧠 IA TFLite: ~0.5h (30m) • Aplicar</button>
+              <button type="button" id="btnAiEffortSuggest" onclick="applyAiEffortSuggestion()" style="background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;" title="Sugestão preditiva TensorFlow Lite baseada no escopo, recorrência, semântica e subtarefas">🧠 IA TFLite: ~0.5h (Aplicar)</button>
             </div>
-            <input type="number" id="createEffortInput" value="0.5" min="0.1" max="200" step="0.25" oninput="onManualEffortInput()" style="width: 68px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-weight: 700; color: #0F172A;">
+            <input type="number" id="createEffortInput" value="1" min="0.5" max="200" step="0.5" oninput="onManualEffortInput()" style="width: 68px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-weight: 700; color: #0F172A;">
           </div>
           <div id="aiEffortBreakdownHint" style="margin-top: 5px; margin-bottom: 4px; font-size: 10px; color: #475569; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; padding: 5px 8px; line-height: 1.35;">
-            🧠 <strong>TensorFlow Lite:</strong> Digite o título ou descrição para análise preditiva multidimensional (de 15 min a tarefas complexas).
+            🧠 <strong>TensorFlow Lite:</strong> Digite o título ou descrição para análise preditiva em horas (de 0.5h a tarefas complexas).
           </div>
 
           <!-- Prazo de Entrega (Requisito US01 e Notificações Progressivas) -->
@@ -2089,13 +2071,34 @@
           </div>
 
           <!-- Sub-tarefas Iniciais (Opcional) -->
-          <div style="margin-top: 12px; margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #1E293B;">Sub-tarefas (Opcional):</label>
-            <div style="display: flex; gap: 6px; margin-top: 4px;">
-              <input type="text" id="createDraftSubtaskInput" placeholder="Ex: Criar migration no banco" onkeydown="if(event.key==='Enter'){event.preventDefault();addDraftSubtask();}" style="flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px;">
+          <div style="margin-top: 12px; margin-bottom: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px 12px;">
+            <label style="font-size: 12px; font-weight: 700; color: #1E293B;">✅ Sub-tarefas (Opcional):</label>
+            <div style="display: flex; gap: 6px; margin-top: 6px;">
+              <input type="text" id="createDraftSubtaskInput" placeholder="Ex: Criar migration no banco" onkeydown="if(event.key==='Enter'){event.preventDefault();addDraftSubtask();}" style="flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; background: #FFFFFF;">
               <button type="button" onclick="addDraftSubtask()" style="padding: 6px 12px; background: #EFF6FF; color: #2563EB; font-weight: 700; font-size: 11px; border: 1px solid #BFDBFE; border-radius: 8px; cursor: pointer;">+ Add</button>
             </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 10.5px; color: #64748B;">
+              <span>Co-responsável do item:</span>
+              <select id="createDraftSubtaskAssigneeSelect" style="padding: 3px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 10.5px; background: #FFFFFF; color: #1E293B; max-width: 175px;">
+                <option value="">Mesmo da tarefa</option>
+              </select>
+            </div>
             <div id="draftSubtasksContainer" style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;"></div>
+          </div>
+
+          <!-- Dependências Iniciais (Opcional) -->
+          <div style="margin-top: 12px; margin-bottom: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="font-size: 12px; font-weight: 700; color: #1E293B;">🔗 Dependências / Pré-requisitos (Opcional):</label>
+              <span id="draftDepsCountBadge" style="font-size: 10px; color: #64748B;">0 vinculadas</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <select id="createDraftDepSelect" style="flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; background: #FFFFFF; color: #1E293B; min-width: 0;">
+                <option value="">+ Selecionar tarefa pré-requisito...</option>
+              </select>
+              <button type="button" onclick="addDraftDependency()" style="padding: 6px 12px; background: #EFF6FF; color: #1D4ED8; font-weight: 700; font-size: 11px; border: 1px solid #BFDBFE; border-radius: 8px; cursor: pointer; white-space: nowrap;">+ Vincular</button>
+            </div>
+            <div id="draftDependenciesContainer" style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;"></div>
           </div>
 
           <button type="submit" style="width: 100%; margin-top: 12px; padding: 12px; background: var(--primary); color: #FFFFFF; font-weight: 700; font-size: 13px; border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); cursor: pointer;">Criar Tarefa no Time</button>
@@ -2845,7 +2848,7 @@
                   <span style="font-size: 11px; font-weight: 700; color: #475569;">Esforço (h):</span>
                   <button type="button" onclick="applyEditModalAiEffortSuggestion()" style="background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; border-radius: 5px; padding: 1px 5px; font-size: 9px; font-weight: 700; cursor: pointer;" title="Recalcular esforço via IA TensorFlow Lite">🧠 IA TFLite</button>
                 </div>
-                <input type="number" id="editFullTaskEffort" min="0.1" max="200" step="0.25" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: #0F172A; background: #FFFFFF;">
+                <input type="number" id="editFullTaskEffort" min="0.5" max="200" step="0.5" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: #0F172A; background: #FFFFFF;">
               </div>
             </div>
 
@@ -2903,6 +2906,31 @@
               <div style="display: flex; gap: 6px;">
                 <input type="text" id="editNewSubtaskInput" placeholder="+ Digite uma nova sub-tarefa..." onkeydown="if(event.key==='Enter'){event.preventDefault();handleAddSubtaskToEdit();}" style="flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; background: #FFFFFF;">
                 <button type="button" onclick="handleAddSubtaskToEdit()" style="padding: 6px 12px; background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; font-weight: 700; font-size: 11px; border-radius: 8px; cursor: pointer;">+ Add</button>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 10.5px; color: #64748B;">
+                <span>Co-responsável do item:</span>
+                <select id="editSubtaskAssigneeSelect" style="padding: 3px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 10.5px; background: #FFFFFF; color: #1E293B; max-width: 175px;">
+                  <option value="">Mesmo da tarefa</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 8. Gerenciador de Dependências (Pré-requisitos) -->
+            <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px; padding: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 700; color: #1E293B;">🔗 Dependências (Pré-requisitos):</span>
+                <span id="editDepsCount" style="font-size: 10px; color: #64748B;">0 vinculadas</span>
+              </div>
+
+              <!-- Lista de dependências existentes -->
+              <div id="editTaskDepsContainer" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; max-height: 130px; overflow-y: auto;"></div>
+
+              <!-- Seletor inline para vincular nova dependência -->
+              <div style="display: flex; gap: 6px;">
+                <select id="editNewDepSelect" style="flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; background: #FFFFFF; color: #1E293B; min-width: 0;">
+                  <option value="">+ Selecionar tarefa pré-requisito...</option>
+                </select>
+                <button type="button" onclick="handleAddDepToEdit()" style="padding: 6px 12px; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; font-weight: 700; font-size: 11px; border-radius: 8px; cursor: pointer; white-space: nowrap;">+ Vincular</button>
               </div>
             </div>
           </div>
@@ -4560,18 +4588,58 @@
       document.getElementById('statPending').innerText = pending;
       document.getElementById('statLate').innerText = late;
 
-      // Mensagem Contextual de IA
+      // Motor de Carga de Trabalho IA no Dashboard (Sprint 2: US09 & US12)
       const aiWorkload = document.getElementById('aiWorkloadText');
       if (aiWorkload) {
-        if (tasks.length === 0) {
+        const openTasks = tasks.filter(t => t.status !== 'COMPLETED' && !t.completed);
+        const totalPendingHours = Math.round(openTasks.reduce((acc, t) => acc + (Number(t.effortHours) || 1), 0) * 10) / 10;
+        const memberNames = typeof getTeamMemberNamesList === 'function' ? getTeamMemberNamesList(db) : [user.name];
+        const weeklyCap = (db.teamSettingsByTeam && db.teamSettingsByTeam[team] && Number(db.teamSettingsByTeam[team].weeklyCapacityHours)) || 40;
+
+        const hoursByMember = {};
+        memberNames.forEach(m => { if (m) hoursByMember[m] = 0; });
+        openTasks.forEach(t => {
+          const resp = (t.assignee || t.assigneeName || user.name || 'Membro').trim();
+          hoursByMember[resp] = Math.round(((hoursByMember[resp] || 0) + (Number(t.effortHours) || 1)) * 10) / 10;
+        });
+
+        const entries = Object.entries(hoursByMember);
+        const overloaded = entries.filter(([m, h]) => h > weeklyCap);
+        const highLoad = entries.filter(([m, h]) => h >= weeklyCap * 0.8 && h <= weeklyCap);
+        const onLeaveWithTasks = entries.filter(([m, h]) => h > 0 && typeof isMemberOnLeaveLocal === 'function' && isMemberOnLeaveLocal(m, new Date(), db));
+
+        // Encontra o integrante disponível com menor carga para recomendação IA
+        const availableEntries = entries.filter(([m]) => !(typeof isMemberOnLeaveLocal === 'function' && isMemberOnLeaveLocal(m, new Date(), db)));
+        const pool = availableEntries.length > 0 ? availableEntries : entries;
+        pool.sort((a, b) => a[1] - b[1]);
+        const suggestedMember = pool.length > 0 ? pool[0][0] : user.name;
+        const suggestedHours = pool.length > 0 ? pool[0][1] : 0;
+
+        if (openTasks.length === 0) {
           aiWorkload.innerHTML = `
-            <strong style="font-size: 12px; color: #1E3A8A;">Time "${team}": <span style="color: #2563EB;">Disponível</span></strong>
-            <p style="font-size: 10px; color: #3B82F6; margin-top: 2px;">Nenhuma tarefa ativa no momento. Toque em Nova Tarefa para começar!</p>
+            <strong style="font-size: 12px; color: #1E3A8A;">Carga de Trabalho IA: <span style="color: #2563EB;">Livre (0h alocadas)</span></strong>
+            <p style="font-size: 10px; color: #3B82F6; margin-top: 2px;">Nenhuma tarefa pendente no time "${escapeHtml(team)}" (${completed} concluída${completed === 1 ? '' : 's'}).</p>
+          `;
+        } else if (overloaded.length > 0 || onLeaveWithTasks.length > 0) {
+          const alertText = overloaded.length > 0
+            ? `Sobrecarga em <strong>${escapeHtml(overloaded.map(([m, h]) => `${m} (${h}h/${weeklyCap}h)`).join(', '))}</strong>.`
+            : `<strong>${escapeHtml(onLeaveWithTasks.map(([m]) => m).join(', '))}</strong> está em férias/folga com tarefas ativas.`;
+          aiWorkload.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <strong style="font-size: 12px; color: #991B1B;">Carga de Trabalho IA: <span style="color: #DC2626;">⚠️ Desbalanceada</span></strong>
+              <button type="button" onclick="autoRedistributeOverloadUI(); renderDashboard();" style="background: #DC2626; color: #FFFFFF; border: none; border-radius: 6px; padding: 2px 7px; font-size: 9.5px; font-weight: 700; cursor: pointer;">⚡ Equilibrar Carga IA</button>
+            </div>
+            <p style="font-size: 10px; color: #B91C1C; margin-top: 2px;">${alertText} Sugestão de realocação: <strong>${escapeHtml(suggestedMember)}</strong> (${suggestedHours}h).</p>
+          `;
+        } else if (highLoad.length > 0 || late > 0) {
+          aiWorkload.innerHTML = `
+            <strong style="font-size: 12px; color: #1E3A8A;">Carga de Trabalho IA: <span style="color: #D97706;">⚡ Alta Demanda (${totalPendingHours}h)</span></strong>
+            <p style="font-size: 10px; color: #3B82F6; margin-top: 2px;">${pending} pendente(s)${late > 0 ? ` (${late} atrasada${late > 1 ? 's' : ''})` : ''} • Menor carga p/ próxima: <strong>${escapeHtml(suggestedMember)}</strong> (${suggestedHours}h/${weeklyCap}h).</p>
           `;
         } else {
           aiWorkload.innerHTML = `
-            <strong style="font-size: 12px; color: #1E3A8A;">Carga de Trabalho IA: <span style="color: #10B981;">Equilibrada</span></strong>
-            <p style="font-size: 10px; color: #3B82F6; margin-top: 2px;">${pending} tarefas pendentes e ${completed} concluídas no time "${team}".</p>
+            <strong style="font-size: 12px; color: #1E3A8A;">Carga de Trabalho IA: <span style="color: #10B981;">Equilibrada (${totalPendingHours}h ativas)</span></strong>
+            <p style="font-size: 10px; color: #3B82F6; margin-top: 2px;">${pending} pendente(s) e ${completed} concluída(s) • Recomendado p/ próxima: <strong>${escapeHtml(suggestedMember)}</strong> (${suggestedHours}h/${weeklyCap}h).</p>
           `;
         }
       }
@@ -4755,27 +4823,108 @@
         ? `<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: #16A34A;">${ICONS.checkCircle(12, '#16A34A')} Finalizada</span>`
         : `<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: ${deadlineColor};">${deadlineIcon} Prazo: ${deadlineLabel}</span>`;
 
+      const subtasksList = Array.isArray(task.subtasks) ? task.subtasks : [];
+      const inlineSubtasksHtml = subtasksList.length > 0
+        ? `
+          <div style="margin-top: 8px; padding-top: 7px; border-top: 1px dashed #E2E8F0; display: flex; flex-direction: column; gap: 5px; width: 100%;">
+            ${subtasksList.map((s, sIdx) => {
+              const sDone = Boolean(s.completed);
+              const safeSubId = escapeHtml(String(s.id || ''));
+              const subAssigneePhoto = s.assigneeName ? resolveUserPhoto(s.assigneeName) : null;
+              return `
+                <div onclick="event.stopPropagation(); quickToggleSubtaskFromCard('${task.id}', '${safeSubId}', ${sIdx})" style="display: flex; align-items: center; gap: 7px; padding: 4px 7px; border-radius: 7px; background: ${sDone ? '#F0FDF4' : '#F8FAFC'}; border: 1px solid ${sDone ? '#BBF7D0' : '#E2E8F0'}; cursor: pointer; transition: all 0.15s;">
+                  <span style="width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid ${sDone ? '#10B981' : '#94A3B8'}; background: ${sDone ? '#10B981' : '#FFFFFF'}; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; font-weight: 800;">
+                    ${sDone ? '✓' : ''}
+                  </span>
+                  <span style="font-size: 11px; font-weight: ${sDone ? '500' : '600'}; color: ${sDone ? '#64748B' : '#334155'}; text-decoration: ${sDone ? 'line-through' : 'none'}; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${escapeHtml(s.title || 'Sub-tarefa')}
+                  </span>
+                  ${s.assigneeName ? `
+                    <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 700; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 1px 5px 1px 2px; border-radius: 9999px; flex-shrink: 0;">
+                      <img src="${subAssigneePhoto}" style="width: 12px; height: 12px; border-radius: 50%; object-fit: cover;">
+                      ${escapeHtml(s.assigneeName)}
+                    </span>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `
+        : '';
+
+      item.style.flexDirection = 'column';
+      item.style.alignItems = 'stretch';
       item.innerHTML = `
-        <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0;">
-          ${checkCircleBtn}
-          <div style="flex: 1; min-width: 0;">
-            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-              <strong style="${titleStyle}">${escapeHtml(task.title)}</strong>
-              ${statusBadge}
-              ${cpmBadge}
-              <span style="font-size: 10px;">${syncBadge}</span>
-              ${lockCardTag}
-              ${tagsHtml}
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
-              ${deadlineHtml}
-              <span style="font-size: 10px; color: #94A3B8;">• ${typeof formatEffortBadgeText === 'function' ? formatEffortBadgeText(task.effortHours) : `${task.effortHours || 0}h`} ${subBadge}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0;">
+            ${checkCircleBtn}
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <strong style="${titleStyle}">${escapeHtml(task.title)}</strong>
+                ${statusBadge}
+                ${cpmBadge}
+                <span style="font-size: 10px;">${syncBadge}</span>
+                ${lockCardTag}
+                ${tagsHtml}
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
+                ${deadlineHtml}
+                <span style="font-size: 10px; color: #94A3B8;">• ${typeof formatEffortBadgeText === 'function' ? formatEffortBadgeText(task.effortHours) : `${task.effortHours || 0}h`} ${subBadge}</span>
+              </div>
             </div>
           </div>
+          <img src="${resolveUserPhoto(task.assignee || task.assigneeName, task.avatar || task.assigneeAvatar)}" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-left: 8px; border: 1.5px solid #E2E8F0;" alt="${escapeHtml(task.assignee || 'Membro')}">
         </div>
-        <img src="${resolveUserPhoto(task.assignee || task.assigneeName, task.avatar || task.assigneeAvatar)}" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-left: 8px; border: 1.5px solid #E2E8F0;" alt="${escapeHtml(task.assignee || 'Membro')}">
+        ${inlineSubtasksHtml}
       `;
       return item;
+    }
+
+    function quickToggleSubtaskFromCard(taskId, subId, subIdx) {
+      const db = getDB();
+      const task = (db.tasks || []).find(t => String(t.id) === String(taskId));
+      if (!task || !Array.isArray(task.subtasks)) return;
+
+      let sub = null;
+      if (subId) {
+        sub = task.subtasks.find(s => String(s.id) === String(subId));
+      }
+      if (!sub && typeof subIdx === 'number' && task.subtasks[subIdx]) {
+        sub = task.subtasks[subIdx];
+      }
+      if (!sub) return;
+
+      sub.completed = !sub.completed;
+      task._status = (task._status === 'created') ? 'created' : 'updated';
+
+      const allDone = task.subtasks.length > 0 && task.subtasks.every(s => s.completed);
+      if (allDone && task.status !== 'COMPLETED') {
+        if (typeof checkTaskBlockedByDependencies === 'function' && checkTaskBlockedByDependencies(task, db)) {
+          sub.completed = false;
+          return;
+        }
+        task.status = 'COMPLETED';
+        showToast(`✅ Todas as sub-tarefas concluídas! "${task.title}" finalizada!`);
+        if (typeof handleTaskCompletedOnda3Hooks === 'function') handleTaskCompletedOnda3Hooks(task, db);
+      } else if (!allDone && task.status === 'COMPLETED') {
+        task.status = 'PENDING';
+        showToast(`Sub-tarefa reaberta em "${task.title}".`);
+      } else {
+        showToast(sub.completed ? `✅ Sub-tarefa "${sub.title}" concluída!` : `Sub-tarefa "${sub.title}" reaberta.`);
+      }
+
+      saveDB(db, true);
+      renderDashboard();
+
+      apiFetch(`/tasks/${task.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: task.status,
+          subtasks: task.subtasks,
+          version: task.version || 1
+        })
+      }).catch(() => {});
     }
 
     // =========================================================================
@@ -5535,6 +5684,8 @@
       renderEditingTags();
     }
 
+    let editingTaskDependencies = [];
+
     function renderEditingSubtasks() {
       const container = document.getElementById('editTaskSubtasksContainer');
       const countEl = document.getElementById('editSubtasksCount');
@@ -5545,15 +5696,19 @@
         container.innerHTML = '<span style="font-size: 10px; color: #94A3B8; font-style: italic;">Nenhuma sub-tarefa.</span>';
         return;
       }
-      container.innerHTML = editingTaskSubtasks.map((st, idx) => `
-        <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;">
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #1E293B; cursor: pointer; flex: 1; margin: 0;">
+      container.innerHTML = editingTaskSubtasks.map((st, idx) => {
+        const subAssigneePhoto = st.assigneeName ? resolveUserPhoto(st.assigneeName) : null;
+        return `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #1E293B; cursor: pointer; flex: 1; min-width: 0; margin: 0;">
             <input type="checkbox" ${st.completed ? 'checked' : ''} onchange="toggleEditingSubtask(${idx}, this.checked)">
-            <span style="${st.completed ? 'text-decoration: line-through; color: #94A3B8;' : ''}">${escapeHtml(st.title || st.text || 'Subtarefa')}</span>
+            <span style="${st.completed ? 'text-decoration: line-through; color: #94A3B8;' : ''} overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(st.title || st.text || 'Subtarefa')}</span>
+            ${st.assigneeName ? `<span style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 700; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 1px 6px 1px 3px; border-radius: 9999px; flex-shrink: 0;"><img src="${subAssigneePhoto}" style="width: 12px; height: 12px; border-radius: 50%; object-fit: cover;"> ${escapeHtml(st.assigneeName)}</span>` : ''}
           </label>
           <button type="button" onclick="handleRemoveSubtaskFromEdit(${idx})" style="background: none; border: none; color: #EF4444; font-size: 13px; cursor: pointer; padding: 0 4px; font-weight: 700;">✕</button>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function handleAddSubtaskToEdit() {
@@ -5561,9 +5716,12 @@
       if (!input) return;
       const val = input.value.trim();
       if (!val) return;
+      const coSel = document.getElementById('editSubtaskAssigneeSelect');
+      const assigneeName = (coSel && coSel.value) ? coSel.value : null;
       editingTaskSubtasks.push({
         id: 'sub-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         title: val,
+        assigneeName,
         completed: false
       });
       input.value = '';
@@ -5580,6 +5738,88 @@
     function handleRemoveSubtaskFromEdit(idx) {
       editingTaskSubtasks.splice(idx, 1);
       renderEditingSubtasks();
+    }
+
+    function renderEditingDependencies() {
+      const container = document.getElementById('editTaskDepsContainer');
+      const countEl = document.getElementById('editDepsCount');
+      const selectEl = document.getElementById('editNewDepSelect');
+      const db = getDB();
+      const teamTasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
+      const deps = Array.isArray(editingTaskDependencies) ? editingTaskDependencies : [];
+
+      if (countEl) countEl.innerText = `${deps.length} vinculada${deps.length === 1 ? '' : 's'}`;
+
+      if (selectEl) {
+        const currentDepIds = new Set(deps.map(d => String(d.dependsOnTaskId || d)));
+        const candidates = teamTasks.filter(t => String(t.id) !== String(activeTaskId) && !currentDepIds.has(String(t.id)));
+        selectEl.innerHTML = `<option value="">+ Selecionar tarefa pré-requisito...</option>` +
+          candidates.map(c => `<option value="${c.id}">${escapeHtml(c.title)} (${c.status === 'COMPLETED' ? 'Concluída' : 'Pendente'})</option>`).join('');
+      }
+
+      if (!container) return;
+      if (deps.length === 0) {
+        container.innerHTML = '<span style="font-size: 10px; color: #94A3B8; font-style: italic;">Nenhum pré-requisito vinculado.</span>';
+        return;
+      }
+
+      container.innerHTML = deps.map((d, idx) => {
+        const predId = String(d.dependsOnTaskId || d);
+        const pred = (db.tasks || []).find(t => String(t.id) === predId);
+        const isDone = pred ? pred.status === 'COMPLETED' : false;
+        return `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; border-radius: 8px; background: ${isDone ? '#F0FDF4' : '#FEF2F2'}; border: 1px solid ${isDone ? '#BBF7D0' : '#FECACA'}; font-size: 11px;">
+            <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
+              <span>${isDone ? '✅' : '🔒'}</span>
+              <span style="font-weight: 600; color: ${isDone ? '#166534' : '#991B1B'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(pred ? pred.title : predId)}</span>
+            </div>
+            <button type="button" onclick="handleRemoveDepFromEdit(${idx})" style="background: none; border: none; color: #DC2626; font-size: 12px; font-weight: 700; cursor: pointer; padding: 0 4px;">✕</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function handleAddDepToEdit() {
+      const selectEl = document.getElementById('editNewDepSelect');
+      const dependsOnTaskId = selectEl ? selectEl.value : '';
+      if (!dependsOnTaskId) {
+        showToast('Selecione uma tarefa pré-requisito.');
+        return;
+      }
+
+      if (!Array.isArray(editingTaskDependencies)) editingTaskDependencies = [];
+      if (editingTaskDependencies.some(d => String(d.dependsOnTaskId || d) === String(dependsOnTaskId))) {
+        showToast('Esta tarefa já está vinculada como pré-requisito.');
+        return;
+      }
+
+      const db = getDB();
+      // Simula lista de tarefas com as dependências em edição para validar ciclos DAG (Kahn)
+      const tempTasks = (db.tasks || []).map(t => {
+        if (String(t.id) === String(activeTaskId)) {
+          return { ...t, dependencies: [...editingTaskDependencies] };
+        }
+        return t;
+      });
+      if (typeof wouldAddingDependencyCreateCycleLocal === 'function' && wouldAddingDependencyCreateCycleLocal(tempTasks, activeTaskId, dependsOnTaskId)) {
+        showToast('⚠️ Operação bloqueada (DAG): adicionar esta dependência criaria um ciclo circular (Deadlock)!');
+        return;
+      }
+
+      editingTaskDependencies.push({
+        id: 'dep-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        taskId: activeTaskId,
+        dependsOnTaskId,
+        dependencyType: 'FINISH_TO_START'
+      });
+      renderEditingDependencies();
+    }
+
+    function handleRemoveDepFromEdit(idx) {
+      if (Array.isArray(editingTaskDependencies)) {
+        editingTaskDependencies.splice(idx, 1);
+        renderEditingDependencies();
+      }
     }
 
     function forceUnlockTask(taskId) {
@@ -5788,8 +6028,18 @@
       renderEditingTags();
 
       // Carrega e renderiza Subtarefas
+      const editSubCoSel = document.getElementById('editSubtaskAssigneeSelect');
+      if (editSubCoSel) {
+        const members = getTeamMemberNamesList(db);
+        editSubCoSel.innerHTML = `<option value="">Mesmo da tarefa (${escapeHtml(task.assignee || user.name || 'Membro')})</option>` +
+          members.map(m => `<option value="${escapeHtml(m)}">👤 ${escapeHtml(m)}</option>`).join('');
+      }
       editingTaskSubtasks = Array.isArray(task.subtasks) ? JSON.parse(JSON.stringify(task.subtasks)) : [];
       renderEditingSubtasks();
+
+      // Carrega e renderiza Dependências (Pré-requisitos)
+      editingTaskDependencies = Array.isArray(task.dependencies) ? JSON.parse(JSON.stringify(task.dependencies)) : [];
+      renderEditingDependencies();
 
       document.getElementById('modalEditFullTask').style.display = 'flex';
       showToast('🔒 Bloqueio de edição exclusiva adquirido!');
@@ -5832,17 +6082,52 @@
       }
       window._bypassAbsenceCheckOnce = false;
 
+      const prevDeps = Array.isArray(task.dependencies) ? [...task.dependencies] : [];
+      const nextDeps = Array.isArray(editingTaskDependencies) ? [...editingTaskDependencies] : [];
+      const hasUnfinishedDep = nextDeps.some(d => {
+        const predId = String(d.dependsOnTaskId || d);
+        const pred = (db.tasks || []).find(t => String(t.id) === predId);
+        return pred && pred.status !== 'COMPLETED';
+      });
+      let effectiveStatus = newStatus;
+      if (hasUnfinishedDep && effectiveStatus !== 'COMPLETED') {
+        effectiveStatus = 'BLOCKED';
+      } else if (!hasUnfinishedDep && effectiveStatus === 'BLOCKED') {
+        effectiveStatus = 'PENDING';
+      }
+
       task.title = newTitle;
       task.description = newDesc;
       task.priority = newPriority;
       task.priorityColor = editCol;
       task.priorityBg = editBg;
-      task.status = newStatus;
+      task.status = effectiveStatus;
       task.assignee = newAssignee;
       task.assigneeName = newAssignee;
       task.effortHours = newEffort;
       task.tags = [...editingTaskTags];
       task.subtasks = [...editingTaskSubtasks];
+      task.dependencies = nextDeps;
+
+      // Sincroniza adições/remoções de dependências no backend em segundo plano
+      const prevDepIds = new Set(prevDeps.map(d => String(d.dependsOnTaskId || d)));
+      const nextDepIds = new Set(nextDeps.map(d => String(d.dependsOnTaskId || d)));
+      nextDeps.forEach(d => {
+        const pid = String(d.dependsOnTaskId || d);
+        if (pid && !prevDepIds.has(pid)) {
+          apiFetch(`/tasks/${task.id}/dependencies`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dependsOnTaskId: pid, dependencyType: 'FINISH_TO_START' })
+          }).catch(() => {});
+        }
+      });
+      prevDeps.forEach(d => {
+        const pid = String(d.dependsOnTaskId || d);
+        if (pid && !nextDepIds.has(pid)) {
+          apiFetch(`/tasks/${task.id}/dependencies/${d.id || pid}`, { method: 'DELETE' }).catch(() => {});
+        }
+      });
 
       if (task.tags && task.tags.length > 0) {
         if (!Array.isArray(db.tags)) db.tags = [];
@@ -6080,7 +6365,7 @@
       document.getElementById('subtasksCounterText').innerText = `${completed}/${subs.length} concluídas`;
 
       if (subs.length === 0) {
-        container.innerHTML = '<span style="color: #94A3B8; font-size: 11px;">Nenhuma sub-tarefa criada.</span>';
+        container.innerHTML = '<span style="color: #94A3B8; font-size: 10.5px; font-style: italic;">Nenhuma sub-tarefa criada (adicione em Editar).</span>';
         return;
       }
 
@@ -6650,8 +6935,9 @@
       input.focus();
     }
 
-    // Estado de Subtarefas em Rascunho para Criação de Tarefa
+    // Estado de Subtarefas e Dependências em Rascunho para Criação de Tarefa
     let draftSubtasks = [];
+    let draftDependencies = [];
 
     function prepareCreateTaskScreen() {
       const db = getDB();
@@ -6660,8 +6946,16 @@
       if (dateEl) {
         dateEl.innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' });
       }
+      const subCoSel = document.getElementById('createDraftSubtaskAssigneeSelect');
+      if (subCoSel) {
+        const members = getTeamMemberNamesList(db);
+        subCoSel.innerHTML = `<option value="">Mesmo da tarefa</option>` +
+          members.map(m => `<option value="${escapeHtml(m)}">👤 ${escapeHtml(m)}</option>`).join('');
+      }
       draftSubtasks = [];
       renderDraftSubtasks();
+      draftDependencies = [];
+      renderDraftDependencies();
       createTaskSelectedTags = [];
       renderCreateTaskTags();
       initCreateTaskDeadline();
@@ -7017,9 +7311,11 @@
       const input = document.getElementById('createDraftSubtaskInput');
       const title = input ? input.value.trim() : '';
       if (!title) return;
+      const coSel = document.getElementById('createDraftSubtaskAssigneeSelect');
+      const assigneeName = (coSel && coSel.value) ? coSel.value : null;
       draftSubtasks.push({
-        id: 'sub-' + Date.now(),
-        assigneeName: (document.getElementById('inlineSubtaskAssigneeSelect') && document.getElementById('inlineSubtaskAssigneeSelect').value) ? document.getElementById('inlineSubtaskAssigneeSelect').value : null,
+        id: 'sub-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        assigneeName,
         title,
         completed: false
       });
@@ -7040,12 +7336,85 @@
         container.innerHTML = '';
         return;
       }
-      container.innerHTML = draftSubtasks.map((s, idx) => `
-        <div style="display: flex; align-items: center; justify-content: space-between; background: #F8FAFC; border: 1px solid #E2E8F0; padding: 4px 8px; border-radius: 6px; font-size: 11px;">
-          <span style="display: inline-flex; align-items: center; gap: 6px;"><svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>${s.title}</span>
+      container.innerHTML = draftSubtasks.map((s, idx) => {
+        const subAssigneePhoto = s.assigneeName ? resolveUserPhoto(s.assigneeName) : null;
+        return `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; background: #FFFFFF; border: 1px solid #E2E8F0; padding: 5px 8px; border-radius: 6px; font-size: 11px;">
+          <span style="display: inline-flex; align-items: center; gap: 6px; flex: 1; min-width: 0;">
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">• ${escapeHtml(s.title)}</span>
+            ${s.assigneeName ? `<span style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 700; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 1px 5px 1px 2px; border-radius: 9999px; flex-shrink: 0;"><img src="${subAssigneePhoto}" style="width: 12px; height: 12px; border-radius: 50%; object-fit: cover;"> ${escapeHtml(s.assigneeName)}</span>` : ''}
+          </span>
           <button type="button" onclick="removeDraftSubtask(${idx})" style="background: none; border: none; color: #EF4444; font-weight: 700; font-size: 14px; cursor: pointer; padding: 0 4px;">×</button>
         </div>
-      `).join('');
+      `;
+      }).join('');
+    }
+
+    function addDraftDependency() {
+      const selectEl = document.getElementById('createDraftDepSelect');
+      const dependsOnTaskId = selectEl ? selectEl.value : '';
+      if (!dependsOnTaskId) {
+        showToast('Selecione uma tarefa pré-requisito.');
+        return;
+      }
+      if (!Array.isArray(draftDependencies)) draftDependencies = [];
+      if (draftDependencies.some(d => String(d.dependsOnTaskId || d) === String(dependsOnTaskId))) {
+        showToast('Esta tarefa já foi adicionada como pré-requisito.');
+        return;
+      }
+      draftDependencies.push({
+        id: 'dep-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        dependsOnTaskId,
+        dependencyType: 'FINISH_TO_START'
+      });
+      renderDraftDependencies();
+    }
+
+    function removeDraftDependency(index) {
+      if (Array.isArray(draftDependencies)) {
+        draftDependencies.splice(index, 1);
+        renderDraftDependencies();
+      }
+    }
+
+    function renderDraftDependencies() {
+      const container = document.getElementById('draftDependenciesContainer');
+      const selectEl = document.getElementById('createDraftDepSelect');
+      const countBadge = document.getElementById('draftDepsCountBadge');
+      const db = getDB();
+      const teamTasks = (db.tasks || []).filter(t => isTaskInCurrentTeam(t, db));
+      const deps = Array.isArray(draftDependencies) ? draftDependencies : [];
+
+      if (countBadge) {
+        countBadge.innerText = `${deps.length} vinculada${deps.length === 1 ? '' : 's'}`;
+      }
+
+      if (selectEl) {
+        const selectedIds = new Set(deps.map(d => String(d.dependsOnTaskId || d)));
+        const candidates = teamTasks.filter(t => !selectedIds.has(String(t.id)));
+        selectEl.innerHTML = `<option value="">+ Selecionar tarefa pré-requisito...</option>` +
+          candidates.map(c => `<option value="${c.id}">${escapeHtml(c.title)} (${c.status === 'COMPLETED' ? 'Concluída' : 'Pendente'})</option>`).join('');
+      }
+
+      if (!container) return;
+      if (deps.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = deps.map((d, idx) => {
+        const predId = String(d.dependsOnTaskId || d);
+        const pred = (db.tasks || []).find(t => String(t.id) === predId);
+        const isDone = pred ? pred.status === 'COMPLETED' : false;
+        return `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 5px 8px; border-radius: 6px; background: ${isDone ? '#F0FDF4' : '#FEF2F2'}; border: 1px solid ${isDone ? '#BBF7D0' : '#FECACA'}; font-size: 11px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; min-width: 0; flex: 1; font-weight: 600; color: ${isDone ? '#166534' : '#991B1B'};">
+              <span>${isDone ? '✅' : '🔒'}</span>
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(pred ? pred.title : predId)}</span>
+            </span>
+            <button type="button" onclick="removeDraftDependency(${idx})" style="background: none; border: none; color: #DC2626; font-weight: 700; font-size: 14px; cursor: pointer; padding: 0 4px;">×</button>
+          </div>
+        `;
+      }).join('');
     }
 
     // Criar Tarefa Real no Time Ativo (US01)
@@ -7149,6 +7518,16 @@
           _alertsSent: []
         };
 
+        if (Array.isArray(newTask.dependencies) && newTask.dependencies.length > 0) {
+          const hasUnfinishedInitPred = newTask.dependencies.some(d => {
+            const pred = (db.tasks || []).find(t => String(t.id) === String(d.dependsOnTaskId || d));
+            return pred && pred.status !== 'COMPLETED';
+          });
+          if (hasUnfinishedInitPred) {
+            newTask.status = 'BLOCKED';
+          }
+        }
+
         if (isCustomAvatar(assigneeAvatar)) {
           if (!db.userAvatars) db.userAvatars = {};
           db.userAvatars[selectedAssignee.trim().toLowerCase()] = assigneeAvatar;
@@ -7211,6 +7590,18 @@
             }
             newTask._status = 'synced';
             saveDB(db, false);
+            if (Array.isArray(newTask.dependencies) && newTask.dependencies.length > 0) {
+              newTask.dependencies.forEach(d => {
+                const pid = String(d.dependsOnTaskId || d);
+                if (pid) {
+                  apiFetch(`/tasks/${newTask.id}/dependencies`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dependsOnTaskId: pid, dependencyType: 'FINISH_TO_START' })
+                  }).catch(() => {});
+                }
+              });
+            }
           }
           syncWithBackend(true);
         }).catch(err => console.log('[API] Sync task creation offline/background:', err));
@@ -7224,6 +7615,8 @@
         renderCreateTaskTags();
         if (typeof draftSubtasks !== 'undefined') draftSubtasks = [];
         if (typeof renderDraftSubtasks === 'function') renderDraftSubtasks();
+        if (typeof draftDependencies !== 'undefined') draftDependencies = [];
+        if (typeof renderDraftDependencies === 'function') renderDraftDependencies();
 
         // Atualiza imediatamente a interface dos filtros e a lista
         renderFilterDrawerUI();
@@ -10361,21 +10754,20 @@
       let hasBlocking = false;
       if (depListEl) {
         if (deps.length === 0) {
-          depListEl.innerHTML = `<span style="font-size: 10.5px; color: #94A3B8; font-style: italic;">Nenhum pré-requisito vinculado.</span>`;
+          depListEl.innerHTML = `<span style="font-size: 10.5px; color: #94A3B8; font-style: italic;">Nenhum pré-requisito vinculado (adicione em Editar).</span>`;
         } else {
           depListEl.innerHTML = deps.map(d => {
             const predId = String(d.dependsOnTaskId || d);
             const pred = (db.tasks || []).find(t => String(t.id) === predId);
             const isDone = pred ? pred.status === 'COMPLETED' : false;
             if (!isDone) hasBlocking = true;
-            const depKey = d.id || predId;
             return `
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; border-radius: 8px; background: ${isDone ? '#F0FDF4' : '#FEF2F2'}; border: 1px solid ${isDone ? '#BBF7D0' : '#FECACA'}; font-size: 11px;">
                 <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; cursor: pointer;" onclick="openTaskDetail('${predId}')">
                   <span>${isDone ? '✅' : '🔒'}</span>
                   <span style="font-weight: 600; color: ${isDone ? '#166534' : '#991B1B'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(pred ? pred.title : predId)}</span>
                 </div>
-                <button type="button" onclick="handleRemoveTaskDependencyUI('${depKey}')" style="background: none; border: none; color: #DC2626; font-size: 11px; font-weight: 700; cursor: pointer;">✕</button>
+                <span style="font-size: 9.5px; font-weight: 700; color: ${isDone ? '#15803D' : '#DC2626'};">${isDone ? 'Concluída' : 'Pendente'}</span>
               </div>
             `;
           }).join('');
@@ -10428,19 +10820,8 @@
 
     function formatEffortBadgeText(hoursVal, longFormat = false) {
       const h = Number(hoursVal);
-      if (isNaN(h) || h <= 0) return longFormat ? '30 min (0.5h)' : '0.5h';
-      if (h < 1) {
-        const mins = Math.max(5, Math.round(h * 60));
-        return longFormat ? `${mins} min (${h}h)` : `${mins}m (${h}h)`;
-      }
-      if (h % 1 !== 0) {
-        const whole = Math.floor(h);
-        const mins = Math.round((h - whole) * 60);
-        if (mins > 0 && longFormat) {
-          return `${h}h (${whole}h ${mins}m)`;
-        }
-      }
-      return longFormat ? `${h} ${h === 1 ? 'hora' : 'horas'}` : `${h}h`;
+      if (isNaN(h) || h <= 0) return longFormat ? '0.5 hora' : '0.5h';
+      return longFormat ? `${h} ${h <= 1 ? 'hora' : 'horas'}` : `${h}h`;
     }
 
     function initCreateTaskOnda3() {
@@ -10643,7 +11024,7 @@
 
       // Estado inicial vazio (antes de o usuário digitar)
       if (!normTitle && !normDesc && subsList.length === 0 && tagsList.length === 0) {
-        const emptyBase = recurrence === 'DAILY' ? 0.25 : 0.5;
+        const emptyBase = 0.5;
         return {
           estimatedHours: emptyBase,
           formattedShort: formatEffortBadgeText(emptyBase, false),
@@ -10806,18 +11187,14 @@
         }
       } catch (e) {}
 
-      // 12. Quantização inteligente: passos de 0.25h (15m) abaixo de 1h; passos de 0.5h acima de 1h
+      // 12. Quantização em horas (passos de 0.5h até 10h; passos de 1h para épicos maiores)
       let finalHours = 0.5;
-      if (rawHours <= 0.32) {
-        finalHours = 0.25; // 15 min
-      } else if (rawHours < 1.0) {
-        finalHours = Math.round(rawHours * 4) / 4; // 0.25, 0.50, 0.75
-      } else if (rawHours <= 10.0) {
-        finalHours = Math.round(rawHours * 2) / 2; // passos de 0.5h
+      if (rawHours <= 10.0) {
+        finalHours = Math.round(rawHours * 2) / 2; // 0.5h, 1h, 1.5h, 2h, 3h, 5h...
       } else {
-        finalHours = Math.round(rawHours);        // passos de 1.0h para épicos
+        finalHours = Math.round(rawHours);        // passos de 1h
       }
-      finalHours = Math.max(0.25, Math.min(80, finalHours));
+      finalHours = Math.max(0.5, Math.min(80, finalHours));
 
       // 13. Explicação e Confiança
       let confidence = 82;
@@ -11137,7 +11514,7 @@
         currentOccurrence: 1,
         rotationUserIds,
         currentRotationIndex: 0,
-        dependencies: []
+        dependencies: (typeof draftDependencies !== 'undefined' && Array.isArray(draftDependencies)) ? [...draftDependencies] : []
       };
     }
 
